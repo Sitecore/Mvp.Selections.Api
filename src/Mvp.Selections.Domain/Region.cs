@@ -1,6 +1,8 @@
-﻿namespace Mvp.Selections.Domain
+﻿using Mvp.Selections.Domain.Interfaces;
+
+namespace Mvp.Selections.Domain
 {
-    public class Region
+    public class Region : IId<int>
     {
         public int Id { get; set; }
 

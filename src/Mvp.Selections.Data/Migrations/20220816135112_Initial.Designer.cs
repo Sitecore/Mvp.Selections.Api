@@ -12,7 +12,7 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20220812135907_Initial")]
+    [Migration("20220816135112_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1723,7 +1723,7 @@ namespace Mvp.Selections.Data.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             Name = "Admin",
-                            Rights = 2
+                            Rights = 1
                         });
                 });
 

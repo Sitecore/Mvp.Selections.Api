@@ -35,12 +35,14 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IRoleService, RoleService>();
             builder.Services.AddScoped<IRegionService, RegionService>();
             builder.Services.AddScoped<ICountryService, CountryService>();
+            builder.Services.AddScoped<ISelectionService, SelectionService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
             builder.Services.AddScoped<IRegionRepository, RegionRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+            builder.Services.AddScoped<ISelectionRepository, SelectionRepository>();
 
             // Database
             FunctionsHostBuilderContext context = builder.GetContext();

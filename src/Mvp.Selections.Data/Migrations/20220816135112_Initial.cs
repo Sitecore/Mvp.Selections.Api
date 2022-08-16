@@ -714,7 +714,7 @@ namespace Mvp.Selections.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "Discriminator", "Name", "Rights" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "SystemRole", "Admin", 2 });
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "SystemRole", "Admin", 1 });
 
             migrationBuilder.InsertData(
                 table: "Users",

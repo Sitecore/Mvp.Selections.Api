@@ -1,6 +1,8 @@
-﻿namespace Mvp.Selections.Domain
+﻿using Mvp.Selections.Domain.Interfaces;
+
+namespace Mvp.Selections.Domain
 {
-    public class Country
+    public class Country : IId<short>
     {
         public short Id { get; set; }
 

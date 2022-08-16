@@ -18,16 +18,13 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Users : Base
+    public class Users : Base<Users>
     {
-        private readonly ILogger<Users> _logger;
-
         private readonly IUserService _userService;
 
         public Users(ILogger<Users> logger, ISerializerHelper serializer, IAuthService authService, IUserService userService)
-            : base(serializer, authService)
+            : base(logger, serializer, authService)
         {
-            _logger = logger;
             _userService = userService;
         }
 
@@ -36,7 +33,6 @@ namespace Mvp.Selections.Api
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetCurrent(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/users/current")]
@@ -57,7 +53,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
@@ -93,7 +89,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
@@ -130,7 +126,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

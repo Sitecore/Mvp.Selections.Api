@@ -1,13 +1,15 @@
-﻿namespace Mvp.Selections.Domain
+﻿using Mvp.Selections.Domain.Interfaces;
+
+namespace Mvp.Selections.Domain
 {
-    public abstract class Link
+    public abstract class Link : IId<Guid>
     {
         public Guid Id { get; set; }
 
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
-        public Uri Uri { get; set; }
+        public Uri Uri { get; set; } = null!;
     }
 }

@@ -18,16 +18,13 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Roles : Base
+    public class Roles : Base<Roles>
     {
-        private readonly ILogger<Roles> _logger;
-
         private readonly IRoleService _roleService;
 
         public Roles(ILogger<Roles> logger, ISerializerHelper serializer, IAuthService authService, IRoleService roleService)
-            : base(serializer, authService)
+            : base(logger, serializer, authService)
         {
-            _logger = logger;
             _roleService = roleService;
         }
 
@@ -61,7 +58,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
@@ -76,7 +73,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> AddSystemRole(
+        public async Task<IActionResult> AddSystem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/roles/system")]
             HttpRequest req)
         {
@@ -97,7 +94,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
@@ -112,7 +109,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> RemoveRole(
+        public async Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/roles/{id:Guid}")]
             HttpRequest req,
             Guid id)
@@ -133,7 +130,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

@@ -18,16 +18,13 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Countries : Base
+    public class Countries : Base<Countries>
     {
-        private readonly ILogger<Countries> _logger;
-
         private readonly ICountryService _countryService;
 
         public Countries(ILogger<Countries> logger, ISerializerHelper serializer, IAuthService authService, ICountryService countryService)
-            : base(serializer, authService)
+            : base(logger, serializer, authService)
         {
-            _logger = logger;
             _countryService = countryService;
         }
 
@@ -61,7 +58,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

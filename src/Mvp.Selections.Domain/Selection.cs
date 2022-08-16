@@ -1,6 +1,8 @@
-﻿namespace Mvp.Selections.Domain
+﻿using Mvp.Selections.Domain.Interfaces;
+
+namespace Mvp.Selections.Domain
 {
-    public class Selection
+    public class Selection : IId<Guid>
     {
         public Guid Id { get; set; }
 

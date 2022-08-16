@@ -1721,7 +1721,7 @@ namespace Mvp.Selections.Data.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             Name = "Admin",
-                            Rights = 2
+                            Rights = 1
                         });
                 });
 
