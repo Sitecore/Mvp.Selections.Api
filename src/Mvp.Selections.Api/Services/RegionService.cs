@@ -72,9 +72,9 @@ namespace Mvp.Selections.Api.Services
             await _countryRepository.SaveChangesAsync();
         }
 
-        public async Task<Region> UpdateRegionAsync(Region region)
+        public async Task<Region> UpdateRegionAsync(int id, Region region)
         {
-            Region result = await GetAsync(region.Id);
+            Region result = await GetAsync(id);
             result.Name = region.Name;
             await _regionRepository.SaveChangesAsync();
             return result;

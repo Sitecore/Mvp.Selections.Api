@@ -16,5 +16,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
         public Task<Selection> AddSelectionAsync(Selection selection);
 
         public Task RemoveSelectionAsync(Guid id);
+
+        public Task<Selection> UpdateSelectionAsync(Guid id, Selection selection);
     }
 }

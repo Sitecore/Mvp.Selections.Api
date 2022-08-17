@@ -160,7 +160,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
-                    Region region = await _regionService.UpdateRegionAsync(input);
+                    Region region = await _regionService.UpdateRegionAsync(id, input);
                     result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else

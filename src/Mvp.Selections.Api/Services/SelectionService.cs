@@ -55,5 +55,19 @@ namespace Mvp.Selections.Api.Services
             await _selectionRepository.RemoveAsync(id);
             await _selectionRepository.SaveChangesAsync();
         }
+
+        public async Task<Selection> UpdateSelectionAsync(Guid id, Selection selection)
+        {
+            Selection result = await GetAsync(id);
+            result.Year = selection.Year;
+            result.ApplicationsActive = selection.ApplicationsActive;
+            result.ApplicationsStart = selection.ApplicationsStart;
+            result.ApplicationsEnd = selection.ApplicationsEnd;
+            result.ReviewsActive = selection.ReviewsActive;
+            result.ReviewsStart = selection.ReviewsStart;
+            result.ReviewsEnd = selection.ReviewsEnd;
+            await _selectionRepository.SaveChangesAsync();
+            return result;
+        }
     }
 }

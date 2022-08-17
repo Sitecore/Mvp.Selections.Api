@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -33,11 +31,6 @@ namespace Mvp.Selections.Api.Services
             _userRepository = userRepository;
         }
 
-        public bool HasRight(AuthResult authResult, Right right)
-        {
-            return (authResult.UserRights & right) == right;
-        }
-
         public async Task<AuthResult> ValidateAsync(HttpRequest request, params Right[] rights)
         {
             AuthResult result = new ();
@@ -64,26 +57,9 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private static void CalculateRights(AuthResult result)
+        private static void ValidateRights(AuthResult result, IEnumerable<Right> rights)
         {
-            if (result.User != null)
-            {
-                Right userRights = Right.Any;
-                foreach (Role role in result.User.Roles)
-                {
-                    if (role is SystemRole systemRole)
-                    {
-                        userRights |= systemRole.Rights;
-                    }
-                }
-
-                result.UserRights = userRights;
-            }
-        }
-
-        private void ValidateRights(AuthResult result, IEnumerable<Right> rights)
-        {
-            result.StatusCode = rights.Aggregate(false, (current, right) => current | HasRight(result, right))
+            result.StatusCode = rights.Aggregate(false, (current, right) => current | result.User.HasRight(right))
                 ? HttpStatusCode.OK
                 : HttpStatusCode.Forbidden;
         }
@@ -95,8 +71,7 @@ namespace Mvp.Selections.Api.Services
                 if (_tokenHandler.CanReadToken(authHeader.Token))
                 {
                     result.TokenUser = new OktaUser(_tokenHandler.ReadJwtToken(authHeader.Token), _tokenOptions);
-                    result.User = await _userRepository.GetAsync(result.TokenUser.Identifier, user => user.Roles);
-                    CalculateRights(result);
+                    result.User = await _userRepository.GetForAuthAsync(result.TokenUser.Identifier);
                     ValidateRights(result, rights);
                 }
                 else

@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Client.Configuration;
@@ -11,6 +12,8 @@ namespace Mvp.Selections.Client
 {
     public class MvpSelectionsApiClient
     {
+        public const string AuthorizationScheme = "Bearer";
+
         private static readonly JsonSerializerOptions JsonSerializerOptions = new ()
             { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
@@ -24,111 +27,166 @@ namespace Mvp.Selections.Client
 
         #region Users
 
-        public async Task<Response<User>> GetUser(Guid id)
+        public async Task<Response<User>> GetUserAsync(Guid id, string token)
         {
-            return await GetAsync<User>($"/api/v1/users/{id}");
+            return await GetAsync<User>($"/api/v1/users/{id}", token);
         }
 
-        public async Task<Response<User>> GetCurrentUser()
+        public async Task<Response<User>> GetCurrentUserAsync(string token)
         {
-            return await GetAsync<User>("/api/v1/users/current");
+            return await GetAsync<User>("/api/v1/users/current", token);
         }
 
-        public Task<Response<IList<User>>> GetUsers(int page = 1, short pageSize = 100)
+        public Task<Response<IList<User>>> GetUsersAsync(string token, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetUsers(listParameters);
+            return GetUsersAsync(token, listParameters);
         }
 
-        public async Task<Response<IList<User>>> GetUsers(ListParameters listParameters)
+        public async Task<Response<IList<User>>> GetUsersAsync(string token, ListParameters listParameters)
         {
-            return await GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}");
+            return await GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}", token);
         }
 
         #endregion Users
 
         #region Regions
 
-        public async Task<Response<Region>> GetRegion(int id)
+        public async Task<Response<Region>> GetRegionAsync(int id, string token)
         {
-            return await GetAsync<Region>($"/api/v1/regions/{id}");
+            return await GetAsync<Region>($"/api/v1/regions/{id}", token);
         }
 
-        public Task<Response<IList<Region>>> GetRegions(int page = 1, short pageSize = 100)
+        public Task<Response<IList<Region>>> GetRegionsAsync(string token, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetRegions(listParameters);
+            return GetRegionsAsync(token, listParameters);
         }
 
-        public async Task<Response<IList<Region>>> GetRegions(ListParameters listParameters)
+        public async Task<Response<IList<Region>>> GetRegionsAsync(string token, ListParameters listParameters)
         {
-            return await GetAsync<IList<Region>>($"/api/v1/regions?{listParameters.ToQueryString()}");
+            return await GetAsync<IList<Region>>($"/api/v1/regions?{listParameters.ToQueryString()}", token);
         }
 
-        public async Task<Response<Region>> AddRegion(Region region)
+        public async Task<Response<Region>> AddRegionAsync(Region region, string token)
         {
-            return await PostAsync<Region>("/api/v1/regions", region);
+            return await PostAsync<Region>("/api/v1/regions", token, region);
         }
 
-        public async Task<Response<bool>> RemoveRegion(int id)
+        public async Task<Response<Region>> UpdateRegionAsync(Region region, string token)
         {
-            return await DeleteAsync($"/api/v1/regions/{id}");
+            return await PatchAsync<Region>($"/api/v1/regions/{region.Id}", token, region);
         }
 
-        public async Task<Response<object>> AssignCountryToRegion(int regionId, short countryId)
+        public async Task<Response<bool>> RemoveRegionAsync(int id, string token)
+        {
+            return await DeleteAsync($"/api/v1/regions/{id}", token);
+        }
+
+        public async Task<Response<object>> AssignCountryToRegionAsync(int regionId, short countryId, string token)
         {
             AssignCountryToRegion content = new () { CountryId = countryId };
-            return await PostAsync<object>($"/api/v1/regions/{regionId}", content);
+            return await PostAsync<object>($"/api/v1/regions/{regionId}", token, content);
         }
 
         #endregion Regions
 
         #region Roles
 
-        public Task<Response<IList<SystemRole>>> GetSystemRoles(int page = 1, short pageSize = 100)
+        public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(string token, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetSystemRoles(listParameters);
+            return GetSystemRolesAsync(token, listParameters);
         }
 
-        public async Task<Response<IList<SystemRole>>> GetSystemRoles(ListParameters listParameters)
+        public async Task<Response<IList<SystemRole>>> GetSystemRolesAsync(string token, ListParameters listParameters)
         {
-            return await GetAsync<IList<SystemRole>>($"/api/v1/roles/system?{listParameters.ToQueryString()}");
+            return await GetAsync<IList<SystemRole>>($"/api/v1/roles/system?{listParameters.ToQueryString()}", token);
         }
 
-        public async Task<Response<SystemRole>> AddSystemRole(SystemRole systemRole)
+        public async Task<Response<SystemRole>> AddSystemRoleAsync(SystemRole systemRole, string token)
         {
-            return await PostAsync<SystemRole>("/api/v1/roles/system", systemRole);
+            return await PostAsync<SystemRole>("/api/v1/roles/system", token, systemRole);
         }
 
-        public async Task<Response<bool>> RemoveRole(Guid id)
+        public async Task<Response<bool>> RemoveRoleAsync(Guid id, string token)
         {
-            return await DeleteAsync($"/api/v1/roles/{id}");
+            return await DeleteAsync($"/api/v1/roles/{id}", token);
         }
 
         #endregion Roles
 
         #region Countries
 
-        public Task<Response<IList<Country>>> GetCountries(int page = 1, short pageSize = 100)
+        public Task<Response<IList<Country>>> GetCountriesAsync(string token, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetCountries(listParameters);
+            return GetCountriesAsync(token, listParameters);
         }
 
-        public async Task<Response<IList<Country>>> GetCountries(ListParameters listParameters)
+        public async Task<Response<IList<Country>>> GetCountriesAsync(string token, ListParameters listParameters)
         {
-            return await GetAsync<IList<Country>>($"/api/v1/countries?{listParameters.ToQueryString()}");
+            return await GetAsync<IList<Country>>($"/api/v1/countries?{listParameters.ToQueryString()}", token);
         }
 
         #endregion Countries
 
+        #region Selections
+
+        public async Task<Response<Selection>> GetSelectionAsync(Guid id, string token)
+        {
+            return await GetAsync<Selection>($"/api/v1/selections/{id}", token);
+        }
+
+        public Task<Response<IList<Selection>>> GetSelectionsAsync(string token, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetSelectionsAsync(token, listParameters);
+        }
+
+        public async Task<Response<IList<Selection>>> GetSelectionsAsync(string token, ListParameters listParameters)
+        {
+            return await GetAsync<IList<Selection>>($"/api/v1/selections?{listParameters.ToQueryString()}", token);
+        }
+
+        public async Task<Response<Selection>> AddSelectionAsync(Selection selection, string token)
+        {
+            return await PostAsync<Selection>("/api/v1/selections", token, selection);
+        }
+
+        public async Task<Response<Selection>> UpdateSelectionAsync(Selection selection, string token)
+        {
+            return await PatchAsync<Selection>($"/api/v1/selections/{selection.Id}", token, selection);
+        }
+
+        public async Task<Response<bool>> RemoveSelectionAsync(Guid id, string token)
+        {
+            return await DeleteAsync($"api/v1/selections/{id}", token);
+        }
+
+        #endregion Selections
+
+        #region Applications
+
+        public async Task<Response<Application>> GetApplicationAsync(Guid id, string token)
+        {
+            return await GetAsync<Application>($"/api/v1/applications/{id}", token);
+        }
+
+        #endregion Applications
+
         #region Private
 
-        private async Task<Response<T>> GetAsync<T>(string requestUri)
+        private async Task<Response<T>> GetAsync<T>(string requestUri, string token)
         {
             Response<T> result = new ();
-            using HttpResponseMessage response = await _client.GetAsync(requestUri);
+            HttpRequestMessage request = new ()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(requestUri)
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            using HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 result.Object = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
@@ -142,10 +200,18 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<T>> PostAsync<T>(string requestUri, object content)
+        private async Task<Response<T>> PostAsync<T>(string requestUri, string token, object content)
         {
             Response<T> result = new ();
-            HttpResponseMessage response = await _client.PostAsJsonAsync(requestUri, content, JsonSerializerOptions);
+            JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
+            HttpRequestMessage request = new ()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(requestUri),
+                Content = jsonContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 result.Object = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
@@ -159,10 +225,41 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<bool>> DeleteAsync(string requestUri)
+        private async Task<Response<T>> PatchAsync<T>(string requestUri, string token, object content)
+        {
+            Response<T> result = new ();
+            JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
+            HttpRequestMessage request = new ()
+            {
+                Method = HttpMethod.Patch,
+                RequestUri = new Uri(requestUri),
+                Content = jsonContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            HttpResponseMessage response = await _client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                result.Object = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+            }
+            else
+            {
+                result.Message = await response.Content.ReadAsStringAsync();
+            }
+
+            result.StatusCode = response.StatusCode;
+            return result;
+        }
+
+        private async Task<Response<bool>> DeleteAsync(string requestUri, string token)
         {
             Response<bool> result = new ();
-            HttpResponseMessage response = await _client.DeleteAsync(requestUri);
+            HttpRequestMessage request = new ()
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(requestUri)
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 result.Object = true;

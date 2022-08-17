@@ -16,6 +16,6 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         public Task RemoveRegionAsync(int id);
 
-        public Task<Region> UpdateRegionAsync(Region region);
+        public Task<Region> UpdateRegionAsync(int id, Region region);
     }
 }

@@ -169,6 +169,44 @@ namespace Mvp.Selections.Api
             return result;
         }
 
+        [FunctionName("UpdateSelection")]
+        [OpenApiOperation(operationId: "UpdateSelection", "Selections", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiRequestBody(JsonContentType, typeof(Selection))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> Update(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "api/v1/selections/{id:Guid}")]
+            HttpRequest req,
+            Guid id)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    Selection input = await Serializer.DeserializeAsync<Selection>(req.Body);
+                    Selection selection = await _selectionService.UpdateSelectionAsync(id, input);
+                    result = new ContentResult { Content = Serializer.Serialize(selection), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
         [FunctionName("RemoveSelection")]
         [OpenApiOperation(operationId: "RemoveSelection", "Selections", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
