@@ -28,16 +28,16 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public Task RemoveRoleAsync(Guid id)
+        public async Task RemoveRoleAsync(Guid id)
         {
-            _roleRepository.Remove(id);
-            return _roleRepository.SaveChangesAsync();
+            await _roleRepository.RemoveAsync(id);
+            await _roleRepository.SaveChangesAsync();
         }
 
-        public IList<T> GetAll<T>(int page = 1, short pageSize = 100)
+        public Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Role
         {
-            return _roleRepository.GetAll<T>(page, pageSize);
+            return _roleRepository.GetAllAsync<T>(page, pageSize);
         }
     }
 }

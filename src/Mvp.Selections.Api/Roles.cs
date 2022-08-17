@@ -48,7 +48,7 @@ namespace Mvp.Selections.Api
                 if (authResult.TokenUser != null)
                 {
                     ListParameters lp = new (req);
-                    IList<SystemRole> systemRoles = _roleService.GetAll<SystemRole>(lp.Page, lp.PageSize);
+                    IList<SystemRole> systemRoles = await _roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(systemRoles), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else

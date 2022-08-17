@@ -22,14 +22,14 @@ namespace Mvp.Selections.Api.Services
             _countryRepository = countryRepository;
         }
 
-        public Region Get(int id)
+        public Task<Region> GetAsync(int id)
         {
-            return _regionRepository.Get(id);
+            return _regionRepository.GetAsync(id);
         }
 
-        public IList<Region> GetAll(int page = 1, short pageSize = 100)
+        public Task<IList<Region>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _regionRepository.GetAll(page, pageSize);
+            return _regionRepository.GetAllAsync(page, pageSize);
         }
 
         public async Task<Region> AddRegionAsync(Region region)
@@ -46,8 +46,8 @@ namespace Mvp.Selections.Api.Services
         public async Task<bool> AssignCountryAsync(int regionId, short countryId)
         {
             bool result = false;
-            Region region = _regionRepository.Get(regionId);
-            Country country = _countryRepository.Get(countryId);
+            Region region = await _regionRepository.GetAsync(regionId);
+            Country country = await _countryRepository.GetAsync(countryId);
             if (region != null && country != null)
             {
                 country.Region = region;
@@ -68,8 +68,16 @@ namespace Mvp.Selections.Api.Services
 
         public async Task RemoveRegionAsync(int id)
         {
-            _regionRepository.Remove(id);
+            await _regionRepository.RemoveAsync(id);
             await _countryRepository.SaveChangesAsync();
+        }
+
+        public async Task<Region> UpdateRegionAsync(Region region)
+        {
+            Region result = await GetAsync(region.Id);
+            result.Name = region.Name;
+            await _regionRepository.SaveChangesAsync();
+            return result;
         }
     }
 }

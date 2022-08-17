@@ -17,19 +17,20 @@ namespace Mvp.Selections.Api.Services
             _selectionRepository = selectionRepository;
         }
 
-        public Selection GetCurrent()
+        public async Task<Selection> GetCurrentAsync()
         {
-            return _selectionRepository.GetAllActive().FirstOrDefault();
+            IList<Selection> activeSelections = await _selectionRepository.GetAllActiveAsync();
+            return activeSelections.FirstOrDefault();
         }
 
-        public Selection Get(Guid id)
+        public Task<Selection> GetAsync(Guid id)
         {
-            return _selectionRepository.Get(id);
+            return _selectionRepository.GetAsync(id);
         }
 
-        public IList<Selection> GetAll(int page = 1, short pageSize = 100)
+        public Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _selectionRepository.GetAll(page, pageSize);
+            return _selectionRepository.GetAllAsync(page, pageSize);
         }
 
         public async Task<Selection> AddSelectionAsync(Selection selection)
@@ -51,7 +52,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task RemoveSelectionAsync(Guid id)
         {
-            _selectionRepository.Remove(id);
+            await _selectionRepository.RemoveAsync(id);
             await _selectionRepository.SaveChangesAsync();
         }
     }

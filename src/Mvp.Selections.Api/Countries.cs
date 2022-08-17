@@ -48,7 +48,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);
-                    IList<Country> countries = _countryService.GetAll(lp.Page, lp.PageSize);
+                    IList<Country> countries = await _countryService.GetAllAsync(lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(countries), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else

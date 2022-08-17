@@ -79,7 +79,7 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    User user = _userService.Get(id);
+                    User user = await _userService.GetAsync(id);
                     result = new ContentResult { Content = Serializer.Serialize(user), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -116,7 +116,7 @@ namespace Mvp.Selections.Api
                 if (authResult.TokenUser != null)
                 {
                     ListParameters lp = new (req);
-                    IList<User> users = _userService.GetAll(lp.Page, lp.PageSize);
+                    IList<User> users = await _userService.GetAllAsync(lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(users), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else

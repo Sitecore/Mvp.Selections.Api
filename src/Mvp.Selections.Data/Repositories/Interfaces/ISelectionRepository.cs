@@ -4,16 +4,16 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
 {
     public interface ISelectionRepository : IBaseRepository<Selection, Guid>
     {
-        public IList<Selection> GetAllActive();
+        public Task<IList<Selection>> GetAllActiveAsync();
 
-        public IList<Selection> GetAllActive(DateTime dateTime);
+        public Task<IList<Selection>> GetAllActiveAsync(DateTime dateTime);
 
-        public IList<Selection> GetActiveForApplication();
+        public Task<IList<Selection>> GetActiveForApplicationAsync();
 
-        public IList<Selection> GetActiveForApplication(DateTime dateTime);
+        public Task<IList<Selection>> GetActiveForApplicationAsync(DateTime dateTime);
 
-        public IList<Selection> GetActiveForReview();
+        public Task<IList<Selection>> GetActiveForReviewAsync();
 
-        public IList<Selection> GetActiveForReview(DateTime dateTime);
+        public Task<IList<Selection>> GetActiveForReviewAsync(DateTime dateTime);
     }
 }

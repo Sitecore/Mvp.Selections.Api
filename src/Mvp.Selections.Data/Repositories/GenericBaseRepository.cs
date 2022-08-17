@@ -15,37 +15,19 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public T? Get(TId id)
-        {
-            return Get(id, Array.Empty<Expression<Func<T, bool>>>());
-        }
-
-        public T? Get(TId id, IEnumerable<Expression<Func<T, bool>>> includes)
+        public async Task<T?> GetAsync(TId id, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = Context.Set<T>();
-            foreach (Expression<Func<T, bool>> include in includes)
-            {
-                query.Include(include);
-            }
-
-            return query.SingleOrDefault(t => t.Id.Equals(id));
+            query = includes.Aggregate(query, (current, include) => current.Include(include));
+            return await query.SingleOrDefaultAsync(t => t.Id.Equals(id));
         }
 
-        public IList<T> GetAll(int page = 1, short pageSize = 100)
-        {
-            return GetAll(Array.Empty<Expression<Func<T, bool>>>(), page, pageSize);
-        }
-
-        public IList<T> GetAll(IEnumerable<Expression<Func<T, bool>>> includes, int page = 1, short pageSize = 100)
+        public async Task<IList<T>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes)
         {
             page--;
             IQueryable<T> query = Context.Set<T>();
-            foreach (Expression<Func<T, bool>> include in includes)
-            {
-                query.Include(include);
-            }
-
-            return query.Skip(page * pageSize).Take(pageSize).ToList();
+            query = includes.Aggregate(query, (current, include) => current.Include(include));
+            return await query.Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
 
         public T Add(T entity)
@@ -53,10 +35,10 @@ namespace Mvp.Selections.Data.Repositories
             return Context.Set<T>().Add(entity).Entity;
         }
 
-        public bool Remove(TId id)
+        public async Task<bool> RemoveAsync(TId id)
         {
             bool result = false;
-            T? entity = Get(id);
+            T? entity = await GetAsync(id);
             if (entity != null)
             {
                 Context.Set<T>().Remove(entity);

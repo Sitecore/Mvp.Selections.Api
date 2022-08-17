@@ -43,7 +43,7 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    Selection current = _selectionService.GetCurrent();
+                    Selection current = await _selectionService.GetCurrentAsync();
                     result = new ContentResult { Content = Serializer.Serialize(current), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -79,7 +79,7 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    Selection selection = _selectionService.Get(id);
+                    Selection selection = await _selectionService.GetAsync(id);
                     result = new ContentResult { Content = Serializer.Serialize(selection), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -116,7 +116,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);
-                    IList<Selection> selections = _selectionService.GetAll(lp.Page, lp.PageSize);
+                    IList<Selection> selections = await _selectionService.GetAllAsync(lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(selections), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else

@@ -1,4 +1,6 @@
-﻿using Mvp.Selections.Data.Repositories.Interfaces;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
@@ -10,9 +12,15 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public User? Get(string identifier)
+        public async Task<User?> GetAsync(string identifier, params Expression<Func<User, object>>[] includes)
         {
-            return Context.Users.SingleOrDefault(u => u.Identifier == identifier);
+            IQueryable<User> query = Context.Users;
+            foreach (Expression<Func<User, object>> include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.SingleOrDefaultAsync(u => u.Identifier == identifier);
         }
     }
 }

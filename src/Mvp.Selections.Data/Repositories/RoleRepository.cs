@@ -1,4 +1,5 @@
-﻿using Mvp.Selections.Data.Repositories.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
@@ -10,11 +11,11 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public IList<T> GetAll<T>(int page = 1, short pageSize = 100)
+        public async Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Role
         {
             page--;
-            return Context.Roles.OfType<T>().Skip(page * pageSize).Take(pageSize).ToList();
+            return await Context.Roles.OfType<T>().Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
     }
 }

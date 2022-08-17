@@ -49,7 +49,7 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    Region region = _regionService.Get(id);
+                    Region region = await _regionService.GetAsync(id);
                     result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -86,7 +86,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);
-                    IList<Region> regions = _regionService.GetAll(lp.Page, lp.PageSize);
+                    IList<Region> regions = await _regionService.GetAllAsync(lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(regions), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -123,6 +123,44 @@ namespace Mvp.Selections.Api
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
                     Region region = await _regionService.AddRegionAsync(input);
+                    result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("UpdateRegion")]
+        [OpenApiOperation(operationId: "UpdateRegion", "Regions", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiRequestBody(JsonContentType, typeof(Region))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Region))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> Update(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "api/v1/regions/{id:int}")]
+            HttpRequest req,
+            int id)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    Region input = await Serializer.DeserializeAsync<Region>(req.Body);
+                    Region region = await _regionService.UpdateRegionAsync(input);
                     result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else

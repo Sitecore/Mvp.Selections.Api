@@ -50,18 +50,6 @@ namespace Mvp.Selections.Data
 
             modelBuilder.Entity<User>()
                 .HasData(new { Id = adminUserId, Identifier = "00uid4BxXw6I6TV4m0g3", CountryId = (short)21, ImageType = ImageType.Anonymous });
-            modelBuilder.Entity<User>()
-                .Navigation(u => u.Consents)
-                .AutoInclude();
-            modelBuilder.Entity<User>()
-                .Navigation(u => u.Country)
-                .AutoInclude();
-            modelBuilder.Entity<User>()
-                .Navigation(u => u.Roles)
-                .AutoInclude();
-            modelBuilder.Entity<User>()
-                .Navigation(u => u.Titles)
-                .AutoInclude();
 
             modelBuilder.Entity("RoleUser")
                 .HasData(new { UsersId = adminUserId, RolesId = adminSystemRoleId });

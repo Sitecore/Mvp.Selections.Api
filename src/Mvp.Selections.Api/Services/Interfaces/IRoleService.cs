@@ -11,7 +11,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         public Task RemoveRoleAsync(Guid id);
 
-        public IList<T> GetAll<T>(int page = 1, short pageSize = 100)
+        public Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Role;
     }
 }

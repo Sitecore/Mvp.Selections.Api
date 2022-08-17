@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -93,7 +95,7 @@ namespace Mvp.Selections.Api.Services
                 if (_tokenHandler.CanReadToken(authHeader.Token))
                 {
                     result.TokenUser = new OktaUser(_tokenHandler.ReadJwtToken(authHeader.Token), _tokenOptions);
-                    result.User = _userRepository.Get(result.TokenUser.Identifier);
+                    result.User = await _userRepository.GetAsync(result.TokenUser.Identifier, user => user.Roles);
                     CalculateRights(result);
                     ValidateRights(result, rights);
                 }
