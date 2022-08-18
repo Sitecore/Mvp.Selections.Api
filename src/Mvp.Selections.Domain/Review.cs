@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public class Review : IId<Guid>
+    public class Review : BaseEntity<Guid>
     {
-        public Guid Id { get; set; }
+        public Review(Guid id)
+            : base(id)
+        {
+        }
 
         public string Comment { get; set; } = string.Empty;
 

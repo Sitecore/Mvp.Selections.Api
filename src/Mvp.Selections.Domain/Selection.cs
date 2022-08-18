@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public class Selection : IId<Guid>
+    public class Selection : BaseEntity<Guid>
     {
-        public Guid Id { get; set; }
+        public Selection(Guid id)
+            : base(id)
+        {
+        }
 
         public short Year { get; set; }
 
@@ -20,6 +21,6 @@ namespace Mvp.Selections.Domain
 
         public DateTime ReviewsEnd { get; set; }
 
-        public ICollection<Title> Titles { get; set; } = new List<Title>();
+        public ICollection<Title> Titles { get; } = new List<Title>();
     }
 }

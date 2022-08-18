@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public class Application : IId<Guid>
+    public class Application : BaseEntity<Guid>
     {
-        public Guid Id { get; set; }
+        public Application(Guid id)
+            : base(id)
+        {
+        }
 
         public string? Eligibility { get; set; }
 

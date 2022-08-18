@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetCurrentSelection")]
-        [OpenApiOperation(operationId: "GetCurrentSelection", "Selections")]
+        [OpenApiOperation("GetCurrentSelection", "Selections")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
@@ -61,7 +61,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetSelection")]
-        [OpenApiOperation(operationId: "GetSelection", "Selections", "Admin")]
+        [OpenApiOperation("GetSelection", "Selections", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
@@ -97,7 +97,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllSelections")]
-        [OpenApiOperation(operationId: "GetAllSelections", "Selections", "Admin")]
+        [OpenApiOperation("GetAllSelections", "Selections", "Admin")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -134,7 +134,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("AddSelection")]
-        [OpenApiOperation(operationId: "AddSelection", "Selections", "Admin")]
+        [OpenApiOperation("AddSelection", "Selections", "Admin")]
         [OpenApiRequestBody(JsonContentType, typeof(Selection))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
@@ -170,7 +170,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("UpdateSelection")]
-        [OpenApiOperation(operationId: "UpdateSelection", "Selections", "Admin")]
+        [OpenApiOperation("UpdateSelection", "Selections", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
         [OpenApiRequestBody(JsonContentType, typeof(Selection))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -208,7 +208,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("RemoveSelection")]
-        [OpenApiOperation(operationId: "RemoveSelection", "Selections", "Admin")]
+        [OpenApiOperation("RemoveSelection", "Selections", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]

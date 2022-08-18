@@ -23,6 +23,19 @@ namespace Mvp.Selections.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Regions",
                 columns: table => new
                 {
@@ -104,7 +117,7 @@ namespace Mvp.Selections.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Identifier = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Identifier = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ImageType = table.Column<int>(type: "int", nullable: false),
                     CountryId = table.Column<short>(type: "smallint", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
@@ -112,6 +125,7 @@ namespace Mvp.Selections.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.UniqueConstraint("AK_Users_Identifier", x => x.Identifier);
                     table.ForeignKey(
                         name: "FK_Users_Countries_CountryId",
                         column: x => x.CountryId,
@@ -358,22 +372,27 @@ namespace Mvp.Selections.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "ApplicationLinkProduct",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ApplicationLinkId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    ApplicationLinksId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RelatedProductsId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_ApplicationLinkProduct", x => new { x.ApplicationLinksId, x.RelatedProductsId });
                     table.ForeignKey(
-                        name: "FK_Products_ApplicationLinks_ApplicationLinkId",
-                        column: x => x.ApplicationLinkId,
+                        name: "FK_ApplicationLinkProduct_ApplicationLinks_ApplicationLinksId",
+                        column: x => x.ApplicationLinksId,
                         principalTable: "ApplicationLinks",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApplicationLinkProduct_Products_RelatedProductsId",
+                        column: x => x.RelatedProductsId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -727,6 +746,11 @@ namespace Mvp.Selections.Data.Migrations
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new Guid("00000000-0000-0000-0000-000000000001") });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ApplicationLinkProduct_RelatedProductsId",
+                table: "ApplicationLinkProduct",
+                column: "RelatedProductsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ApplicationLinks_ApplicationId",
                 table: "ApplicationLinks",
                 column: "ApplicationId");
@@ -760,11 +784,6 @@ namespace Mvp.Selections.Data.Migrations
                 name: "IX_Countries_RegionId",
                 table: "Countries",
                 column: "RegionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_ApplicationLinkId",
-                table: "Products",
-                column: "ApplicationLinkId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProfileLinks_UserId",
@@ -870,10 +889,10 @@ namespace Mvp.Selections.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Consents");
+                name: "ApplicationLinkProduct");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Consents");
 
             migrationBuilder.DropTable(
                 name: "ProfileLinks");
@@ -889,6 +908,9 @@ namespace Mvp.Selections.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "ApplicationLinks");
+
+            migrationBuilder.DropTable(
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Reviews");

@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllSystemRoles")]
-        [OpenApiOperation(operationId: "GetAllSystemRoles", "Roles", "Admin")]
+        [OpenApiOperation("GetAllSystemRoles", "Roles", "Admin")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -66,7 +66,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("AddSystemRole")]
-        [OpenApiOperation(operationId: "AddSystemRole", "Roles", "Admin")]
+        [OpenApiOperation("AddSystemRole", "Roles", "Admin")]
         [OpenApiRequestBody(JsonContentType, typeof(SystemRole))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SystemRole))]
@@ -102,7 +102,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("RemoveRole")]
-        [OpenApiOperation(operationId: "RemoveRole", "Roles", "Admin")]
+        [OpenApiOperation("RemoveRole", "Roles", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]

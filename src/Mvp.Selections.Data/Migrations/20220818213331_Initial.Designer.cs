@@ -12,7 +12,7 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20220816135112_Initial")]
+    [Migration("20220818213331_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,6 +23,21 @@ namespace Mvp.Selections.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("ApplicationLinkProduct", b =>
+                {
+                    b.Property<Guid>("ApplicationLinksId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RelatedProductsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ApplicationLinksId", "RelatedProductsId");
+
+                    b.HasIndex("RelatedProductsId");
+
+                    b.ToTable("ApplicationLinkProduct");
+                });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Application", b =>
                 {
@@ -1370,16 +1385,11 @@ namespace Mvp.Selections.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<Guid?>("ApplicationLinkId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationLinkId");
 
                     b.ToTable("Products");
                 });
@@ -1629,7 +1639,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.Property<string>("Identifier")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("ImageType")
                         .HasColumnType("int");
@@ -1638,6 +1648,8 @@ namespace Mvp.Selections.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Identifier");
 
                     b.HasIndex("CountryId");
 
@@ -1727,6 +1739,21 @@ namespace Mvp.Selections.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ApplicationLinkProduct", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.ApplicationLink", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationLinksId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mvp.Selections.Domain.Product", null)
+                        .WithMany()
+                        .HasForeignKey("RelatedProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Mvp.Selections.Domain.Application", b =>
                 {
                     b.HasOne("Mvp.Selections.Domain.User", "Applicant")
@@ -1787,13 +1814,6 @@ namespace Mvp.Selections.Data.Migrations
                         .HasForeignKey("RegionId");
 
                     b.Navigation("Region");
-                });
-
-            modelBuilder.Entity("Mvp.Selections.Domain.Product", b =>
-                {
-                    b.HasOne("Mvp.Selections.Domain.ApplicationLink", null)
-                        .WithMany("RelatedProducts")
-                        .HasForeignKey("ApplicationLinkId");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ProfileLink", b =>
@@ -1978,11 +1998,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("Links");
 
                     b.Navigation("Reviews");
-                });
-
-            modelBuilder.Entity("Mvp.Selections.Domain.ApplicationLink", b =>
-                {
-                    b.Navigation("RelatedProducts");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Country", b =>

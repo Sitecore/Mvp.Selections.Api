@@ -7,16 +7,16 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface ISelectionService
     {
-        public Task<Selection> GetCurrentAsync();
+        Task<Selection> GetCurrentAsync();
 
-        public Task<Selection> GetAsync(Guid id);
+        Task<Selection> GetAsync(Guid id);
 
-        public Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100);
+        Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100);
 
-        public Task<Selection> AddSelectionAsync(Selection selection);
+        Task<Selection> AddSelectionAsync(Selection selection);
 
-        public Task RemoveSelectionAsync(Guid id);
+        Task RemoveSelectionAsync(Guid id);
 
-        public Task<Selection> UpdateSelectionAsync(Guid id, Selection selection);
+        Task<Selection> UpdateSelectionAsync(Guid id, Selection selection);
     }
 }

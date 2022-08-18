@@ -7,8 +7,8 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IUserService
     {
-        public Task<User> GetAsync(Guid id);
+        Task<User> GetAsync(Guid id);
 
-        public Task<IList<User>> GetAllAsync(int page = 1, short pageSize = 100);
+        Task<IList<User>> GetAllAsync(int page = 1, short pageSize = 100);
     }
 }

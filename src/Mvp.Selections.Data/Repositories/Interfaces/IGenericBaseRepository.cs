@@ -8,12 +8,12 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
         where T : class, IId<TId>
         where TId : IEquatable<TId>
     {
-        public Task<T?> GetAsync(TId id, params Expression<Func<T, object>>[] includes);
+        Task<T?> GetAsync(TId id, params Expression<Func<T, object>>[] includes);
 
-        public Task<IList<T>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes);
+        Task<IList<T>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes);
 
-        public T Add(T entity);
+        T Add(T entity);
 
-        public Task<bool> RemoveAsync(TId id);
+        Task<bool> RemoveAsync(TId id);
     }
 }

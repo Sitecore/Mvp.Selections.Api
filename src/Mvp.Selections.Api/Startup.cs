@@ -36,6 +36,9 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IRegionService, RegionService>();
             builder.Services.AddScoped<ICountryService, CountryService>();
             builder.Services.AddScoped<ISelectionService, SelectionService>();
+            builder.Services.AddScoped<IApplicationService, ApplicationService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IMvpTypeService, MvpTypeService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -43,6 +46,9 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IRegionRepository, RegionRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
             builder.Services.AddScoped<ISelectionRepository, SelectionRepository>();
+            builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IMvpTypeRepository, MvpTypeRepository>();
 
             // Database
             FunctionsHostBuilderContext context = builder.GetContext();

@@ -5,10 +5,10 @@ namespace Mvp.Selections.Api.Helpers.Interfaces
 {
     public interface ISerializerHelper
     {
-        public string ContentType { get; }
+        string ContentType { get; }
 
-        public Task<T> DeserializeAsync<T>(Stream stream);
+        Task<T> DeserializeAsync<T>(Stream stream);
 
-        public string Serialize(object data);
+        string Serialize(object data);
     }
 }

@@ -7,11 +7,11 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IRoleService
     {
-        public Task<Role> AddSystemRoleAsync(SystemRole systemRole);
+        Task<Role> AddSystemRoleAsync(SystemRole systemRole);
 
-        public Task RemoveRoleAsync(Guid id);
+        Task RemoveRoleAsync(Guid id);
 
-        public Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
+        Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Role;
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -15,6 +17,11 @@ namespace Mvp.Selections.Api.Services
 
         private readonly ICountryRepository _countryRepository;
 
+        private readonly Expression<Func<Region, object>>[] _standardIncludes =
+        {
+            r => r.Countries
+        };
+
         public RegionService(ILogger<RegionService> logger, IRegionRepository regionRepository, ICountryRepository countryRepository)
         {
             _logger = logger;
@@ -24,17 +31,17 @@ namespace Mvp.Selections.Api.Services
 
         public Task<Region> GetAsync(int id)
         {
-            return _regionRepository.GetAsync(id);
+            return _regionRepository.GetAsync(id, _standardIncludes);
         }
 
         public Task<IList<Region>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _regionRepository.GetAllAsync(page, pageSize);
+            return _regionRepository.GetAllAsync(page, pageSize, _standardIncludes);
         }
 
-        public async Task<Region> AddRegionAsync(Region region)
+        public async Task<Region> AddAsync(Region region)
         {
-            Region result = new ()
+            Region result = new (0)
             {
                 Name = region.Name
             };
@@ -66,13 +73,13 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task RemoveRegionAsync(int id)
+        public async Task RemoveAsync(int id)
         {
             await _regionRepository.RemoveAsync(id);
             await _countryRepository.SaveChangesAsync();
         }
 
-        public async Task<Region> UpdateRegionAsync(int id, Region region)
+        public async Task<Region> UpdateAsync(int id, Region region)
         {
             Region result = await GetAsync(id);
             result.Name = region.Name;

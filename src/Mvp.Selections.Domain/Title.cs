@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public class Title : IId<Guid>
+    public class Title : BaseEntity<Guid>
     {
-        public Guid Id { get; set; }
+        public Title(Guid id)
+            : base(id)
+        {
+        }
 
         public string? Warning { get; set; }
 

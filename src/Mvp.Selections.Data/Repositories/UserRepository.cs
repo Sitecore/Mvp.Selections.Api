@@ -26,11 +26,10 @@ namespace Mvp.Selections.Data.Repositories
         public Task<User?> GetForAuthAsync(string identifier)
         {
             return Context.Users
-                .Include(u => u.Roles.OfType<SystemRole>())
-                .Include(u => u.Roles.OfType<SelectionRole>())
-                .ThenInclude(r => r.Country)
-                .Include(u => u.Roles.OfType<SelectionRole>())
-                .ThenInclude(r => r.Region!.Countries)
+                .Include(u => u.Roles)
+                .ThenInclude(r => (r as SelectionRole) !.Country)
+                .Include(u => u.Roles)
+                .ThenInclude(r => (r as SelectionRole) !.Region!.Countries)
                 .SingleOrDefaultAsync(u => u.Identifier == identifier);
         }
     }

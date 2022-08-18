@@ -6,16 +6,16 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IRegionService
     {
-        public Task<Region> GetAsync(int id);
+        Task<Region> GetAsync(int id);
 
-        public Task<IList<Region>> GetAllAsync(int page = 1, short pageSize = 100);
+        Task<IList<Region>> GetAllAsync(int page = 1, short pageSize = 100);
 
-        public Task<Region> AddRegionAsync(Region region);
+        Task<Region> AddAsync(Region region);
 
-        public Task<bool> AssignCountryAsync(int regionId, short countryId);
+        Task<bool> AssignCountryAsync(int regionId, short countryId);
 
-        public Task RemoveRegionAsync(int id);
+        Task RemoveAsync(int id);
 
-        public Task<Region> UpdateRegionAsync(int id, Region region);
+        Task<Region> UpdateAsync(int id, Region region);
     }
 }

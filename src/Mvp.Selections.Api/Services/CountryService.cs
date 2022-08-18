@@ -15,6 +15,11 @@ namespace Mvp.Selections.Api.Services
             _countryRepository = countryRepository;
         }
 
+        public Task<Country> GetAsync(short id)
+        {
+            return _countryRepository.GetAsync(id);
+        }
+
         public async Task<IList<Country>> GetAllAsync(int page = 1, short pageSize = 100)
         {
             return await _countryRepository.GetAllAsync(page, pageSize);

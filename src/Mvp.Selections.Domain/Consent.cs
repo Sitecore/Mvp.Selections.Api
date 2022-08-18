@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public class Consent : IId<Guid>
+    public class Consent : BaseEntity<Guid>
     {
-        public Guid Id { get; set; }
+        public Consent(Guid id)
+            : base(id)
+        {
+        }
 
         public DateTime GivenOn { get; set; }
 

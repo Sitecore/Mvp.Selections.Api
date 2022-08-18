@@ -31,7 +31,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetRegion")]
-        [OpenApiOperation(operationId: "GetRegion", "Regions", "Admin")]
+        [OpenApiOperation("GetRegion", "Regions", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Region))]
@@ -67,7 +67,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllRegions")]
-        [OpenApiOperation(operationId: "GetAllRegions", "Regions", "Admin")]
+        [OpenApiOperation("GetAllRegions", "Regions", "Admin")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -104,7 +104,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("AddRegion")]
-        [OpenApiOperation(operationId: "AddRegion", "Regions", "Admin")]
+        [OpenApiOperation("AddRegion", "Regions", "Admin")]
         [OpenApiRequestBody(JsonContentType, typeof(Region))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Region))]
@@ -122,7 +122,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
-                    Region region = await _regionService.AddRegionAsync(input);
+                    Region region = await _regionService.AddAsync(input);
                     result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -140,7 +140,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("UpdateRegion")]
-        [OpenApiOperation(operationId: "UpdateRegion", "Regions", "Admin")]
+        [OpenApiOperation("UpdateRegion", "Regions", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
         [OpenApiRequestBody(JsonContentType, typeof(Region))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -160,7 +160,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
-                    Region region = await _regionService.UpdateRegionAsync(id, input);
+                    Region region = await _regionService.UpdateAsync(id, input);
                     result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -178,7 +178,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("AssignCountryToRegion")]
-        [OpenApiOperation(operationId: "AssignCountryToRegion", "Regions", "Admin")]
+        [OpenApiOperation("AssignCountryToRegion", "Regions", "Admin")]
         [OpenApiRequestBody(JsonContentType, typeof(AssignCountryToRegionRequestBody))]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -188,7 +188,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> AssignCountryToRegion(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/regions/{id:int}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/regions/{id:int}/countries")]
             HttpRequest req,
             int id)
         {
@@ -227,7 +227,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("RemoveRegion")]
-        [OpenApiOperation(operationId: "RemoveRegion", "Regions", "Admin")]
+        [OpenApiOperation("RemoveRegion", "Regions", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
@@ -245,7 +245,7 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    await _regionService.RemoveRegionAsync(id);
+                    await _regionService.RemoveAsync(id);
                     result = new NoContentResult();
                 }
                 else

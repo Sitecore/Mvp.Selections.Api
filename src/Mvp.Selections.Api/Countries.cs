@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllCountries")]
-        [OpenApiOperation(operationId: "GetAllCountries", "Countries", "Admin")]
+        [OpenApiOperation("GetAllCountries", "Countries", "Admin")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]

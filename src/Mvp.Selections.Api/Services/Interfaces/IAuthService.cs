@@ -9,6 +9,6 @@ namespace Mvp.Selections.Api.Services.Interfaces
     {
         public const string BearerScheme = "Bearer";
 
-        public Task<AuthResult> ValidateAsync(HttpRequest request, params Right[] rights);
+        Task<AuthResult> ValidateAsync(HttpRequest request, params Right[] rights);
     }
 }

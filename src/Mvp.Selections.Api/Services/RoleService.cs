@@ -18,7 +18,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Role> AddSystemRoleAsync(SystemRole systemRole)
         {
-            SystemRole result = new ()
+            SystemRole result = new (Guid.Empty)
             {
                 Name = systemRole.Name,
                 Rights = systemRole.Rights

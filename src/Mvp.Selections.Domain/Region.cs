@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public class Region : IId<int>
+    public class Region : BaseEntity<int>
     {
-        public int Id { get; set; }
+        public Region(int id)
+            : base(id)
+        {
+        }
 
         public string Name { get; set; } = string.Empty;
 

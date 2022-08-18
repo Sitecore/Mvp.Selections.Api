@@ -1,20 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Helpers.Interfaces;
+using Mvp.Selections.Api.Model.Applications;
 using Mvp.Selections.Api.Model.Auth;
-using Mvp.Selections.Api.Services;
+using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
-using System.Net;
-using System.Threading.Tasks;
-using System;
 
 namespace Mvp.Selections.Api
 {
@@ -29,7 +30,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetApplication")]
-        [OpenApiOperation(operationId: "GetApplication", "Applications", "Admin")]
+        [OpenApiOperation("GetApplication", "Applications", "Admin", "Apply", "Review")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Application))]
@@ -37,9 +38,83 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/regions/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/applications/{id:Guid}")]
             HttpRequest req,
             Guid id)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    Application application = await _applicationService.GetAsync(authResult.User, id);
+                    result = new ContentResult { Content = Serializer.Serialize(application), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("GetAllApplications")]
+        [OpenApiOperation("GetAllApplications", "Applications", "Admin", "Apply", "Review")]
+        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
+        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Application>))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> GetAll(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/applications")]
+            HttpRequest req)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    ListParameters lp = new (req);
+                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, lp.Page, lp.PageSize);
+                    result = new ContentResult { Content = Serializer.Serialize(applications), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("AddApplication")]
+        [OpenApiOperation("AddApplication", "Applications", "Admin", "Apply")]
+        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiRequestBody(JsonContentType, typeof(Application))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Application))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> Add(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/selections/{selectionId:Guid}/applications")]
+            HttpRequest req,
+            Guid selectionId)
         {
             IActionResult result;
             try
@@ -47,8 +122,19 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    Application application = await _applicationService.GetAsync(authResult.User, id);
-                    result = new ContentResult { Content = Serializer.Serialize(application), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    Application input = await Serializer.DeserializeAsync<Application>(req.Body);
+                    AddResult addResult = await _applicationService.AddAsync(authResult.User, selectionId, input);
+                    result = addResult.StatusCode == HttpStatusCode.OK
+                        ? new ContentResult
+                        {
+                            Content = Serializer.Serialize(addResult.Application), ContentType = Serializer.ContentType,
+                            StatusCode = (int)HttpStatusCode.OK
+                        }
+                        : new ContentResult
+                        {
+                            Content = string.Join(Environment.NewLine, addResult.Messages), ContentType = PlainTextContentType,
+                            StatusCode = (int)addResult.StatusCode
+                        };
                 }
                 else
                 {

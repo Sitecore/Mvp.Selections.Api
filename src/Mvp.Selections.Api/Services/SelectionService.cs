@@ -35,7 +35,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Selection> AddSelectionAsync(Selection selection)
         {
-            Selection result = new ()
+            Selection result = new (Guid.Empty)
             {
                 Year = selection.Year,
                 ApplicationsActive = selection.ApplicationsActive,

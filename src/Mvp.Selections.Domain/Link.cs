@@ -1,10 +1,11 @@
-﻿using Mvp.Selections.Domain.Interfaces;
-
-namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain
 {
-    public abstract class Link : IId<Guid>
+    public abstract class Link : BaseEntity<Guid>
     {
-        public Guid Id { get; set; }
+        protected Link(Guid id)
+            : base(id)
+        {
+        }
 
         public string Name { get; set; } = string.Empty;
 

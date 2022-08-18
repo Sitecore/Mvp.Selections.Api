@@ -2,6 +2,11 @@
 {
     public class SelectionRole : Role
     {
+        public SelectionRole(Guid id)
+            : base(id)
+        {
+        }
+
         public Application? Application { get; set; }
 
         public Country? Country { get; set; }
