@@ -75,8 +75,10 @@ namespace Mvp.Selections.Api.Services
 
         public async Task RemoveAsync(int id)
         {
-            await _regionRepository.RemoveAsync(id);
-            await _countryRepository.SaveChangesAsync();
+            if (await _regionRepository.RemoveAsync(id))
+            {
+                await _countryRepository.SaveChangesAsync();
+            }
         }
 
         public async Task<Region> UpdateAsync(int id, Region region)
@@ -84,6 +86,29 @@ namespace Mvp.Selections.Api.Services
             Region result = await GetAsync(id);
             result.Name = region.Name;
             await _regionRepository.SaveChangesAsync();
+            return result;
+        }
+
+        public async Task<bool> RemoveCountryAsync(int regionId, short countryId)
+        {
+            bool result = false;
+            Region region = await _regionRepository.GetAsync(regionId);
+            Country country = await _countryRepository.GetAsync(countryId);
+            if (region != null && country != null)
+            {
+                region.Countries.Remove(country);
+                await _regionRepository.SaveChangesAsync();
+                result = true;
+            }
+            else if (region == null)
+            {
+                _logger.LogWarning($"Attempted to remove Country '{countryId}' from Region '{regionId}' but Region did not exist.");
+            }
+            else
+            {
+                _logger.LogWarning($"Attempted to remove Country '{countryId}' from Region '{regionId}' but Country did not exist.");
+            }
+
             return result;
         }
     }

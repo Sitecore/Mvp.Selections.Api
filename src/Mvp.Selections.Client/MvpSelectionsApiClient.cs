@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Client.Configuration;
 using Mvp.Selections.Client.Models;
@@ -14,10 +15,20 @@ namespace Mvp.Selections.Client
     {
         public const string AuthorizationScheme = "Bearer";
 
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new ()
-            { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private static readonly JsonSerializerOptions JsonSerializerOptions;
 
         private readonly HttpClient _client;
+
+        static MvpSelectionsApiClient()
+        {
+            JsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        }
 
         public MvpSelectionsApiClient(HttpClient client, IOptions<MvpSelectionsApiClientOptions> options)
         {
@@ -86,7 +97,12 @@ namespace Mvp.Selections.Client
         public async Task<Response<object>> AssignCountryToRegionAsync(int regionId, short countryId, string token)
         {
             AssignCountryToRegion content = new () { CountryId = countryId };
-            return await PostAsync<object>($"/api/v1/regions/{regionId}", token, content);
+            return await PostAsync<object>($"/api/v1/regions/{regionId}/countries", token, content);
+        }
+
+        public async Task<Response<bool>> RemoveCountryFromRegionAsync(int regionId, short countryId, string token)
+        {
+            return await DeleteAsync($"/api/v1/regions/{regionId}/countries/{countryId}", token);
         }
 
         #endregion Regions
@@ -174,6 +190,41 @@ namespace Mvp.Selections.Client
         }
 
         #endregion Applications
+
+        #region MvpTypes
+
+        public async Task<Response<MvpType>> GetMvpTypeAsync(short id, string token)
+        {
+            return await GetAsync<MvpType>($"/api/v1/mvptypes/{id}", token);
+        }
+
+        public Task<Response<IList<MvpType>>> GetMvpTypesAsync(string token, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetMvpTypesAsync(token, listParameters);
+        }
+
+        public async Task<Response<IList<MvpType>>> GetMvpTypesAsync(string token, ListParameters listParameters)
+        {
+            return await GetAsync<IList<MvpType>>($"/api/v1/mvptypes?{listParameters.ToQueryString()}", token);
+        }
+
+        public async Task<Response<MvpType>> AddMvpTypeAsync(MvpType mvpType, string token)
+        {
+            return await PostAsync<MvpType>("/api/v1/mvptypes", token, mvpType);
+        }
+
+        public async Task<Response<MvpType>> UpdateMvpTypeAsync(MvpType mvpType, string token)
+        {
+            return await PatchAsync<MvpType>($"/api/v1/mvptypes/{mvpType.Id}", token, mvpType);
+        }
+
+        public async Task<Response<bool>> RemoveMvpTypeAsync(short id, string token)
+        {
+            return await DeleteAsync($"/api/v1/mvptypes/{id}", token);
+        }
+
+        #endregion MvpTypes
 
         #region Private
 

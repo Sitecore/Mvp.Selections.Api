@@ -226,6 +226,51 @@ namespace Mvp.Selections.Api
             return result;
         }
 
+        [FunctionName("RemoveCountryFromRegion")]
+        [OpenApiOperation("RemoveCountryFromRegion", "Regions", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("countryId", In = ParameterLocation.Path, Type = typeof(short))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> RemoveCountryFromRegion(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/regions/{id:int}/countries/{countryId:int}")]
+            HttpRequest req,
+            int id,
+            short countryId)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    if (await _regionService.RemoveCountryAsync(id, countryId))
+                    {
+                        result = new NoContentResult();
+                    }
+                    else
+                    {
+                        result = new BadRequestErrorMessageResult($"Unable to remove Country '{countryId}' from Region '{id}'. Either region or country may not exist.");
+                    }
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
         [FunctionName("RemoveRegion")]
         [OpenApiOperation("RemoveRegion", "Regions", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]

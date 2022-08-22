@@ -27,7 +27,7 @@ namespace Mvp.Selections.Data.Repositories
             page--;
             IQueryable<T> query = Context.Set<T>();
             query = includes.Aggregate(query, (current, include) => current.Include(include));
-            return await query.Skip(page * pageSize).Take(pageSize).ToListAsync();
+            return await query.OrderBy(t => t.Id).Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
 
         public T Add(T entity)

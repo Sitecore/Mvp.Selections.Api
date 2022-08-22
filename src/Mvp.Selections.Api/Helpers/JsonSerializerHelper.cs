@@ -2,18 +2,25 @@
 using System.Threading.Tasks;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Helpers
 {
     public class JsonSerializerHelper : ISerializerHelper
     {
-        private static readonly JsonSerializerSettings Settings = new ()
+        private static readonly JsonSerializerSettings Settings;
+
+        static JsonSerializerHelper()
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        };
+            Settings = new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            Settings.Converters.Add(new StringEnumConverter());
+        }
 
         public string ContentType => "application/json";
 

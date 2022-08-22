@@ -15,7 +15,7 @@ namespace Mvp.Selections.Data.Repositories
             where T : Role
         {
             page--;
-            return await Context.Roles.OfType<T>().Skip(page * pageSize).Take(pageSize).ToListAsync();
+            return await Context.Roles.OfType<T>().OrderBy(r => r.Name).Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
     }
 }
