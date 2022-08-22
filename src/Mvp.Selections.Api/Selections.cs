@@ -34,7 +34,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetCurrent(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/selections/current")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/current")]
             HttpRequest req)
         {
             IActionResult result;
@@ -69,7 +69,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/selections/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
@@ -106,7 +106,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/selections")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections")]
             HttpRequest req)
         {
             IActionResult result;
@@ -142,7 +142,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Add(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/selections")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/selections")]
             HttpRequest req)
         {
             IActionResult result;
@@ -179,7 +179,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Update(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "api/v1/selections/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/selections/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
@@ -216,7 +216,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/selections/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/selections/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {

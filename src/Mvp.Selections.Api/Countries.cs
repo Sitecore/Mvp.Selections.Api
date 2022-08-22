@@ -38,7 +38,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/countries")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/countries")]
             HttpRequest req)
         {
             IActionResult result;

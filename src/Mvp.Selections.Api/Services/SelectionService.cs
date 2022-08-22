@@ -59,13 +59,35 @@ namespace Mvp.Selections.Api.Services
         public async Task<Selection> UpdateSelectionAsync(Guid id, Selection selection)
         {
             Selection result = await GetAsync(id);
-            result.Year = selection.Year;
+            if (selection.Year > 0)
+            {
+                result.Year = selection.Year;
+            }
+
             result.ApplicationsActive = selection.ApplicationsActive;
-            result.ApplicationsStart = selection.ApplicationsStart;
-            result.ApplicationsEnd = selection.ApplicationsEnd;
+
+            if (selection.ApplicationsStart != DateTime.MinValue)
+            {
+                result.ApplicationsStart = selection.ApplicationsStart;
+            }
+
+            if (selection.ApplicationsEnd != DateTime.MinValue)
+            {
+                result.ApplicationsEnd = selection.ApplicationsEnd;
+            }
+
             result.ReviewsActive = selection.ReviewsActive;
-            result.ReviewsStart = selection.ReviewsStart;
-            result.ReviewsEnd = selection.ReviewsEnd;
+
+            if (selection.ReviewsStart != DateTime.MinValue)
+            {
+                result.ReviewsStart = selection.ReviewsStart;
+            }
+
+            if (selection.ReviewsEnd != DateTime.MinValue)
+            {
+                result.ReviewsEnd = selection.ReviewsEnd;
+            }
+
             await _selectionRepository.SaveChangesAsync();
             return result;
         }

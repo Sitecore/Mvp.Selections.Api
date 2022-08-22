@@ -38,7 +38,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAllSystem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/roles/system")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/system")]
             HttpRequest req)
         {
             IActionResult result;
@@ -74,7 +74,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> AddSystem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/roles/system")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/system")]
             HttpRequest req)
         {
             IActionResult result;
@@ -110,7 +110,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/roles/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/roles/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {

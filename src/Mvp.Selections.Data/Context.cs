@@ -90,6 +90,9 @@ namespace Mvp.Selections.Data
                 .HasOne(t => t.User)
                 .WithMany(u => u.Titles)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Selection>()
+                .HasAlternateKey(s => s.Year);
         }
 
 #if DEBUG

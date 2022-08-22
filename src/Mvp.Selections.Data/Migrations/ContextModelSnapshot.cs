@@ -1589,6 +1589,8 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasAlternateKey("Year");
+
                     b.ToTable("Selections");
                 });
 

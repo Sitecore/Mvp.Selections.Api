@@ -38,7 +38,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/applications/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
@@ -75,7 +75,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/applications")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications")]
             HttpRequest req)
         {
             IActionResult result;
@@ -112,7 +112,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Add(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/selections/{selectionId:Guid}/applications")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/selections/{selectionId:Guid}/applications")]
             HttpRequest req,
             Guid selectionId)
         {

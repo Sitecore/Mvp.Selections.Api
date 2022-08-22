@@ -29,13 +29,13 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetCurrentUser")]
-        [OpenApiOperation(operationId: "GetCurrentUser", "Users")]
+        [OpenApiOperation("GetCurrentUser", "Users")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetCurrent(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/users/current")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/current")]
             HttpRequest req)
         {
             IActionResult result;
@@ -61,7 +61,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetUser")]
-        [OpenApiOperation(operationId: "GetUser", "Users", "Admin")]
+        [OpenApiOperation("GetUser", "Users", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
@@ -69,7 +69,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/users/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
@@ -97,7 +97,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllUsers")]
-        [OpenApiOperation(operationId: "GetAllUsers", "Users", "Admin")]
+        [OpenApiOperation("GetAllUsers", "Users", "Admin")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -106,7 +106,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/users")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users")]
             HttpRequest req)
         {
             IActionResult result;

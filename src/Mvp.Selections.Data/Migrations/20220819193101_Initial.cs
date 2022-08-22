@@ -64,6 +64,7 @@ namespace Mvp.Selections.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Selections", x => x.Id);
+                    table.UniqueConstraint("AK_Selections_Year", x => x.Year);
                 });
 
             migrationBuilder.CreateTable(
