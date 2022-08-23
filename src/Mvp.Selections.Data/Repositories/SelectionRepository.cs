@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -6,8 +7,8 @@ namespace Mvp.Selections.Data.Repositories
 {
     public class SelectionRepository : BaseRepository<Selection, Guid>, ISelectionRepository
     {
-        public SelectionRepository(Context context)
-            : base(context)
+        public SelectionRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+            : base(context, currentUserNameProvider)
         {
         }
 

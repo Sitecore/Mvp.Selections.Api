@@ -184,9 +184,46 @@ namespace Mvp.Selections.Client
 
         #region Applications
 
+        public Task<Response<IList<Application>>> GetApplicationsAsync(string token, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetApplicationsAsync(token, listParameters);
+        }
+
+        public async Task<Response<IList<Application>>> GetApplicationsAsync(string token, ListParameters listParameters)
+        {
+            return await GetAsync<IList<Application>>($"/api/v1/applications?{listParameters.ToQueryString()}", token);
+        }
+
+        public Task<Response<IList<Application>>> GetApplicationsAsync(Guid selectionId, string token, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetApplicationsAsync(selectionId, token, listParameters);
+        }
+
+        public async Task<Response<IList<Application>>> GetApplicationsAsync(Guid selectionId, string token, ListParameters listParameters)
+        {
+            return await GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications?{listParameters.ToQueryString()}", token);
+        }
+
         public async Task<Response<Application>> GetApplicationAsync(Guid id, string token)
         {
             return await GetAsync<Application>($"/api/v1/applications/{id}", token);
+        }
+
+        public async Task<Response<Application>> AddApplicationAsync(Guid selectionId, Application application, string token)
+        {
+            return await PostAsync<Application>($"/api/v1/selections/{selectionId}/applications", token, application);
+        }
+
+        public async Task<Response<Application>> UpdateApplicationAsync(Application application, string token)
+        {
+            return await PatchAsync<Application>($"/api/applications/{application.Id}", token, application);
+        }
+
+        public async Task<Response<bool>> RemoveApplicationAsync(Guid id, string token)
+        {
+            return await DeleteAsync($"/api/v1/applications/{id}", token);
         }
 
         #endregion Applications
@@ -225,6 +262,41 @@ namespace Mvp.Selections.Client
         }
 
         #endregion MvpTypes
+
+        #region Products
+
+        public async Task<Response<Product>> GetProductAsync(short id, string token)
+        {
+            return await GetAsync<Product>($"/api/v1/products/{id}", token);
+        }
+
+        public Task<Response<IList<Product>>> GetProductsAsync(string token, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetProductsAsync(token, listParameters);
+        }
+
+        public async Task<Response<IList<Product>>> GetProductsAsync(string token, ListParameters listParameters)
+        {
+            return await GetAsync<IList<Product>>($"/api/v1/products?{listParameters.ToQueryString()}", token);
+        }
+
+        public async Task<Response<Product>> AddProductAsync(Product product, string token)
+        {
+            return await PostAsync<Product>("/api/v1/products", token, product);
+        }
+
+        public async Task<Response<Product>> UpdateProductAsync(Product product, string token)
+        {
+            return await PatchAsync<Product>($"/api/v1/products/{product.Id}", token, product);
+        }
+
+        public async Task<Response<bool>> RemoveProductAsync(short id, string token)
+        {
+            return await DeleteAsync($"/api/v1/products/{id}", token);
+        }
+
+        #endregion Products
 
         #region Private
 

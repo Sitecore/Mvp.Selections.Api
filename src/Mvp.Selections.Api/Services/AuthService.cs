@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Configuration;
+using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -24,11 +25,14 @@ namespace Mvp.Selections.Api.Services
 
         private readonly IUserRepository _userRepository;
 
-        public AuthService(OktaClient oktaClient, IOptions<TokenOptions> tokenOptions, IUserRepository userRepository)
+        private readonly ICurrentUserNameProvider _currentUserNameProvider;
+
+        public AuthService(OktaClient oktaClient, IOptions<TokenOptions> tokenOptions, IUserRepository userRepository, ICurrentUserNameProvider currentUserNameProvider)
         {
             _oktaClient = oktaClient;
             _tokenOptions = tokenOptions.Value;
             _userRepository = userRepository;
+            _currentUserNameProvider = currentUserNameProvider;
         }
 
         public async Task<AuthResult> ValidateAsync(HttpRequest request, params Right[] rights)
@@ -73,6 +77,10 @@ namespace Mvp.Selections.Api.Services
                     result.TokenUser = new OktaUser(_tokenHandler.ReadJwtToken(authHeader.Token), _tokenOptions);
                     result.User = await _userRepository.GetForAuthAsync(result.TokenUser.Identifier);
                     ValidateRights(result, rights);
+                    if (result.StatusCode == HttpStatusCode.OK && result.User != null)
+                    {
+                        _currentUserNameProvider.UserName = result.User.Identifier;
+                    }
                 }
                 else
                 {

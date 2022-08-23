@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -7,8 +8,8 @@ namespace Mvp.Selections.Data.Repositories
 {
     public class UserRepository : BaseRepository<User, Guid>, IUserRepository
     {
-        public UserRepository(Context context)
-            : base(context)
+        public UserRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+            : base(context, currentUserNameProvider)
         {
         }
 

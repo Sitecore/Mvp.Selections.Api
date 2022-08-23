@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api.Model.Applications
+namespace Mvp.Selections.Api.Model.Request
 {
-    public class AddResult
+    public class OperationResult<T>
+        where T : class
     {
-        public Application Application { get; set; }
+        public T Result { get; set; }
 
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
 

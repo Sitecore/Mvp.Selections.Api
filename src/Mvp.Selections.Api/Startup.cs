@@ -28,6 +28,8 @@ namespace Mvp.Selections.Api
 
             // Helpers
             builder.Services.AddSingleton<ISerializerHelper, JsonSerializerHelper>();
+            builder.Services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
+            builder.Services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
 
             // Services
             builder.Services.AddScoped<IAuthService, AuthService>();

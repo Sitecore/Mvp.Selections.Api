@@ -51,7 +51,7 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<User>()
                 .HasAlternateKey(u => u.Identifier);
             modelBuilder.Entity<User>()
-                .HasData(new { Id = adminUserId, Identifier = "00uid4BxXw6I6TV4m0g3", CountryId = (short)21, ImageType = ImageType.Anonymous });
+                .HasData(new { Id = adminUserId, Identifier = "00uid4BxXw6I6TV4m0g3", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = DateTime.UtcNow, CreatedBy = "System" });
 
             modelBuilder.Entity("RoleUser")
                 .HasData(new { UsersId = adminUserId, RolesId = adminSystemRoleId });
@@ -59,7 +59,7 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<SelectionRole>();
 
             modelBuilder.Entity<SystemRole>()
-                .HasData(new { Id = adminSystemRoleId, Name = "Admin", Rights = Right.Admin | Right.Any });
+                .HasData(new { Id = adminSystemRoleId, Name = "Admin", Rights = Right.Admin | Right.Any, CreatedOn = DateTime.UtcNow, CreatedBy = "System" });
 
             modelBuilder.Entity<ReviewCategoryScore>()
                 .HasKey(rcs => new { rcs.ReviewId, rcs.ScoreCategoryId, rcs.ScoreId });
@@ -93,6 +93,10 @@ namespace Mvp.Selections.Data
 
             modelBuilder.Entity<Selection>()
                 .HasAlternateKey(s => s.Year);
+
+            modelBuilder.Entity<ApplicationLink>()
+                .Navigation(al => al.RelatedProducts)
+                .AutoInclude();
         }
 
 #if DEBUG
