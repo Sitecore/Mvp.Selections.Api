@@ -3603,6 +3603,76 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/status",
+					"protocol": "{{EndpointScheme}}",
+					"host": [
+						"{{EndpointUri}}"
+					],
+					"path": [
+						"api",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Init",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/init?code={{MasterKey}}",
+					"protocol": "{{EndpointScheme}}",
+					"host": [
+						"{{EndpointUri}}"
+					],
+					"path": [
+						"api",
+						"init"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "{{MasterKey}}"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"auth": {

@@ -33,7 +33,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("Status")]
         [OpenApiOperation("Status", "Status")]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "status")]
@@ -57,7 +57,7 @@ namespace Mvp.Selections.Api
                     Logger.LogCritical(message);
                 }
 
-                if (_oktaClientOptions.ValidationEndpoint != null)
+                if (_oktaClientOptions.ValidationEndpoint == null || string.IsNullOrWhiteSpace(_oktaClientOptions.ValidationEndpoint.Host))
                 {
                     const string message = "No validation endpoint available for Okta validations.";
                     messages.Add(message);
@@ -85,8 +85,32 @@ namespace Mvp.Selections.Api
                 }
                 else
                 {
-                    result = new OkResult();
+                    result = new NoContentResult();
                 }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("Init")]
+        [OpenApiOperation("Init", "Status")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized)]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> GetInit(
+            [HttpTrigger(AuthorizationLevel.Admin, "get", Route = "init")]
+            HttpRequest req)
+        {
+            IActionResult result;
+            try
+            {
+                await _context.Database.MigrateAsync();
+                result = new NoContentResult();
             }
             catch (Exception e)
             {
