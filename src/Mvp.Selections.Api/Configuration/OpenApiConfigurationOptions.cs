@@ -16,7 +16,7 @@ namespace Mvp.Selections.Api.Configuration
             Contact = new OpenApiContact
             {
                 Name = "Ivan Lieckens",
-                Email = "ivan dot lieckens at sitecore dot com"
+                Email = "ivan.lieckens@sitecore.com"
             },
             License = new OpenApiLicense
             {

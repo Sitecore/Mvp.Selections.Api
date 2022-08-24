@@ -30,7 +30,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetProduct")]
         [OpenApiOperation("GetProduct", "Products", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Product))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
@@ -139,7 +139,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("UpdateProduct")]
         [OpenApiOperation("UpdateProduct", "Products", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Product))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Product))]
@@ -177,7 +177,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("RemoveProduct")]
         [OpenApiOperation("RemoveProduct", "Products", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]

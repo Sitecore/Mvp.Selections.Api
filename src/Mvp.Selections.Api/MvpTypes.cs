@@ -68,7 +68,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetMvpType")]
         [OpenApiOperation("GetMvpType", "MvpTypes", "Admin", "Apply", "Review")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(MvpType))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
@@ -140,7 +140,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("UpdateMvpType")]
         [OpenApiOperation("UpdateMvpType", "MvpType", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(MvpType))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(MvpType))]
@@ -178,7 +178,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("RemoveMvpType")]
         [OpenApiOperation("RemoveMvpType", "MvpTypes", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]

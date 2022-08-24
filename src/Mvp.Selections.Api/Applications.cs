@@ -30,7 +30,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetApplication")]
         [OpenApiOperation("GetApplication", "Applications", "Admin", "Apply", "Review")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Application))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
@@ -115,7 +115,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetAllApplicationsForSelection")]
         [OpenApiOperation("GetAllApplicationsForSelection", "Applications", "Admin", "Apply", "Review")]
-        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -154,7 +154,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("AddApplication")]
         [OpenApiOperation("AddApplication", "Applications", "Admin", "Apply")]
-        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Application))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Application))]
@@ -205,7 +205,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("UpdateApplication")]
         [OpenApiOperation("UpdateApplication", "Applications", "Admin", "Apply")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Application))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Application))]
@@ -256,7 +256,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("RemoveApplication")]
         [OpenApiOperation("RemoveApplication", "Applications", "Admin", "Apply")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]

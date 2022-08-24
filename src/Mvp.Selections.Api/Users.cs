@@ -62,7 +62,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetUser")]
         [OpenApiOperation("GetUser", "Users", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]

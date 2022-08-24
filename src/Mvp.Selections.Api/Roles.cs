@@ -103,7 +103,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("RemoveRole")]
         [OpenApiOperation("RemoveRole", "Roles", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]

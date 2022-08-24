@@ -32,7 +32,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetRegion")]
         [OpenApiOperation("GetRegion", "Regions", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Region))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
@@ -141,7 +141,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("UpdateRegion")]
         [OpenApiOperation("UpdateRegion", "Regions", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Region))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Region))]
@@ -180,7 +180,7 @@ namespace Mvp.Selections.Api
         [FunctionName("AssignCountryToRegion")]
         [OpenApiOperation("AssignCountryToRegion", "Regions", "Admin")]
         [OpenApiRequestBody(JsonContentType, typeof(AssignCountryToRegionRequestBody))]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
@@ -228,8 +228,8 @@ namespace Mvp.Selections.Api
 
         [FunctionName("RemoveCountryFromRegion")]
         [OpenApiOperation("RemoveCountryFromRegion", "Regions", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
-        [OpenApiParameter("countryId", In = ParameterLocation.Path, Type = typeof(short))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
+        [OpenApiParameter("countryId", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
@@ -273,7 +273,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("RemoveRegion")]
         [OpenApiOperation("RemoveRegion", "Regions", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
