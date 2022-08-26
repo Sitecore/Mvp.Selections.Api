@@ -3673,6 +3673,57 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Introspect Token",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "token_type_hint",
+							"value": "id_token",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "0oa11wt68a2ALFUB20h8",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://oktapreview.sitecore.com/oauth2/default/v1/introspect",
+					"protocol": "https",
+					"host": [
+						"oktapreview",
+						"sitecore",
+						"com"
+					],
+					"path": [
+						"oauth2",
+						"default",
+						"v1",
+						"introspect"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"auth": {

@@ -306,13 +306,13 @@ namespace Mvp.Selections.Client
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri(requestUri)
+                RequestUri = new Uri(requestUri, UriKind.Relative)
             };
             request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
             using HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Object = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
             }
             else
             {
@@ -330,14 +330,14 @@ namespace Mvp.Selections.Client
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(requestUri),
+                RequestUri = new Uri(requestUri, UriKind.Relative),
                 Content = jsonContent
             };
             request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Object = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
             }
             else
             {
@@ -355,14 +355,14 @@ namespace Mvp.Selections.Client
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Patch,
-                RequestUri = new Uri(requestUri),
+                RequestUri = new Uri(requestUri, UriKind.Relative),
                 Content = jsonContent
             };
             request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Object = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
             }
             else
             {
@@ -379,17 +379,17 @@ namespace Mvp.Selections.Client
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Delete,
-                RequestUri = new Uri(requestUri)
+                RequestUri = new Uri(requestUri, UriKind.Relative)
             };
             request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Object = true;
+                result.Result = true;
             }
             else
             {
-                result.Object = false;
+                result.Result = false;
                 result.Message = await response.Content.ReadAsStringAsync();
             }
 

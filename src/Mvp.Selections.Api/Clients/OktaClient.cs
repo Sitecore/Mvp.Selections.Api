@@ -24,7 +24,7 @@ namespace Mvp.Selections.Api.Clients
             FormUrlEncodedContent reqContent = new (new[]
             {
                 new KeyValuePair<string, string>("token", token),
-                new KeyValuePair<string, string>("token_type_hint", "access_token"),
+                new KeyValuePair<string, string>("token_type_hint", "id_token"),
                 new KeyValuePair<string, string>("client_id", _options.ClientId),
                 new KeyValuePair<string, string>("client_secret", _options.ClientSecret)
             });

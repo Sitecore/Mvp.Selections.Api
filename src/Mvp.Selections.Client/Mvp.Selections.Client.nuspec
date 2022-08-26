@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Mvp.Selections.Client</id>
+    <version>0.8.3</version>
+    <title>MVP Selections API Client</title>
+    <authors>sc-ivanlieckens</authors>
+    <icon>icon.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/Sitecore/Mvp.Selections.Api</projectUrl>
+    <description>Package Description</description>
+    <copyright>MIT</copyright>
+    <repository type="git" url="https://github.com/Sitecore/Mvp.Selections.Api" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="Microsoft.Extensions.Http" version="6.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="icon.png" />
+    <file src="README.md" />
+    <file src="bin\Release\net6.0\Mvp.Selections.*.dll" target="lib\net6.0" />
+  </files>
+</package>

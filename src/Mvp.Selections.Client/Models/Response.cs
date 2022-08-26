@@ -8,6 +8,6 @@ namespace Mvp.Selections.Client.Models
 
         public string Message { get; set; } = string.Empty;
 
-        public T? Object { get; set; }
+        public T? Result { get; set; }
     }
 }

@@ -76,21 +76,26 @@ namespace Mvp.Selections.Api.Services
                 {
                     result.TokenUser = new OktaUser(_tokenHandler.ReadJwtToken(authHeader.Token), _tokenOptions);
                     result.User = await _userRepository.GetForAuthAsync(result.TokenUser.Identifier);
-                    ValidateRights(result, rights);
                     if (result.StatusCode == HttpStatusCode.OK && result.User != null)
                     {
+                        ValidateRights(result, rights);
                         _currentUserNameProvider.UserName = result.User.Identifier;
+                    }
+                    else
+                    {
+                        result.Message = "User doesn't exist";
+                        result.StatusCode = HttpStatusCode.Forbidden;
                     }
                 }
                 else
                 {
-                    result.Message = "Validation of token was successful but the token could not be read";
+                    result.Message = "Token could not be read";
                     result.StatusCode = HttpStatusCode.InternalServerError;
                 }
             }
             else
             {
-                result.Message = "Bearer token is invalid";
+                result.Message = "Token is invalid";
                 result.StatusCode = HttpStatusCode.Forbidden;
             }
         }

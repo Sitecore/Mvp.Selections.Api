@@ -51,7 +51,7 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<User>()
                 .HasAlternateKey(u => u.Identifier);
             modelBuilder.Entity<User>()
-                .HasData(new { Id = adminUserId, Identifier = "00uid4BxXw6I6TV4m0g3", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = DateTime.UtcNow, CreatedBy = "System" });
+                .HasData(new { Id = adminUserId, Identifier = "00uqyu5bxcffmH3xP0h7", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = DateTime.UtcNow, CreatedBy = "System" });
 
             modelBuilder.Entity("RoleUser")
                 .HasData(new { UsersId = adminUserId, RolesId = adminSystemRoleId });

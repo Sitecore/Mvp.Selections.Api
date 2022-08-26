@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Mvp.Selections.Client.Configuration;
 
 namespace Mvp.Selections.Client.Extensions
 {
@@ -6,6 +8,9 @@ namespace Mvp.Selections.Client.Extensions
     {
         public static IHttpClientBuilder AddMvpSelectionsApiClient(this IServiceCollection services)
         {
+            services.AddOptions<MvpSelectionsApiClientOptions>()
+                .Configure<IConfiguration>((options, configuration) =>
+                    configuration.GetSection(MvpSelectionsApiClientOptions.MvpSelectionsApiClient).Bind(options));
             return services.AddHttpClient<MvpSelectionsApiClient>();
         }
     }
