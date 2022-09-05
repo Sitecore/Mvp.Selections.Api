@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Client.Configuration;
+using Mvp.Selections.Client.Interfaces;
 using Mvp.Selections.Client.Models;
 using Mvp.Selections.Client.Models.Request;
 using Mvp.Selections.Domain;
@@ -19,6 +20,8 @@ namespace Mvp.Selections.Client
 
         private readonly HttpClient _client;
 
+        private readonly ITokenProvider _tokenProvider;
+
         static MvpSelectionsApiClient()
         {
             JsonSerializerOptions = new JsonSerializerOptions
@@ -30,277 +33,278 @@ namespace Mvp.Selections.Client
             JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         }
 
-        public MvpSelectionsApiClient(HttpClient client, IOptions<MvpSelectionsApiClientOptions> options)
+        public MvpSelectionsApiClient(HttpClient client, IOptions<MvpSelectionsApiClientOptions> options, ITokenProvider tokenProvider)
         {
             _client = client;
             _client.BaseAddress = options.Value.BaseAddress;
+            _tokenProvider = tokenProvider;
         }
 
         #region Users
 
-        public async Task<Response<User>> GetUserAsync(Guid id, string token)
+        public async Task<Response<User>> GetUserAsync(Guid id)
         {
-            return await GetAsync<User>($"/api/v1/users/{id}", token);
+            return await GetAsync<User>($"/api/v1/users/{id}");
         }
 
-        public async Task<Response<User>> GetCurrentUserAsync(string token)
+        public async Task<Response<User>> GetCurrentUserAsync()
         {
-            return await GetAsync<User>("/api/v1/users/current", token);
+            return await GetAsync<User>("/api/v1/users/current");
         }
 
-        public Task<Response<IList<User>>> GetUsersAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<User>>> GetUsersAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetUsersAsync(token, listParameters);
+            return GetUsersAsync(listParameters);
         }
 
-        public async Task<Response<IList<User>>> GetUsersAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<User>>> GetUsersAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}");
         }
 
         #endregion Users
 
         #region Regions
 
-        public async Task<Response<Region>> GetRegionAsync(int id, string token)
+        public async Task<Response<Region>> GetRegionAsync(int id)
         {
-            return await GetAsync<Region>($"/api/v1/regions/{id}", token);
+            return await GetAsync<Region>($"/api/v1/regions/{id}");
         }
 
-        public Task<Response<IList<Region>>> GetRegionsAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Region>>> GetRegionsAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetRegionsAsync(token, listParameters);
+            return GetRegionsAsync(listParameters);
         }
 
-        public async Task<Response<IList<Region>>> GetRegionsAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<Region>>> GetRegionsAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<Region>>($"/api/v1/regions?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<Region>>($"/api/v1/regions?{listParameters.ToQueryString()}");
         }
 
-        public async Task<Response<Region>> AddRegionAsync(Region region, string token)
+        public async Task<Response<Region>> AddRegionAsync(Region region)
         {
-            return await PostAsync<Region>("/api/v1/regions", token, region);
+            return await PostAsync<Region>("/api/v1/regions", region);
         }
 
-        public async Task<Response<Region>> UpdateRegionAsync(Region region, string token)
+        public async Task<Response<Region>> UpdateRegionAsync(Region region)
         {
-            return await PatchAsync<Region>($"/api/v1/regions/{region.Id}", token, region);
+            return await PatchAsync<Region>($"/api/v1/regions/{region.Id}", region);
         }
 
-        public async Task<Response<bool>> RemoveRegionAsync(int id, string token)
+        public async Task<Response<bool>> RemoveRegionAsync(int id)
         {
-            return await DeleteAsync($"/api/v1/regions/{id}", token);
+            return await DeleteAsync($"/api/v1/regions/{id}");
         }
 
-        public async Task<Response<object>> AssignCountryToRegionAsync(int regionId, short countryId, string token)
+        public async Task<Response<object>> AssignCountryToRegionAsync(int regionId, short countryId)
         {
             AssignCountryToRegion content = new () { CountryId = countryId };
-            return await PostAsync<object>($"/api/v1/regions/{regionId}/countries", token, content);
+            return await PostAsync<object>($"/api/v1/regions/{regionId}/countries", content);
         }
 
-        public async Task<Response<bool>> RemoveCountryFromRegionAsync(int regionId, short countryId, string token)
+        public async Task<Response<bool>> RemoveCountryFromRegionAsync(int regionId, short countryId)
         {
-            return await DeleteAsync($"/api/v1/regions/{regionId}/countries/{countryId}", token);
+            return await DeleteAsync($"/api/v1/regions/{regionId}/countries/{countryId}");
         }
 
         #endregion Regions
 
         #region Roles
 
-        public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetSystemRolesAsync(token, listParameters);
+            return GetSystemRolesAsync(listParameters);
         }
 
-        public async Task<Response<IList<SystemRole>>> GetSystemRolesAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<SystemRole>>> GetSystemRolesAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<SystemRole>>($"/api/v1/roles/system?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<SystemRole>>($"/api/v1/roles/system?{listParameters.ToQueryString()}");
         }
 
-        public async Task<Response<SystemRole>> AddSystemRoleAsync(SystemRole systemRole, string token)
+        public async Task<Response<SystemRole>> AddSystemRoleAsync(SystemRole systemRole)
         {
-            return await PostAsync<SystemRole>("/api/v1/roles/system", token, systemRole);
+            return await PostAsync<SystemRole>("/api/v1/roles/system", systemRole);
         }
 
-        public async Task<Response<bool>> RemoveRoleAsync(Guid id, string token)
+        public async Task<Response<bool>> RemoveRoleAsync(Guid id)
         {
-            return await DeleteAsync($"/api/v1/roles/{id}", token);
+            return await DeleteAsync($"/api/v1/roles/{id}");
         }
 
         #endregion Roles
 
         #region Countries
 
-        public Task<Response<IList<Country>>> GetCountriesAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Country>>> GetCountriesAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetCountriesAsync(token, listParameters);
+            return GetCountriesAsync(listParameters);
         }
 
-        public async Task<Response<IList<Country>>> GetCountriesAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<Country>>> GetCountriesAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<Country>>($"/api/v1/countries?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<Country>>($"/api/v1/countries?{listParameters.ToQueryString()}");
         }
 
         #endregion Countries
 
         #region Selections
 
-        public async Task<Response<Selection>> GetSelectionAsync(Guid id, string token)
+        public async Task<Response<Selection>> GetSelectionAsync(Guid id)
         {
-            return await GetAsync<Selection>($"/api/v1/selections/{id}", token);
+            return await GetAsync<Selection>($"/api/v1/selections/{id}");
         }
 
-        public Task<Response<IList<Selection>>> GetSelectionsAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Selection>>> GetSelectionsAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetSelectionsAsync(token, listParameters);
+            return GetSelectionsAsync(listParameters);
         }
 
-        public async Task<Response<IList<Selection>>> GetSelectionsAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<Selection>>> GetSelectionsAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<Selection>>($"/api/v1/selections?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<Selection>>($"/api/v1/selections?{listParameters.ToQueryString()}");
         }
 
-        public async Task<Response<Selection>> AddSelectionAsync(Selection selection, string token)
+        public async Task<Response<Selection>> AddSelectionAsync(Selection selection)
         {
-            return await PostAsync<Selection>("/api/v1/selections", token, selection);
+            return await PostAsync<Selection>("/api/v1/selections", selection);
         }
 
-        public async Task<Response<Selection>> UpdateSelectionAsync(Selection selection, string token)
+        public async Task<Response<Selection>> UpdateSelectionAsync(Selection selection)
         {
-            return await PatchAsync<Selection>($"/api/v1/selections/{selection.Id}", token, selection);
+            return await PatchAsync<Selection>($"/api/v1/selections/{selection.Id}", selection);
         }
 
-        public async Task<Response<bool>> RemoveSelectionAsync(Guid id, string token)
+        public async Task<Response<bool>> RemoveSelectionAsync(Guid id)
         {
-            return await DeleteAsync($"api/v1/selections/{id}", token);
+            return await DeleteAsync($"api/v1/selections/{id}");
         }
 
         #endregion Selections
 
         #region Applications
 
-        public Task<Response<IList<Application>>> GetApplicationsAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Application>>> GetApplicationsAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetApplicationsAsync(token, listParameters);
+            return GetApplicationsAsync(listParameters);
         }
 
-        public async Task<Response<IList<Application>>> GetApplicationsAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<Application>>> GetApplicationsAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<Application>>($"/api/v1/applications?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<Application>>($"/api/v1/applications?{listParameters.ToQueryString()}");
         }
 
-        public Task<Response<IList<Application>>> GetApplicationsAsync(Guid selectionId, string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Application>>> GetApplicationsAsync(Guid selectionId, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetApplicationsAsync(selectionId, token, listParameters);
+            return GetApplicationsAsync(selectionId, listParameters);
         }
 
-        public async Task<Response<IList<Application>>> GetApplicationsAsync(Guid selectionId, string token, ListParameters listParameters)
+        public async Task<Response<IList<Application>>> GetApplicationsAsync(Guid selectionId, ListParameters listParameters)
         {
-            return await GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications?{listParameters.ToQueryString()}");
         }
 
-        public async Task<Response<Application>> GetApplicationAsync(Guid id, string token)
+        public async Task<Response<Application>> GetApplicationAsync(Guid id)
         {
-            return await GetAsync<Application>($"/api/v1/applications/{id}", token);
+            return await GetAsync<Application>($"/api/v1/applications/{id}");
         }
 
-        public async Task<Response<Application>> AddApplicationAsync(Guid selectionId, Application application, string token)
+        public async Task<Response<Application>> AddApplicationAsync(Guid selectionId, Application application)
         {
-            return await PostAsync<Application>($"/api/v1/selections/{selectionId}/applications", token, application);
+            return await PostAsync<Application>($"/api/v1/selections/{selectionId}/applications", application);
         }
 
-        public async Task<Response<Application>> UpdateApplicationAsync(Application application, string token)
+        public async Task<Response<Application>> UpdateApplicationAsync(Application application)
         {
-            return await PatchAsync<Application>($"/api/applications/{application.Id}", token, application);
+            return await PatchAsync<Application>($"/api/applications/{application.Id}", application);
         }
 
-        public async Task<Response<bool>> RemoveApplicationAsync(Guid id, string token)
+        public async Task<Response<bool>> RemoveApplicationAsync(Guid id)
         {
-            return await DeleteAsync($"/api/v1/applications/{id}", token);
+            return await DeleteAsync($"/api/v1/applications/{id}");
         }
 
         #endregion Applications
 
         #region MvpTypes
 
-        public async Task<Response<MvpType>> GetMvpTypeAsync(short id, string token)
+        public async Task<Response<MvpType>> GetMvpTypeAsync(short id)
         {
-            return await GetAsync<MvpType>($"/api/v1/mvptypes/{id}", token);
+            return await GetAsync<MvpType>($"/api/v1/mvptypes/{id}");
         }
 
-        public Task<Response<IList<MvpType>>> GetMvpTypesAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<MvpType>>> GetMvpTypesAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetMvpTypesAsync(token, listParameters);
+            return GetMvpTypesAsync(listParameters);
         }
 
-        public async Task<Response<IList<MvpType>>> GetMvpTypesAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<MvpType>>> GetMvpTypesAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<MvpType>>($"/api/v1/mvptypes?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<MvpType>>($"/api/v1/mvptypes?{listParameters.ToQueryString()}");
         }
 
-        public async Task<Response<MvpType>> AddMvpTypeAsync(MvpType mvpType, string token)
+        public async Task<Response<MvpType>> AddMvpTypeAsync(MvpType mvpType)
         {
-            return await PostAsync<MvpType>("/api/v1/mvptypes", token, mvpType);
+            return await PostAsync<MvpType>("/api/v1/mvptypes", mvpType);
         }
 
-        public async Task<Response<MvpType>> UpdateMvpTypeAsync(MvpType mvpType, string token)
+        public async Task<Response<MvpType>> UpdateMvpTypeAsync(MvpType mvpType)
         {
-            return await PatchAsync<MvpType>($"/api/v1/mvptypes/{mvpType.Id}", token, mvpType);
+            return await PatchAsync<MvpType>($"/api/v1/mvptypes/{mvpType.Id}", mvpType);
         }
 
-        public async Task<Response<bool>> RemoveMvpTypeAsync(short id, string token)
+        public async Task<Response<bool>> RemoveMvpTypeAsync(short id)
         {
-            return await DeleteAsync($"/api/v1/mvptypes/{id}", token);
+            return await DeleteAsync($"/api/v1/mvptypes/{id}");
         }
 
         #endregion MvpTypes
 
         #region Products
 
-        public async Task<Response<Product>> GetProductAsync(short id, string token)
+        public async Task<Response<Product>> GetProductAsync(short id)
         {
-            return await GetAsync<Product>($"/api/v1/products/{id}", token);
+            return await GetAsync<Product>($"/api/v1/products/{id}");
         }
 
-        public Task<Response<IList<Product>>> GetProductsAsync(string token, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Product>>> GetProductsAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetProductsAsync(token, listParameters);
+            return GetProductsAsync(listParameters);
         }
 
-        public async Task<Response<IList<Product>>> GetProductsAsync(string token, ListParameters listParameters)
+        public async Task<Response<IList<Product>>> GetProductsAsync(ListParameters listParameters)
         {
-            return await GetAsync<IList<Product>>($"/api/v1/products?{listParameters.ToQueryString()}", token);
+            return await GetAsync<IList<Product>>($"/api/v1/products?{listParameters.ToQueryString()}");
         }
 
-        public async Task<Response<Product>> AddProductAsync(Product product, string token)
+        public async Task<Response<Product>> AddProductAsync(Product product)
         {
-            return await PostAsync<Product>("/api/v1/products", token, product);
+            return await PostAsync<Product>("/api/v1/products", product);
         }
 
-        public async Task<Response<Product>> UpdateProductAsync(Product product, string token)
+        public async Task<Response<Product>> UpdateProductAsync(Product product)
         {
-            return await PatchAsync<Product>($"/api/v1/products/{product.Id}", token, product);
+            return await PatchAsync<Product>($"/api/v1/products/{product.Id}", product);
         }
 
-        public async Task<Response<bool>> RemoveProductAsync(short id, string token)
+        public async Task<Response<bool>> RemoveProductAsync(short id)
         {
-            return await DeleteAsync($"/api/v1/products/{id}", token);
+            return await DeleteAsync($"/api/v1/products/{id}");
         }
 
         #endregion Products
 
         #region Private
 
-        private async Task<Response<T>> GetAsync<T>(string requestUri, string token)
+        private async Task<Response<T>> GetAsync<T>(string requestUri)
         {
             Response<T> result = new ();
             HttpRequestMessage request = new ()
@@ -308,7 +312,7 @@ namespace Mvp.Selections.Client
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(requestUri, UriKind.Relative)
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            await SetAuthorizationHeader(request);
             using HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -323,7 +327,7 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<T>> PostAsync<T>(string requestUri, string token, object content)
+        private async Task<Response<T>> PostAsync<T>(string requestUri, object content)
         {
             Response<T> result = new ();
             JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
@@ -333,7 +337,7 @@ namespace Mvp.Selections.Client
                 RequestUri = new Uri(requestUri, UriKind.Relative),
                 Content = jsonContent
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            await SetAuthorizationHeader(request);
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -348,7 +352,7 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<T>> PatchAsync<T>(string requestUri, string token, object content)
+        private async Task<Response<T>> PatchAsync<T>(string requestUri, object content)
         {
             Response<T> result = new ();
             JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
@@ -358,7 +362,7 @@ namespace Mvp.Selections.Client
                 RequestUri = new Uri(requestUri, UriKind.Relative),
                 Content = jsonContent
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            await SetAuthorizationHeader(request);
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -373,7 +377,7 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<bool>> DeleteAsync(string requestUri, string token)
+        private async Task<Response<bool>> DeleteAsync(string requestUri)
         {
             Response<bool> result = new ();
             HttpRequestMessage request = new ()
@@ -381,7 +385,7 @@ namespace Mvp.Selections.Client
                 Method = HttpMethod.Delete,
                 RequestUri = new Uri(requestUri, UriKind.Relative)
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationScheme, token);
+            await SetAuthorizationHeader(request);
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -395,6 +399,12 @@ namespace Mvp.Selections.Client
 
             result.StatusCode = response.StatusCode;
             return result;
+        }
+
+        private async Task SetAuthorizationHeader(HttpRequestMessage message)
+        {
+            message.Headers.Authorization =
+                new AuthenticationHeaderValue(AuthorizationScheme, await _tokenProvider.GetTokenAsync());
         }
 
         #endregion Private
