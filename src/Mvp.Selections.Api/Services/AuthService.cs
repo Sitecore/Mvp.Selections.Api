@@ -76,7 +76,7 @@ namespace Mvp.Selections.Api.Services
                 {
                     result.TokenUser = new OktaUser(_tokenHandler.ReadJwtToken(authHeader.Token), _tokenOptions);
                     result.User = await _userRepository.GetForAuthAsync(result.TokenUser.Identifier);
-                    if (result.StatusCode == HttpStatusCode.OK && result.User != null)
+                    if (result.User != null)
                     {
                         ValidateRights(result, rights);
                         _currentUserNameProvider.UserName = result.User.Identifier;
