@@ -13,5 +13,9 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Role;
+
+        Task<bool> AssignUserAsync(Guid roleId, Guid userId);
+
+        Task<bool> RemoveUserAsync(Guid roleId, Guid userId);
     }
 }

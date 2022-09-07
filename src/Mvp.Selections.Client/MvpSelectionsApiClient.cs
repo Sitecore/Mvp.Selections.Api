@@ -134,6 +134,17 @@ namespace Mvp.Selections.Client
             return await DeleteAsync($"/api/v1/roles/{id}");
         }
 
+        public async Task<Response<object>> AssignUserToRoleAsync(Guid roleId, Guid userId)
+        {
+            AssignUserToRole content = new () { UserId = userId };
+            return await PostAsync<object>($"/api/v1/roles/{roleId}/users", content);
+        }
+
+        public async Task<Response<bool>> RemoveUserFromRoleAsync(Guid roleId, Guid userId)
+        {
+            return await DeleteAsync($"/api/v1/roles/{roleId}/users/{userId}");
+        }
+
         #endregion Roles
 
         #region Countries

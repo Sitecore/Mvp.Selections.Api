@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -13,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Model.Roles;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -86,6 +88,99 @@ namespace Mvp.Selections.Api
                     SystemRole input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
                     Role role = await _roleService.AddSystemRoleAsync(input);
                     result = new ContentResult { Content = Serializer.Serialize(role), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("AssignUserToRole")]
+        [OpenApiOperation("AssignUserToRole", "Roles", "Admin")]
+        [OpenApiRequestBody(JsonContentType, typeof(AssignUserToRoleRequestBody))]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> AssignUserToRole(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/{id:Guid}/users")]
+            HttpRequest req,
+            Guid id)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    AssignUserToRoleRequestBody body = await Serializer.DeserializeAsync<AssignUserToRoleRequestBody>(req.Body);
+                    if (body != null && await _roleService.AssignUserAsync(id, body.UserId))
+                    {
+                        result = new NoContentResult();
+                    }
+                    else if (body == null)
+                    {
+                        result = new BadRequestErrorMessageResult("Missing request body.");
+                    }
+                    else
+                    {
+                        result = new BadRequestErrorMessageResult($"Unable to assign User '{body.UserId}' to Role '{id}'. Either user or role may not exist.");
+                    }
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("RemoveUserFromRole")]
+        [OpenApiOperation("RemoveUserFromRole", "Roles", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiParameter("userId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> RemoveUserFromRole(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/roles/{id:Guid}/users/{userId:Guid}")]
+            HttpRequest req,
+            Guid id,
+            Guid userId)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    if (await _roleService.RemoveUserAsync(id, userId))
+                    {
+                        result = new NoContentResult();
+                    }
+                    else
+                    {
+                        result = new BadRequestErrorMessageResult($"Unable to remove User '{userId}' from Role '{id}'. Either user or role may not exist.");
+                    }
                 }
                 else
                 {
