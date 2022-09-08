@@ -198,7 +198,7 @@ namespace Mvp.Selections.Api.Services
                 }
                 else
                 {
-                    // ReSharper disable once ConstantConditionalAccessQualifier - Country can be null after deserialization
+                    // ReSharper disable once ConstantConditionalAccessQualifier - Applicant can be null after deserialization
                     string message = $"Could not find User '{application.Applicant?.Id}'.";
                     result.Messages.Add(message);
                     _logger.LogInformation(message);

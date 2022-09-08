@@ -132,5 +132,55 @@ namespace Mvp.Selections.Api
 
             return result;
         }
+
+        [FunctionName("UpdateUser")]
+        [OpenApiOperation("UpdateUser", "Users", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiRequestBody(JsonContentType, typeof(User))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> Update(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/users/{id:Guid}")]
+            HttpRequest req,
+            Guid id)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    User input = await Serializer.DeserializeAsync<User>(req.Body);
+                    OperationResult<User> updateResult = await _userService.UpdateAsync(id, input);
+                    result = updateResult.StatusCode == HttpStatusCode.OK
+                        ? new ContentResult
+                        {
+                            Content = Serializer.Serialize(updateResult.Result),
+                            ContentType = Serializer.ContentType,
+                            StatusCode = (int)HttpStatusCode.OK
+                        }
+                        : new ContentResult
+                        {
+                            Content = string.Join(Environment.NewLine, updateResult.Messages),
+                            ContentType = PlainTextContentType,
+                            StatusCode = (int)updateResult.StatusCode
+                        };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
     }
 }

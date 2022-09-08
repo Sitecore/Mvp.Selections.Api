@@ -63,6 +63,11 @@ namespace Mvp.Selections.Client
             return await GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}");
         }
 
+        public async Task<Response<User>> UpdateUserAsync(User user)
+        {
+            return await PatchAsync<User>($"/api/v1/users/{user.Id}", user);
+        }
+
         #endregion Users
 
         #region Regions
