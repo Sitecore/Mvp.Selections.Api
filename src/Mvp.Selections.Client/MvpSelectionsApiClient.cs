@@ -197,7 +197,12 @@ namespace Mvp.Selections.Client
 
         public async Task<Response<bool>> RemoveSelectionAsync(Guid id)
         {
-            return await DeleteAsync($"api/v1/selections/{id}");
+            return await DeleteAsync($"/api/v1/selections/{id}");
+        }
+
+        public async Task<Response<Selection>> GetCurrentSelectionAsync()
+        {
+            return await GetAsync<Selection>("/api/v1/selections/current");
         }
 
         #endregion Selections
