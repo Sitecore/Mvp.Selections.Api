@@ -9,6 +9,6 @@
 
         public string Name { get; set; } = string.Empty;
 
-        public ICollection<Country> Countries { get; set; } = new List<Country>();
+        public ICollection<Country> Countries { get; init; } = new List<Country>();
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Mvp.Selections.Data")]
+[assembly: InternalsVisibleTo("Mvp.Selections.Client")]
+[assembly: InternalsVisibleTo("Mvp.Selections.Client.Tests")]
 
 namespace Mvp.Selections.Domain
 {

@@ -7,6 +7,7 @@ using Mvp.Selections.Client.Configuration;
 using Mvp.Selections.Client.Interfaces;
 using Mvp.Selections.Client.Models;
 using Mvp.Selections.Client.Models.Request;
+using Mvp.Selections.Client.Serialization;
 using Mvp.Selections.Domain;
 
 #pragma warning disable SA1124 // Do not use regions - For readability purpose of the many methods
@@ -31,6 +32,7 @@ namespace Mvp.Selections.Client
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
             JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            JsonSerializerOptions.Converters.Add(new RoleConverter());
         }
 
         public MvpSelectionsApiClient(HttpClient client, IOptions<MvpSelectionsApiClientOptions> options, ITokenProvider tokenProvider)

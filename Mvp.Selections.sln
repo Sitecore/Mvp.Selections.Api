@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Domain", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Data", "src\Mvp.Selections.Data\Mvp.Selections.Data.csproj", "{EFFE2B80-B96F-45AC-83E1-82C5FBAFE8BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvp.Selections.Client", "src\Mvp.Selections.Client\Mvp.Selections.Client.csproj", "{6F2CA521-59C0-4C32-BD75-84872141B041}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Client", "src\Mvp.Selections.Client\Mvp.Selections.Client.csproj", "{6F2CA521-59C0-4C32-BD75-84872141B041}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvp.Selections.Client.Tests", "src\Mvp.Selections.Client.Tests\Mvp.Selections.Client.Tests.csproj", "{2E61EE99-219F-4244-BF74-471432C290D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{6F2CA521-59C0-4C32-BD75-84872141B041}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F2CA521-59C0-4C32-BD75-84872141B041}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F2CA521-59C0-4C32-BD75-84872141B041}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E61EE99-219F-4244-BF74-471432C290D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E61EE99-219F-4244-BF74-471432C290D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E61EE99-219F-4244-BF74-471432C290D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E61EE99-219F-4244-BF74-471432C290D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

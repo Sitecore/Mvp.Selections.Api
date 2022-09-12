@@ -21,19 +21,19 @@ namespace Mvp.Selections.Domain
 
         public Country Country { get; set; } = null!;
 
-        public ICollection<User> Mentors { get; } = new List<User>();
+        public ICollection<User> Mentors { get; init; } = new List<User>();
 
-        public ICollection<Application> Applications { get; } = new List<Application>();
+        public ICollection<Application> Applications { get; init; } = new List<Application>();
 
-        public ICollection<Consent> Consents { get; } = new List<Consent>();
+        public ICollection<Consent> Consents { get; init; } = new List<Consent>();
 
-        public ICollection<ProfileLink> Links { get; } = new List<ProfileLink>();
+        public ICollection<ProfileLink> Links { get; init; } = new List<ProfileLink>();
 
-        public ICollection<Review> Reviews { get; } = new List<Review>();
+        public ICollection<Review> Reviews { get; init; } = new List<Review>();
 
-        public ICollection<Role> Roles { get; } = new List<Role>();
+        public ICollection<Role> Roles { get; init; } = new List<Role>();
 
-        public ICollection<Title> Titles { get; } = new List<Title>();
+        public ICollection<Title> Titles { get; init; } = new List<Title>();
 
         [NotMapped]
         public Right Rights => _rights ?? RecalculateRights();

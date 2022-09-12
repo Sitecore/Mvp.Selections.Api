@@ -23,8 +23,8 @@
 
         public ApplicationStatus Status { get; set; }
 
-        public ICollection<ApplicationLink> Links { get; } = new List<ApplicationLink>();
+        public ICollection<ApplicationLink> Links { get; init; } = new List<ApplicationLink>();
 
-        public ICollection<Review> Reviews { get; } = new List<Review>();
+        public ICollection<Review> Reviews { get; init; } = new List<Review>();
     }
 }

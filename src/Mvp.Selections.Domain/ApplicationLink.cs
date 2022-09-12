@@ -11,6 +11,6 @@
 
         public ApplicationLinkType Type { get; set; }
 
-        public ICollection<Product> RelatedProducts { get; } = new List<Product>();
+        public ICollection<Product> RelatedProducts { get; init; } = new List<Product>();
     }
 }

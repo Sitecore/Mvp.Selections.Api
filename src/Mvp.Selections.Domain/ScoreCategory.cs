@@ -15,6 +15,6 @@
 
         public Selection Selection { get; set; } = null!;
 
-        public ICollection<Score> ScoreOptions { get; } = new List<Score>();
+        public ICollection<Score> ScoreOptions { get; init; } = new List<Score>();
     }
 }

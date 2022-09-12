@@ -21,6 +21,6 @@
 
         public DateTime ReviewsEnd { get; set; }
 
-        public ICollection<Title> Titles { get; } = new List<Title>();
+        public ICollection<Title> Titles { get; init; } = new List<Title>();
     }
 }
