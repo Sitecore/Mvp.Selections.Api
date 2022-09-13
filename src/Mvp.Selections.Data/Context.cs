@@ -5,6 +5,12 @@ namespace Mvp.Selections.Data
 {
     public class Context : DbContext
     {
+        public static readonly Guid DefaultAdminRoleId = new ("00000000-0000-0000-0000-000000000001");
+
+        public static readonly Guid DefaultCandidateRoleId = new ("00000000-0000-0000-0000-000000000002");
+
+        public static readonly Guid DefaultReviewerRoleId = new ("00000000-0000-0000-0000-000000000003");
+
         public Context()
         {
         }
@@ -42,7 +48,6 @@ namespace Mvp.Selections.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            Guid adminSystemRoleId = new ("00000000-0000-0000-0000-000000000001");
             Guid adminUserId = new ("00000000-0000-0000-0000-000000000001");
 
             modelBuilder.Entity<Country>()
@@ -54,12 +59,16 @@ namespace Mvp.Selections.Data
                 .HasData(new { Id = adminUserId, Identifier = "00uqyu5bxcffmH3xP0h7", Name = "Ivan Lieckens", Email = "ivan.lieckens@sitecore.com", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
 
             modelBuilder.Entity("RoleUser")
-                .HasData(new { UsersId = adminUserId, RolesId = adminSystemRoleId });
+                .HasData(new { UsersId = adminUserId, RolesId = DefaultAdminRoleId });
 
             modelBuilder.Entity<SelectionRole>();
 
             modelBuilder.Entity<SystemRole>()
-                .HasData(new { Id = adminSystemRoleId, Name = "Admin", Rights = Right.Admin | Right.Any, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
+                .HasData(new { Id = DefaultAdminRoleId, Name = "Admin", Rights = Right.Admin | Right.Any, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
+            modelBuilder.Entity<SystemRole>()
+                .HasData(new { Id = DefaultCandidateRoleId, Name = "Candidate", Rights = Right.Apply | Right.Any, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
+            modelBuilder.Entity<SystemRole>()
+                .HasData(new { Id = DefaultReviewerRoleId, Name = "Reviewer", Rights = Right.Review | Right.Any, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
 
             modelBuilder.Entity<ReviewCategoryScore>()
                 .HasKey(rcs => new { rcs.ReviewId, rcs.ScoreCategoryId, rcs.ScoreId });

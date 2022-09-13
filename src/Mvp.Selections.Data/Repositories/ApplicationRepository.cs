@@ -98,6 +98,29 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IList<Application>> GetAllForUser(
+            Guid userId,
+            ApplicationStatus? status,
+            int page = 1,
+            short pageSize = 100,
+            params Expression<Func<Application, object>>[] includes)
+        {
+            page--;
+            IQueryable<Application> query = Context.Applications.Where(a => a.Applicant.Id == userId);
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
+                .OrderByDescending(a => a.CreatedOn)
+                .ThenBy(a => a.Id)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Includes(includes)
+                .ToListAsync();
+        }
+
         private static ExpressionStarter<Application> BuildForReviewPredicate(IEnumerable<SelectionRole> selectionRoles)
         {
             ExpressionStarter<Application> result = PredicateBuilder.New<Application>();

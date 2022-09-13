@@ -16,8 +16,28 @@ namespace Mvp.Selections.Api.Extensions
             T result;
             if (queryCollection.TryGetValue(key, out StringValues values))
             {
-                object resultValue = values.FirstOrDefault();
-                result = (T)Convert.ChangeType(resultValue, typeof(T));
+                string resultValue = values.FirstOrDefault();
+                if (resultValue != null)
+                {
+                    Type t = typeof(T);
+                    if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+                        t = Nullable.GetUnderlyingType(t) ?? t;
+                    }
+
+                    if (t.IsAssignableTo(typeof(Enum)) && Enum.TryParse(t, resultValue, out object enumResult))
+                    {
+                        result = (T)enumResult;
+                    }
+                    else
+                    {
+                        result = (T)Convert.ChangeType(resultValue, t);
+                    }
+                }
+                else
+                {
+                    result = defaultValue;
+                }
             }
             else
             {

@@ -11,8 +11,10 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
 
         Task<IList<Application>> GetAllForReview(IEnumerable<SelectionRole> selectionRoles, Guid selectionId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes);
 
-        Task<IList<Application>> GetAllForUser(Guid userId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] standardIncludes);
+        Task<IList<Application>> GetAllForUser(Guid userId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes);
 
-        Task<IList<Application>> GetAllForUser(Guid userId, Guid selectionId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] standardIncludes);
+        Task<IList<Application>> GetAllForUser(Guid userId, Guid selectionId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes);
+
+        Task<IList<Application>> GetAllForUser(Guid userId, ApplicationStatus? status, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes);
     }
 }

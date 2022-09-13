@@ -4,9 +4,7 @@
     {
         public const string Token = "Token";
 
-        public string FirstNameClaimType { get; set; } = "first_name";
-
-        public string LastNameClaimType { get; set; } = "last_name";
+        public string NameClaimType { get; set; } = "name";
 
         public string EmailClaimType { get; set; } = "email";
 

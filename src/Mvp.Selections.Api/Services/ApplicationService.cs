@@ -99,7 +99,7 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task<IList<Application>> GetAllAsync(User user, Guid selectionId, int page = 1, short pageSize = 100)
+        public async Task<IList<Application>> GetAllForSelectionAsync(User user, Guid selectionId, int page = 1, short pageSize = 100)
         {
             IList<Application> result;
             if (user.HasRight(Right.Admin))
@@ -113,6 +113,21 @@ namespace Mvp.Selections.Api.Services
             else if (user.HasRight(Right.Apply))
             {
                 result = await _applicationRepository.GetAllForUser(user.Id, selectionId, page, pageSize, _standardIncludes);
+            }
+            else
+            {
+                result = new List<Application>();
+            }
+
+            return result;
+        }
+
+        public async Task<IList<Application>> GetAllForUserAsync(User user, Guid userId, ApplicationStatus? status, int page = 1, short pageSize = 100)
+        {
+            IList<Application> result;
+            if (user.HasRight(Right.Admin) || (user.HasRight(Right.Apply) && user.Id == userId))
+            {
+                result = await _applicationRepository.GetAllForUser(userId, status, page, pageSize, _standardIncludes);
             }
             else
             {

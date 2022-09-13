@@ -8,5 +8,7 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
         Task<User?> GetAsync(string identifier, params Expression<Func<User, object>>[] includes);
 
         Task<User?> GetForAuthAsync(string identifier);
+
+        bool DoesUserExist(string identifier);
     }
 }

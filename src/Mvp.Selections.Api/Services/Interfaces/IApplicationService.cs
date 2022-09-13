@@ -12,7 +12,9 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<IList<Application>> GetAllAsync(User user, int page = 1, short pageSize = 100);
 
-        Task<IList<Application>> GetAllAsync(User user, Guid selectionId, int page = 1, short pageSize = 100);
+        Task<IList<Application>> GetAllForSelectionAsync(User user, Guid selectionId, int page = 1, short pageSize = 100);
+
+        Task<IList<Application>> GetAllForUserAsync(User user, Guid userId, ApplicationStatus? status, int page = 1, short pageSize = 100);
 
         Task<OperationResult<Application>> AddAsync(User user, Guid selectionId, Application application);
 

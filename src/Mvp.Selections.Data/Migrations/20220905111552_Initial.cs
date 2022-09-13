@@ -799,6 +799,16 @@ namespace Mvp.Selections.Data.Migrations
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Admin", 1 });
 
             migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Discriminator", "ModifiedBy", "ModifiedOn", "Name", "Rights" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000002"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Candidate", 2 });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Discriminator", "ModifiedBy", "ModifiedOn", "Name", "Rights" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000003"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Reviewer", 4 });
+
+            migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CountryId", "CreatedBy", "CreatedOn", "Email", "Identifier", "ImageType", "ModifiedBy", "ModifiedOn", "Name", "UserId" },
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), (short)21, "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ivan.lieckens@sitecore.com", "00uqyu5bxcffmH3xP0h7", 0, null, null, "Ivan Lieckens", null });

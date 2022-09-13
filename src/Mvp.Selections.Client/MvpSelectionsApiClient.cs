@@ -233,6 +233,23 @@ namespace Mvp.Selections.Client
             return await GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications?{listParameters.ToQueryString()}");
         }
 
+        public Task<Response<IList<Application>>> GetApplicationsAsync(Guid userId, ApplicationStatus? status, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetApplicationsAsync(userId, status, listParameters);
+        }
+
+        public async Task<Response<IList<Application>>> GetApplicationsAsync(Guid userId, ApplicationStatus? status, ListParameters listParameters)
+        {
+            string statusQueryString = string.Empty;
+            if (status != null)
+            {
+                statusQueryString = $"&status={status}";
+            }
+
+            return await GetAsync<IList<Application>>($"/api/v1/users/{userId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
+        }
+
         public async Task<Response<Application>> GetApplicationAsync(Guid id)
         {
             return await GetAsync<Application>($"/api/v1/applications/{id}");

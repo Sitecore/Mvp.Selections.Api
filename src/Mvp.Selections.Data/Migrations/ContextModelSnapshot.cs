@@ -2424,6 +2424,26 @@ namespace Mvp.Selections.Data.Migrations
                             Name = "Admin",
                             Rights = 1
                         });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Candidate",
+                            Rights = 2
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000003"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Reviewer",
+                            Rights = 4
+                        });
                 });
 
             modelBuilder.Entity("ApplicationLinkProduct", b =>

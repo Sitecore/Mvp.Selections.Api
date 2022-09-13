@@ -47,6 +47,7 @@ namespace Mvp.Selections.Api.Services
             User existingUser = await GetAsync(id);
             if (existingUser != null)
             {
+                existingUser.Identifier = user.Identifier;
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
 

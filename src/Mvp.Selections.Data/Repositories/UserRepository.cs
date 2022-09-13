@@ -33,5 +33,10 @@ namespace Mvp.Selections.Data.Repositories
                 .ThenInclude(r => (r as SelectionRole) !.Region!.Countries)
                 .SingleOrDefaultAsync(u => u.Identifier == identifier);
         }
+
+        public bool DoesUserExist(string identifier)
+        {
+            return Context.Users.Any(u => u.Identifier == identifier);
+        }
     }
 }
