@@ -21,7 +21,7 @@
 
         public Selection Selection { get; set; } = null!;
 
-        public ApplicationStatus Status { get; set; }
+        public ApplicationStatus Status { get; set; } = ApplicationStatus.Open;
 
         public ICollection<ApplicationLink> Links { get; init; } = new List<ApplicationLink>();
 

@@ -258,10 +258,25 @@ namespace Mvp.Selections.Api.Services
             if (getResult.StatusCode == HttpStatusCode.OK && getResult.Result != null && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
             {
                 updatedApplication = getResult.Result;
-                updatedApplication.Eligibility = application.Eligibility;
-                updatedApplication.Mentor = application.Mentor;
-                updatedApplication.Objectives = application.Objectives;
-                updatedApplication.Status = application.Status;
+                if (application.Eligibility != null)
+                {
+                    updatedApplication.Eligibility = application.Eligibility;
+                }
+
+                if (application.Mentor != null)
+                {
+                    updatedApplication.Mentor = application.Mentor;
+                }
+
+                if (application.Objectives != null)
+                {
+                    updatedApplication.Objectives = application.Objectives;
+                }
+
+                if (updatedApplication.Status != ApplicationStatus.Submitted)
+                {
+                    updatedApplication.Status = application.Status;
+                }
 
                 foreach (ApplicationLink link in application.Links)
                 {

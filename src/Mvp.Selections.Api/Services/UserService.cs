@@ -21,7 +21,9 @@ namespace Mvp.Selections.Api.Services
 
         private readonly Expression<Func<User, object>>[] _standardIncludes =
         {
-            r => r.Country
+            r => r.Country,
+            r => r.Links,
+            r => r.Roles
         };
 
         public UserService(ILogger<UserService> logger, IUserRepository userRepository, ICountryRepository countryRepository)

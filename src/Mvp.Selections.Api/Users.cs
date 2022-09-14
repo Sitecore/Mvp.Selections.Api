@@ -44,7 +44,8 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    result = new ContentResult { Content = Serializer.Serialize(authResult.User), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    User user = await _userService.GetAsync(authResult.User.Id);
+                    result = new ContentResult { Content = Serializer.Serialize(user), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

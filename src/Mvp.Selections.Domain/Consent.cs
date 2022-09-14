@@ -7,8 +7,6 @@
         {
         }
 
-        public DateTime GivenOn { get; set; }
-
         public DateTime RejectedOn { get; set; }
 
         public User User { get; set; } = null!;
