@@ -262,7 +262,7 @@ namespace Mvp.Selections.Client
 
         public async Task<Response<Application>> UpdateApplicationAsync(Application application)
         {
-            return await PatchAsync<Application>($"/api/applications/{application.Id}", application);
+            return await PatchAsync<Application>($"/api/v1/applications/{application.Id}", application);
         }
 
         public async Task<Response<bool>> RemoveApplicationAsync(Guid id)
