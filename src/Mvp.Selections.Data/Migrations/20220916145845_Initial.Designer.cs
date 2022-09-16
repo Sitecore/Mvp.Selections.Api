@@ -12,7 +12,7 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20220905111552_Initial")]
+    [Migration("20220916145845_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -155,16 +155,13 @@ namespace Mvp.Selections.Data.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("GivenOn")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("RejectedOn")
+                    b.Property<DateTime?>("RejectedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Type")
@@ -2425,6 +2422,22 @@ namespace Mvp.Selections.Data.Migrations
                             CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Admin",
                             Rights = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Candidate",
+                            Rights = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000003"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Reviewer",
+                            Rights = 4
                         });
                 });
 

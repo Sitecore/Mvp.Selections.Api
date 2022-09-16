@@ -244,8 +244,7 @@ namespace Mvp.Selections.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    GivenOn = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RejectedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RejectedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -796,17 +795,12 @@ namespace Mvp.Selections.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "CreatedBy", "CreatedOn", "Discriminator", "ModifiedBy", "ModifiedOn", "Name", "Rights" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Admin", 1 });
-
-            migrationBuilder.InsertData(
-                table: "Roles",
-                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Discriminator", "ModifiedBy", "ModifiedOn", "Name", "Rights" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000002"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Candidate", 2 });
-
-            migrationBuilder.InsertData(
-                table: "Roles",
-                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Discriminator", "ModifiedBy", "ModifiedOn", "Name", "Rights" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000003"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Reviewer", 4 });
+                values: new object[,]
+                {
+                    { new Guid("00000000-0000-0000-0000-000000000001"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Admin", 1 },
+                    { new Guid("00000000-0000-0000-0000-000000000002"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Candidate", 2 },
+                    { new Guid("00000000-0000-0000-0000-000000000003"), "System", new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "SystemRole", null, null, "Reviewer", 4 }
+                });
 
             migrationBuilder.InsertData(
                 table: "Users",

@@ -41,6 +41,7 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IApplicationService, ApplicationService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IMvpTypeService, MvpTypeService>();
+            builder.Services.AddScoped<IConsentService, ConsentService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -51,6 +52,7 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IMvpTypeRepository, MvpTypeRepository>();
+            builder.Services.AddScoped<IConsentRepository, ConsentRepository>();
 
             // Database
             FunctionsHostBuilderContext context = builder.GetContext();

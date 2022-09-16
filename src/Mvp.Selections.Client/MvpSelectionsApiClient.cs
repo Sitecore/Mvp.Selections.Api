@@ -342,6 +342,30 @@ namespace Mvp.Selections.Client
 
         #endregion Products
 
+        #region Consents
+
+        public async Task<Response<IList<Consent>>> GetConsentsAsync()
+        {
+            return await GetAsync<IList<Consent>>("/api/v1/users/current/consents");
+        }
+
+        public async Task<Response<IList<Consent>>> GetConsentsAsync(Guid userId)
+        {
+            return await GetAsync<IList<Consent>>($"/api/v1/users/{userId}/consents");
+        }
+
+        public async Task<Response<Consent>> GiveConsentAsync(Consent consent)
+        {
+            return await PostAsync<Consent>("/api/v1/users/current/consents", consent);
+        }
+
+        public async Task<Response<Consent>> GiveConsentAsync(Guid userId, Consent consent)
+        {
+            return await PostAsync<Consent>($"/api/v1/users/{userId}/consents", consent);
+        }
+
+        #endregion Consents
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)

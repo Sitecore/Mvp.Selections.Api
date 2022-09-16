@@ -153,16 +153,13 @@ namespace Mvp.Selections.Data.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("GivenOn")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("RejectedOn")
+                    b.Property<DateTime?>("RejectedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Type")
@@ -2423,9 +2420,7 @@ namespace Mvp.Selections.Data.Migrations
                             CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Admin",
                             Rights = 1
-                        });
-
-                    b.HasData(
+                        },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000002"),
@@ -2433,9 +2428,7 @@ namespace Mvp.Selections.Data.Migrations
                             CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Candidate",
                             Rights = 2
-                        });
-
-                    b.HasData(
+                        },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000003"),

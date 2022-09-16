@@ -139,7 +139,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("UpdateMvpType")]
-        [OpenApiOperation("UpdateMvpType", "MvpType", "Admin")]
+        [OpenApiOperation("UpdateMvpType", "MvpTypes", "Admin")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(MvpType))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
