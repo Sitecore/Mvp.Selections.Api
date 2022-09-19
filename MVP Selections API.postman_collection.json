@@ -1,0 +1,4300 @@
+{
+	"info": {
+		"_postman_id": "677c525a-1e82-4636-98b5-dbf358a6aa69",
+		"name": "MVP Selections API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19692123"
+	},
+	"item": [
+		{
+			"name": "Authenticated",
+			"item": [
+				{
+					"name": "Applications",
+					"item": [
+						{
+							"name": "All Applications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Applications (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}/applications?status=Open",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{Me.User.Id}}",
+										"applications"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "Open"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Application (400)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Application.Objectives\", pm.variables.replaceIn(\"{{$randomBs}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"eligibility\": \"{{$randomCatchPhrase}}\",\r\n  \"objectives\": \"{{Application.Objectives}}\",\r\n  \"mentor\": \"{{$randomFullName}}\",\r\n  \"status\": \"{{Application.Status}}\",\r\n  \"mvpType\": {\r\n    \"id\": {{MvpType.Id}}\r\n  },\r\n  \"country\": {\r\n    \"id\": {{Region.Country.Id}}\r\n  },\r\n  \"links\": [\r\n    {\r\n      \"date\": \"{{$isoTimestamp}}\",\r\n      \"type\": \"{{Application.Link.Type}}\",\r\n      \"relatedProducts\": [\r\n        {\r\n          \"id\": {{Product.Id}}\r\n        }\r\n      ],\r\n      \"name\": \"{{$randomCatchPhrase}}\",\r\n      \"description\": \"{{$randomLoremParagraph}}\",\r\n      \"uri\": \"{{$randomUrl}}\"\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}/applications",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}",
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection (Setup)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Selection created matches year\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.year).to.eql(parseInt(pm.variables.get(\"Selection.Year\")));\r",
+											"    pm.collectionVariables.set(\"Selection.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var now = new Date();\r",
+											"pm.collectionVariables.set(\"Selection.Year\", Math.floor(Math.random() * 100) + 1800);\r",
+											"pm.collectionVariables.set(\"Selection.ApplicationsActive\", \"true\");\r",
+											"pm.collectionVariables.set(\"Selection.ApplicationsStart\", new Date(new Date().setDate(now.getDate() - 1)).toISOString());\r",
+											"pm.collectionVariables.set(\"Selection.ApplicationsEnd\", new Date(new Date().setDate(now.getDate() + 1)).toISOString());\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsActive\", \"true\");\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsStart\", new Date(new Date().setDate(now.getDate() - 1)).toISOString());\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsEnd\", new Date(new Date().setDate(now.getDate() + 1)).toISOString());"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"year\": {{Selection.Year}},\r\n  \"applicationsActive\": {{Selection.ApplicationsActive}},\r\n  \"applicationsStart\": \"{{Selection.ApplicationsStart}}\",\r\n  \"applicationsEnd\": \"{{Selection.ApplicationsEnd}}\",\r\n  \"reviewsActive\": {{Selection.ReviewsActive}},\r\n  \"reviewsStart\": \"{{Selection.ReviewsStart}}\",\r\n  \"reviewsEnd\": \"{{Selection.ReviewsEnd}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType (Setup)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"MvpType.Name\", pm.variables.replaceIn(\"{{$randomJobArea}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"MvpType created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"MvpType.Name\"));\r",
+											"    pm.collectionVariables.set(\"MvpType.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{MvpType.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product (Setup)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Product.Name\", pm.variables.replaceIn(\"{{$randomProduct}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Product created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Product.Name\"));\r",
+											"    pm.collectionVariables.set(\"Product.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Product.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Application created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.objectives).to.eql(pm.variables.get(\"Application.Objectives\"));\r",
+											"    pm.collectionVariables.set(\"Application.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Application.Objectives\", pm.variables.replaceIn(\"{{$randomBs}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"eligibility\": \"{{$randomCatchPhrase}}\",\r\n  \"objectives\": \"{{Application.Objectives}}\",\r\n  \"mentor\": \"{{$randomFullName}}\",\r\n  \"status\": \"{{Application.Status}}\",\r\n  \"mvpType\": {\r\n    \"id\": {{MvpType.Id}}\r\n  },\r\n  \"country\": {\r\n    \"id\": {{Region.Country.Id}}\r\n  },\r\n  \"links\": [\r\n    {\r\n      \"date\": \"{{$isoTimestamp}}\",\r\n      \"type\": \"{{Application.Link.Type}}\",\r\n      \"relatedProducts\": [\r\n        {\r\n          \"id\": {{Product.Id}}\r\n        }\r\n      ],\r\n      \"name\": \"{{$randomCatchPhrase}}\",\r\n      \"description\": \"{{$randomLoremParagraph}}\",\r\n      \"uri\": \"{{$randomUrl}}\"\r\n    }\r\n  ],\r\n  \"applicant\": {\r\n      \"id\": \"{{Application.Applicant.Id}}\"\r\n  }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}/applications",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}",
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Application matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.objectives).to.eql(pm.variables.get(\"Application.Objectives\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Application.Id\"));\r",
+											"    pm.expect(jsonData.mvpType.id).to.eql(pm.variables.get(\"MvpType.Id\"));\r",
+											"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"Region.Country.Id\"));\r",
+											"    pm.expect(jsonData.links[0].relatedProducts[0].id).to.eql(pm.variables.get(\"Product.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Application matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.objectives).to.eql(pm.variables.get(\"Application.Objectives\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Application.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Application.Objectives\", pm.variables.replaceIn(\"{{$randomBs}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"objectives\": \"{{Application.Objectives}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Application (New Objectives)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Application matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.objectives).to.eql(pm.variables.get(\"Application.Objectives\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Application.Id\"));\r",
+											"    pm.expect(jsonData.mvpType.id).to.eql(pm.variables.get(\"MvpType.Id\"));\r",
+											"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"Region.Country.Id\"));\r",
+											"    pm.expect(jsonData.links[0].relatedProducts[0].id).to.eql(pm.variables.get(\"Product.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product (Cleanup)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType (Cleanup)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection (Cleanup)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Countries",
+					"item": [
+						{
+							"name": "All Countries (default pageSize)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Country lists contains 100 countries (pageSize 100)\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.length).to.eql(100);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"countries"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Countries (pageSize 300) Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Country lists contains 239 countries\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.length).to.eql(239);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries?ps=300",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"countries"
+									],
+									"query": [
+										{
+											"key": "ps",
+											"value": "300"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Consents",
+					"item": [
+						{
+							"name": "All Consents (Current User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/current/consents",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"current",
+										"consents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Consents (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{User.Id}}/consents",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{User.Id}}",
+										"consents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consent (Current User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Consent matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.type).to.eql(pm.variables.get(\"Consent.Type\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\": \"{{Consent.Type}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/current/consents",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"current",
+										"consents"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consent (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Consent matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.type).to.eql(pm.variables.get(\"Consent.Type\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\": \"PersonalInformation\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{User.Id}}/consents",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{User.Id}}",
+										"consents"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MvpTypes",
+					"item": [
+						{
+							"name": "All MvpTypes",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"MvpType.Name\", pm.variables.replaceIn(\"{{$randomJobArea}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"MvpType created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"MvpType.Name\"));\r",
+											"    pm.collectionVariables.set(\"MvpType.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{MvpType.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"MvpType matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"MvpType.Name\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"MvpType.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"MvpType.Name\", pm.variables.replaceIn(\"{{$randomJobArea}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"MvpType name matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"MvpType.Name\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{MvpType.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType (New Name)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"MvpType matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"MvpType.Name\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"MvpType.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Products",
+					"item": [
+						{
+							"name": "All Products",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Product.Name\", pm.variables.replaceIn(\"{{$randomProduct}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Product created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Product.Name\"));\r",
+											"    pm.collectionVariables.set(\"Product.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Product.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Product matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Product.Name\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Product.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Product.Name\", pm.variables.replaceIn(\"{{$randomProduct}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Product created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Product.Name\"));\r",
+											"    pm.collectionVariables.set(\"Product.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Product.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product (New Name)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Product matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Product.Name\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Product.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Regions",
+					"item": [
+						{
+							"name": "All Regions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Result is array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(Array.isArray(jsonData)).to.be.eq(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Region.Name\", pm.variables.replaceIn(\"{{$randomLoremWord}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Region created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Region.Name\"));\r",
+											"    pm.collectionVariables.set(\"Region.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{Region.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Region.Name\", pm.variables.replaceIn(\"{{$randomLoremWord}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Region name matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Region.Name\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{Region.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Assign Country",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Region.Country.Id\", Math.floor(Math.random() * 238) + 1);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"countryId\": {{Region.Country.Id}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}/countries",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}",
+										"countries"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region (With Country)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Region matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Region.Name\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Region.Id\"));\r",
+											"});\r",
+											"pm.test(\"Region has tested Country\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.countries.findIndex((country) => country.id == parseInt(pm.variables.get(\"Region.Country.Id\")))).to.gt(-1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Country",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}/countries/{{Region.Country.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}",
+										"countries",
+										"{{Region.Country.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region (No Countries)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Region matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Region.Name\"));\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Region.Id\"));\r",
+											"});\r",
+											"pm.test(\"Region doesn't have tested Country\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.countries.findIndex((country) => country.id == parseInt(pm.variables.get(\"Region.Country.Id\")))).to.eql(-1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Roles",
+					"item": [
+						{
+							"name": "All SystemRoles",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Array is not empty (1 role is always in the system)\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.length).to.be.gte(1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/system",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"system"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SystemRole",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"SystemRole.Name\", pm.variables.replaceIn(\"{{$randomJobType}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Role created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"SystemRole.Name\"));\r",
+											"    pm.collectionVariables.set(\"SystemRole.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"rights\": \"Apply, Review\",\r\n  \"name\": \"{{SystemRole.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/system",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"system"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All SystemRoles (Including POSTed)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"POSTed role is present\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.findIndex((role) => role.id == pm.variables.get(\"SystemRole.Id\"))).to.gt(-1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/system",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"system"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SystemRole",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/{{SystemRole.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"{{SystemRole.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Selections",
+					"item": [
+						{
+							"name": "Current Selection (Empty)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"No current selection exists\", function () {\r",
+											"    pm.response.to.have.jsonBody();\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.be.eq(null);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"current"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Selection created matches year\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.year).to.eql(parseInt(pm.variables.get(\"Selection.Year\")));\r",
+											"    pm.collectionVariables.set(\"Selection.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var now = new Date();\r",
+											"pm.collectionVariables.set(\"Selection.ApplicationsActive\", \"null\");\r",
+											"pm.collectionVariables.set(\"Selection.ApplicationsStart\", new Date(new Date().setDate(now.getDate() - 1)).toISOString());\r",
+											"pm.collectionVariables.set(\"Selection.ApplicationsEnd\", new Date(new Date().setDate(now.getDate() + 1)).toISOString());\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsActive\", \"null\");\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsStart\", new Date(new Date().setDate(now.getDate() - 1)).toISOString());\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsEnd\", new Date(new Date().setDate(now.getDate() + 1)).toISOString());"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"year\": {{Selection.Year}},\r\n  \"applicationsActive\": {{Selection.ApplicationsActive}},\r\n  \"applicationsStart\": \"{{Selection.ApplicationsStart}}\",\r\n  \"applicationsEnd\": \"{{Selection.ApplicationsEnd}}\",\r\n  \"reviewsActive\": {{Selection.ReviewsActive}},\r\n  \"reviewsStart\": \"{{Selection.ReviewsStart}}\",\r\n  \"reviewsEnd\": \"{{Selection.ReviewsEnd}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Current Selection (Created)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Selection id is correct\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Selection.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"current"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Selections",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Array is not empty\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.length).to.be.gte(1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Selection updated matches id\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Selection.Id\"));\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Selection.ApplicationsActive\", \"false\");\r",
+											"pm.collectionVariables.set(\"Selection.ReviewsActive\", \"false\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"applicationsActive\": {{Selection.ApplicationsActive}},\r\n  \"reviewsActive\": {{Selection.ReviewsActive}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Current Selection (Empty)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"No current selection exists\", function () {\r",
+											"    pm.response.to.have.jsonBody();\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.be.eq(null);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"current"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Selection id is correct\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Selection.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "Current User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"User is Token user\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.identifier).to.eql(pm.variables.get(\"Me.User.Identifier\"));\r",
+											"    pm.collectionVariables.set(\"Me.User.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"current"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Array is not empty (1 user is always in the system)\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.length).to.be.gte(1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"User id is correct\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Me.User.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{Me.User.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"User.Country.Id\", Math.floor(Math.random() * 238) + 1);\r",
+											"pm.collectionVariables.set(\"User.Name\", pm.variables.replaceIn(\"{{$randomFullName}}\"));\r",
+											"pm.collectionVariables.set(\"User.Email\", pm.variables.replaceIn(\"{{$randomEmail}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"User name, email and country matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"User.Name\"));\r",
+											"    pm.expect(jsonData.email).to.eql(pm.variables.get(\"User.Email\"));\r",
+											"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"User.Country.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{User.Name}}\",\r\n    \"email\": \"{{User.Email}}\",\r\n    \"country\": {\r\n        \"id\": {{User.Country.Id}}\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{Me.User.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User Reset",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"User name, email and country matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Me.User.Name\"));\r",
+											"    pm.expect(jsonData.email).to.eql(pm.variables.get(\"Me.User.Email\"));\r",
+											"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"Me.User.Country.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Me.User.Name}}\",\r\n    \"email\": \"{{Me.User.Email}}\",\r\n    \"country\": {\r\n        \"id\": {{Me.User.Country.Id}}\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{Me.User.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/status",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Init",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/init?code={{MasterKey}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"init"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{MasterKey}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Anonymous",
+			"item": [
+				{
+					"name": "Countries",
+					"item": [
+						{
+							"name": "All Countries",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"countries"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "MvpTypes",
+					"item": [
+						{
+							"name": "All MvpTypes",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{MvpType.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{MvpType.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "MvpType",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvptypes/{{MvpType.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"mvptypes",
+										"{{MvpType.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "Current User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"current"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{Me.User.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Selections",
+					"item": [
+						{
+							"name": "Current Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"current"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"year\": {{Selection.Year}},\r\n  \"applicationsActive\": {{Selection.ApplicationsActive}},\r\n  \"applicationsStart\": \"{{Selection.ApplicationsStart}}\",\r\n  \"applicationsEnd\": \"{{Selection.ApplicationsEnd}}\",\r\n  \"reviewsActive\": {{Selection.ReviewsActive}},\r\n  \"reviewsStart\": \"{{Selection.ReviewsStart}}\",\r\n  \"reviewsEnd\": \"{{Selection.ReviewsEnd}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Selections",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"applicationsActive\": {{Selection.ApplicationsActive}},\r\n  \"reviewsActive\": {{Selection.ReviewsActive}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Selection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"selections",
+										"{{Selection.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Regions",
+					"item": [
+						{
+							"name": "All Regions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{Region.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"{{Region.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Region",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Assign Country",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"countryId\": {{Region.Country.Id}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}/countries",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}",
+										"countries"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Country",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/regions/{{Region.Id}}/countries/{{Region.Country.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"regions",
+										"{{Region.Id}}",
+										"countries",
+										"{{Region.Country.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Roles",
+					"item": [
+						{
+							"name": "All SystemRoles",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/system",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"system"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SystemRole",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"rights\": \"Apply, Review\",\r\n  \"name\": \"{{SystemRole.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/system",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"system"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SystemRole",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/{{SystemRole.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"{{SystemRole.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Products",
+					"item": [
+						{
+							"name": "All Products",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Product.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Product.Name}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Product",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {\r",
+											"    pm.response.to.have.status(401);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/products/{{Product.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"products",
+										"{{Product.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Introspect Token",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "eyJraWQiOiIzZDcxOUluMGZ0WmtTNk9SM3lxNEJJNUNCTmJYdE9Mb3E2M1dYUXhkM1hnIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjYzMjMzNjMyLCJleHAiOjE2NjMyMzcyMzIsImp0aSI6IklELllJcVFIY2tIMmFmLVpldkQ1LXVXWTZWM0VCOFhobWhkV2x5S1V6RFlwQmsiLCJhbXIiOlsib3RwIiwicHdkIiwibWZhIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2Mzc5ODgzMDM1Mzk0OTI5MDguWm1abU1EZzRObVF0TWpCbE15MDBZbVE0TFRneU5qa3ROelUwT1dKaVlXTmxNMlk1TkRCaE5tUmlPVGN0WkRZME9DMDBaR1pqTFdFM05XVXRaV0V4TTJVMVlUTmtNVEE0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NjMyMzM2MTIsImF0X2hhc2giOiJNbU9MTDNfMzdnWGxZVDN5UVp5LWN3IiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.A3E3y1FbW6lqeK98wQc3PJxkam_W9_M6NbV8ry07jmk0tkxvP4K3ts7zuewVXXqg9GRuBGMlkg0Z16ao2uGUA6qQCeWhc3cLlfH46WktDHBEMkSwc0857-JoxJRwS-MAgueyxxKmcqmMeqdw2c_YCsccuDxPTOUovMXpPYQZMKVOruXIAoAkHn51Nlera5iAXQ9vZvljhaqPzaiJO4Z3kgwmvNmIETl2U7riLVqspsZgqGlCHcriEIfjGmrGrC29WzP6rBIx-s6yNusKKE_TZO8vUawEwGNeiwrxYf6N6TsJah9MVEMFiyw5dO1dBw_gWgK74hPgkRGRg9W2tFemeQ",
+							"type": "text"
+						},
+						{
+							"key": "token_type_hint",
+							"value": "id_token",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "0oa11wt68a2ALFUB20h8",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://oktapreview.sitecore.com/oauth2/default/v1/introspect",
+					"protocol": "https",
+					"host": [
+						"oktapreview",
+						"sitecore",
+						"com"
+					],
+					"path": [
+						"oauth2",
+						"default",
+						"v1",
+						"introspect"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessTokenUrl",
+				"value": "https://oktapreview.sitecore.com/oauth2/default/v1/token",
+				"type": "string"
+			},
+			{
+				"key": "authUrl",
+				"value": "https://oktapreview.sitecore.com/oauth2/default/v1/authorize",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "0oa11wt68a2ALFUB20h8",
+				"type": "string"
+			},
+			{
+				"key": "useBrowser",
+				"value": true,
+				"type": "boolean"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Me.User.Identifier",
+			"value": "00uqyu5bxcffmH3xP0h7",
+			"type": "string"
+		},
+		{
+			"key": "Me.User.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Me.User.Country.Id",
+			"value": "21",
+			"type": "string"
+		},
+		{
+			"key": "Me.User.Name",
+			"value": "Ivan Lieckens",
+			"type": "string"
+		},
+		{
+			"key": "Me.User.Email",
+			"value": "ivan.lieckens@sitecore.com",
+			"type": "string"
+		},
+		{
+			"key": "Selection.Year",
+			"value": "2023",
+			"type": "string"
+		},
+		{
+			"key": "Selection.ApplicationsActive",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Selection.ApplicationsStart",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Selection.ApplicationsEnd",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Selection.ReviewsActive",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Selection.ReviewsStart",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Selection.ReviewsEnd",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Selection.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Region.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Region.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Region.Country.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "SystemRole.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "SystemRole.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "MvpType.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "MvpType.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Product.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Product.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Application.Status",
+			"value": "Open",
+			"type": "string"
+		},
+		{
+			"key": "Application.Link.Type",
+			"value": "BlogPost",
+			"type": "string"
+		},
+		{
+			"key": "Application.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Application.Objectives",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Application.Applicant.Id",
+			"value": "00000000-0000-0000-0000-000000000001",
+			"type": "string"
+		},
+		{
+			"key": "User.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "User.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "User.Email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "User.Country.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Consent.Type",
+			"value": "PersonalInformation",
+			"type": "string"
+		}
+	]
+}
