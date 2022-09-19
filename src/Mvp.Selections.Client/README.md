@@ -1,17 +1,5 @@
 ﻿# Sitecore MVP Selections API Client
 
-## :cd: Installation
-
-Package as a Nuget by running
-
-`dotnet pack -c Release -p:NuspecFile=Mvp.Selections.Client.nuspec`
-
-Add a Local Nuget repository to your Nuget.config
-
-`<add key="Local" value="C:\Code\Local Nuget" />`
-
-Add the Mvp.Selections.Client to your project.
-
 ## :arrow_forward: Usage
 Provide the configuration through an environment variable such as 
 `MvpSelectionsApiClient__BaseAddress: ${MVP_SELECTIONS_API}` or by 
@@ -92,5 +80,8 @@ namespace Example.ViewComponents
 }
 ```
 
-## :wrench: Operations available
-See the Postman collection included in the repository `MVP Selections API.postman_collection.json`
+## :hammer: Build
+
+Package as a Nuget by running
+
+`dotnet pack -c Release -p:NuspecFile=Mvp.Selections.Client.nuspec`
