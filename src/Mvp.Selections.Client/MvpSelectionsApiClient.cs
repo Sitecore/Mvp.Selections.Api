@@ -373,7 +373,7 @@ namespace Mvp.Selections.Client
             return await PostAsync<Contribution>($"/api/v1/applications/{applicationId}/contributions", contribution);
         }
 
-        public async Task<Response<bool>> RemoveContribution(Guid applicationId, Guid contributionId)
+        public async Task<Response<bool>> RemoveContributionAsync(Guid applicationId, Guid contributionId)
         {
             return await DeleteAsync($"/api/v1/applications/{applicationId}/contributions/{contributionId}");
         }
