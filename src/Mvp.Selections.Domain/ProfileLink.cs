@@ -1,11 +1,15 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class ProfileLink : Link
+    public class ProfileLink : BaseEntity<Guid>
     {
         public ProfileLink(Guid id)
             : base(id)
         {
         }
+
+        public string Name { get; set; } = string.Empty;
+
+        public Uri Uri { get; set; } = null!;
 
         public ProfileLinkType Type { get; set; }
     }

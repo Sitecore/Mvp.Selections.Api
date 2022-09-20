@@ -2,16 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Mvp.Selections.Client</id>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <releaseNotes>
-      Initial version of the Client
-      ---
-      + Users (Get, GetAll, GetCurrent, Update)
-      + Regions (Get, GetAll, Add, Update, Remove, Assign, RemoveAssign)
-      + Roles (GetSystemRoles, AddSystemRole, Remove, Assign, RemoveAssign)
-      + Countries (GetAll)
-      + Products (GetAll, Add, Update, Remove)
-      + Consents (GetAll, Give)
+      + Contributions (Add, Remove)
+      - ApplicationLink now changed to Contribution
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>

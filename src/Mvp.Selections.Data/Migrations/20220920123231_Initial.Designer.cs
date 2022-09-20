@@ -12,7 +12,7 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20220916145845_Initial")]
+    [Migration("20220920123231_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,19 +24,19 @@ namespace Mvp.Selections.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("ApplicationLinkProduct", b =>
+            modelBuilder.Entity("ContributionProduct", b =>
                 {
-                    b.Property<Guid>("ApplicationLinksId")
+                    b.Property<Guid>("ContributionsId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("RelatedProductsId")
                         .HasColumnType("int");
 
-                    b.HasKey("ApplicationLinksId", "RelatedProductsId");
+                    b.HasKey("ContributionsId", "RelatedProductsId");
 
                     b.HasIndex("RelatedProductsId");
 
-                    b.ToTable("ApplicationLinkProduct");
+                    b.ToTable("ContributionProduct");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Application", b =>
@@ -95,53 +95,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.ToTable("Applications");
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.ApplicationLink", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ApplicationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Uri")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationId");
-
-                    b.ToTable("ApplicationLinks");
-                });
-
             modelBuilder.Entity("Mvp.Selections.Domain.Consent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -175,6 +128,52 @@ namespace Mvp.Selections.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Consents");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.Contribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Uri")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.ToTable("Contributions");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Country", b =>
@@ -1960,10 +1959,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -2441,11 +2436,11 @@ namespace Mvp.Selections.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("ApplicationLinkProduct", b =>
+            modelBuilder.Entity("ContributionProduct", b =>
                 {
-                    b.HasOne("Mvp.Selections.Domain.ApplicationLink", null)
+                    b.HasOne("Mvp.Selections.Domain.Contribution", null)
                         .WithMany()
-                        .HasForeignKey("ApplicationLinksId")
+                        .HasForeignKey("ContributionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2491,13 +2486,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("Selection");
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.ApplicationLink", b =>
-                {
-                    b.HasOne("Mvp.Selections.Domain.Application", null)
-                        .WithMany("Links")
-                        .HasForeignKey("ApplicationId");
-                });
-
             modelBuilder.Entity("Mvp.Selections.Domain.Consent", b =>
                 {
                     b.HasOne("Mvp.Selections.Domain.User", "User")
@@ -2507,6 +2495,17 @@ namespace Mvp.Selections.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.Contribution", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.Application", "Application")
+                        .WithMany("Contributions")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Country", b =>
@@ -2697,7 +2696,7 @@ namespace Mvp.Selections.Data.Migrations
 
             modelBuilder.Entity("Mvp.Selections.Domain.Application", b =>
                 {
-                    b.Navigation("Links");
+                    b.Navigation("Contributions");
 
                     b.Navigation("Reviews");
                 });

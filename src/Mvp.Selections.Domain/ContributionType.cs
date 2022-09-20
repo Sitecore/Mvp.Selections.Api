@@ -1,6 +1,6 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public enum ApplicationLinkType
+    public enum ContributionType
     {
         Other,
         BlogPost,
