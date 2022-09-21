@@ -7,6 +7,9 @@
         Speaking,
         Code,
         Video,
-        SocialMedia
+        SocialMedia,
+        BugReport,
+        Feedback,
+        Reference
     }
 }
