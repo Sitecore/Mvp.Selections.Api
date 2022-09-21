@@ -366,6 +366,20 @@ namespace Mvp.Selections.Client
 
         #endregion Consents
 
+        #region Contributions
+
+        public async Task<Response<Contribution>> AddContributionAsync(Guid applicationId, Contribution contribution)
+        {
+            return await PostAsync<Contribution>($"/api/v1/applications/{applicationId}/contributions", contribution);
+        }
+
+        public async Task<Response<bool>> RemoveContributionAsync(Guid applicationId, Guid contributionId)
+        {
+            return await DeleteAsync($"/api/v1/applications/{applicationId}/contributions/{contributionId}");
+        }
+
+        #endregion Contributions
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)

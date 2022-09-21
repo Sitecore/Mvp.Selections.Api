@@ -32,7 +32,7 @@ namespace Mvp.Selections.Api.Services
         {
             app => app.Applicant,
             app => app.Country,
-            app => app.Links,
+            app => app.Contributions,
             app => app.MvpType,
             app => app.Selection
         };
@@ -181,25 +181,25 @@ namespace Mvp.Selections.Api.Services
                 _logger.LogInformation(message);
             }
 
-            foreach (ApplicationLink link in application.Links)
+            foreach (Contribution contribution in application.Contributions)
             {
-                ApplicationLink newLink = CreateNewApplicationLink(link);
-                foreach (Product product in link.RelatedProducts)
+                Contribution newContribution = CreateNewContribution(contribution);
+                foreach (Product product in contribution.RelatedProducts)
                 {
                     Product dbProduct = await _productService.GetAsync(product.Id);
                     if (dbProduct != null)
                     {
-                        newLink.RelatedProducts.Add(dbProduct);
+                        newContribution.RelatedProducts.Add(dbProduct);
                     }
                     else
                     {
-                        string message = $"Could not find Product '{product.Id}' for Link '{link.Name}'.";
+                        string message = $"Could not find Product '{product.Id}' for Contribution '{contribution.Name}'.";
                         result.Messages.Add(message);
                         _logger.LogInformation(message);
                     }
                 }
 
-                newApplication.Links.Add(newLink);
+                newApplication.Contributions.Add(newContribution);
             }
 
             // Only an Admin can create applications for someone else
@@ -278,11 +278,11 @@ namespace Mvp.Selections.Api.Services
                     updatedApplication.Status = application.Status;
                 }
 
-                foreach (ApplicationLink link in application.Links)
+                foreach (Contribution link in application.Contributions)
                 {
                     if (link.Id == Guid.Empty)
                     {
-                        ApplicationLink newLink = CreateNewApplicationLink(link);
+                        Contribution newLink = CreateNewContribution(link);
                         foreach (Product product in link.RelatedProducts)
                         {
                             Product dbProduct = await _productService.GetAsync(product.Id);
@@ -300,12 +300,12 @@ namespace Mvp.Selections.Api.Services
 
                         if (result.Messages.Count == 0)
                         {
-                            updatedApplication.Links.Add(newLink);
+                            updatedApplication.Contributions.Add(newLink);
                         }
                     }
                     else
                     {
-                        ApplicationLink updatedLink = updatedApplication.Links.SingleOrDefault(l => l.Id == link.Id);
+                        Contribution updatedLink = updatedApplication.Contributions.SingleOrDefault(l => l.Id == link.Id);
                         if (updatedLink != null)
                         {
                             updatedLink.Name = link.Name;
@@ -401,7 +401,7 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private static ApplicationLink CreateNewApplicationLink(ApplicationLink link)
+        private static Contribution CreateNewContribution(Contribution link)
         {
             return new (Guid.Empty)
             {

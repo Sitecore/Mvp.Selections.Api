@@ -924,6 +924,109 @@
 					]
 				},
 				{
+					"name": "Contributions",
+					"item": [
+						{
+							"name": "Contribution",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Contribution.Name\", pm.variables.replaceIn(\"{{$randomLoremWords}}\"));\r",
+											"pm.collectionVariables.set(\"Contribution.Description\", pm.variables.replaceIn(\"{{$randomLoremParagraph}}\"));\r",
+											"pm.collectionVariables.set(\"Contribution.Uri\", pm.variables.replaceIn(\"{{$randomUrl}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Contribution created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Contribution.Name\"));\r",
+											"    pm.expect(jsonData.description).to.eql(pm.variables.get(\"Contribution.Description\"));\r",
+											"    pm.expect(jsonData.uri).to.eql(pm.variables.get(\"Contribution.Uri\"));\r",
+											"    pm.collectionVariables.set(\"Contribution.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Contribution.Name}}\",\r\n    \"description\": \"{{Contribution.Description}}\",\r\n    \"uri\": \"{{Contribution.Uri}}\",\r\n    \"type\": \"Other\",\r\n    \"date\": \"{{$isoTimestamp}}\",\r\n    \"relatedProducts\": [\r\n        {\r\n            \"id\": \"{{Product.Id}}\"\r\n        }\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/contributions",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}",
+										"contributions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Contribution",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/contributions/{{Contribution.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}",
+										"contributions",
+										"{{Contribution.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "MvpTypes",
 					"item": [
 						{
@@ -4294,6 +4397,26 @@
 		{
 			"key": "Consent.Type",
 			"value": "PersonalInformation",
+			"type": "string"
+		},
+		{
+			"key": "Contribution.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Contribution.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Contribution.Description",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Contribution.Uri",
+			"value": "",
 			"type": "string"
 		}
 	]

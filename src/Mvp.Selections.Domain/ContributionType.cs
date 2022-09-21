@@ -1,12 +1,15 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public enum ApplicationLinkType
+    public enum ContributionType
     {
         Other,
         BlogPost,
         Speaking,
         Code,
         Video,
-        SocialMedia
+        SocialMedia,
+        BugReport,
+        Feedback,
+        Reference
     }
 }

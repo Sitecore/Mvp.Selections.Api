@@ -23,7 +23,7 @@
 
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Open;
 
-        public ICollection<ApplicationLink> Links { get; init; } = new List<ApplicationLink>();
+        public ICollection<Contribution> Contributions { get; init; } = new List<Contribution>();
 
         public ICollection<Review> Reviews { get; init; } = new List<Review>();
     }

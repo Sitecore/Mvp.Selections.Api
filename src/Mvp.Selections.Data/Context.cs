@@ -32,7 +32,7 @@ namespace Mvp.Selections.Data
 
         public DbSet<Application> Applications => Set<Application>();
 
-        public DbSet<ApplicationLink> ApplicationLinks => Set<ApplicationLink>();
+        public DbSet<Contribution> Contributions => Set<Contribution>();
 
         public DbSet<Review> Reviews => Set<Review>();
 
@@ -103,7 +103,7 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<Selection>()
                 .HasAlternateKey(s => s.Year);
 
-            modelBuilder.Entity<ApplicationLink>()
+            modelBuilder.Entity<Contribution>()
                 .Navigation(al => al.RelatedProducts)
                 .AutoInclude();
         }

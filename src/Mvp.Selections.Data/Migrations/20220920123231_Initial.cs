@@ -268,15 +268,14 @@ namespace Mvp.Selections.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Uri = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModifiedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Uri = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -289,29 +288,30 @@ namespace Mvp.Selections.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApplicationLinks",
+                name: "Contributions",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Uri = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    ApplicationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ApplicationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModifiedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Uri = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ApplicationLinks", x => x.Id);
+                    table.PrimaryKey("PK_Contributions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApplicationLinks_Applications_ApplicationId",
+                        name: "FK_Contributions_Applications_ApplicationId",
                         column: x => x.ApplicationId,
                         principalTable: "Applications",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -434,23 +434,23 @@ namespace Mvp.Selections.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApplicationLinkProduct",
+                name: "ContributionProduct",
                 columns: table => new
                 {
-                    ApplicationLinksId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ContributionsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RelatedProductsId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ApplicationLinkProduct", x => new { x.ApplicationLinksId, x.RelatedProductsId });
+                    table.PrimaryKey("PK_ContributionProduct", x => new { x.ContributionsId, x.RelatedProductsId });
                     table.ForeignKey(
-                        name: "FK_ApplicationLinkProduct_ApplicationLinks_ApplicationLinksId",
-                        column: x => x.ApplicationLinksId,
-                        principalTable: "ApplicationLinks",
+                        name: "FK_ContributionProduct_Contributions_ContributionsId",
+                        column: x => x.ContributionsId,
+                        principalTable: "Contributions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ApplicationLinkProduct_Products_RelatedProductsId",
+                        name: "FK_ContributionProduct_Products_RelatedProductsId",
                         column: x => x.RelatedProductsId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -813,16 +813,6 @@ namespace Mvp.Selections.Data.Migrations
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new Guid("00000000-0000-0000-0000-000000000001") });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApplicationLinkProduct_RelatedProductsId",
-                table: "ApplicationLinkProduct",
-                column: "RelatedProductsId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ApplicationLinks_ApplicationId",
-                table: "ApplicationLinks",
-                column: "ApplicationId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Applications_ApplicantId",
                 table: "Applications",
                 column: "ApplicantId");
@@ -846,6 +836,16 @@ namespace Mvp.Selections.Data.Migrations
                 name: "IX_Consents_UserId",
                 table: "Consents",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContributionProduct_RelatedProductsId",
+                table: "ContributionProduct",
+                column: "RelatedProductsId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Contributions_ApplicationId",
+                table: "Contributions",
+                column: "ApplicationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Countries_RegionId",
@@ -956,10 +956,10 @@ namespace Mvp.Selections.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ApplicationLinkProduct");
+                name: "Consents");
 
             migrationBuilder.DropTable(
-                name: "Consents");
+                name: "ContributionProduct");
 
             migrationBuilder.DropTable(
                 name: "ProfileLinks");
@@ -974,7 +974,7 @@ namespace Mvp.Selections.Data.Migrations
                 name: "Title");
 
             migrationBuilder.DropTable(
-                name: "ApplicationLinks");
+                name: "Contributions");
 
             migrationBuilder.DropTable(
                 name: "Products");

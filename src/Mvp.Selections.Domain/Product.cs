@@ -9,6 +9,6 @@
 
         public string Name { get; set; } = string.Empty;
 
-        public ICollection<ApplicationLink> ApplicationLinks { get; init; } = new List<ApplicationLink>();
+        public ICollection<Contribution> Contributions { get; init; } = new List<Contribution>();
     }
 }
