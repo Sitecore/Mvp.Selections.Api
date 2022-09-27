@@ -2286,7 +2286,7 @@ namespace Mvp.Selections.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<short>("CountryId")
+                    b.Property<short?>("CountryId")
                         .HasColumnType("smallint");
 
                     b.Property<string>("CreatedBy")
@@ -2633,9 +2633,7 @@ namespace Mvp.Selections.Data.Migrations
                 {
                     b.HasOne("Mvp.Selections.Domain.Country", "Country")
                         .WithMany("Users")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CountryId");
 
                     b.HasOne("Mvp.Selections.Domain.User", null)
                         .WithMany("Mentors")
