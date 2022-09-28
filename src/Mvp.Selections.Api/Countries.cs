@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllCountries")]
-        [OpenApiOperation("GetAllCountries", "Countries", "Admin")]
+        [OpenApiOperation("GetAllCountries", "Countries")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -44,7 +44,7 @@ namespace Mvp.Selections.Api
             IActionResult result;
             try
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);

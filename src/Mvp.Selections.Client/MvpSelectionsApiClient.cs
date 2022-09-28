@@ -54,6 +54,11 @@ namespace Mvp.Selections.Client
             return await GetAsync<User>("/api/v1/users/current");
         }
 
+        public async Task<Response<User>> UpdateCurrentUserAsync(User user)
+        {
+            return await PatchAsync<User>("/api/v1/users/current", user);
+        }
+
         public Task<Response<IList<User>>> GetUsersAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };

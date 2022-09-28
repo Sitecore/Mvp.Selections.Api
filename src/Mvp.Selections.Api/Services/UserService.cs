@@ -49,11 +49,15 @@ namespace Mvp.Selections.Api.Services
             User existingUser = await GetAsync(id);
             if (existingUser != null)
             {
-                existingUser.Identifier = user.Identifier;
+                if (user.HasRight(Right.Admin))
+                {
+                    existingUser.Identifier = user.Identifier;
+                }
+
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
+                existingUser.ImageType = user.ImageType;
 
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse - Country can be null after deserialization
                 Country country = user.Country != null ? await _countryRepository.GetAsync(user.Country.Id) : null;
                 if (country != null)
                 {
@@ -61,7 +65,6 @@ namespace Mvp.Selections.Api.Services
                 }
                 else
                 {
-                    // ReSharper disable once ConstantConditionalAccessQualifier - Country can be null after deserialization
                     string message = $"Could not find Country '{user.Country?.Id}'.";
                     result.Messages.Add(message);
                     _logger.LogInformation(message);

@@ -2678,6 +2678,55 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Current User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"User name, email and country matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Me.User.Name\"));\r",
+											"    pm.expect(jsonData.email).to.eql(pm.variables.get(\"Me.User.Email\"));\r",
+											"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"Me.User.Country.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Me.User.Name}}\",\r\n    \"email\": \"{{Me.User.Email}}\",\r\n    \"country\": {\r\n        \"id\": {{Me.User.Country.Id}}\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/current",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"current"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -4132,55 +4181,146 @@
 			]
 		},
 		{
-			"name": "Introspect Token",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "token",
-							"value": "eyJraWQiOiIzZDcxOUluMGZ0WmtTNk9SM3lxNEJJNUNCTmJYdE9Mb3E2M1dYUXhkM1hnIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjYzMjMzNjMyLCJleHAiOjE2NjMyMzcyMzIsImp0aSI6IklELllJcVFIY2tIMmFmLVpldkQ1LXVXWTZWM0VCOFhobWhkV2x5S1V6RFlwQmsiLCJhbXIiOlsib3RwIiwicHdkIiwibWZhIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2Mzc5ODgzMDM1Mzk0OTI5MDguWm1abU1EZzRObVF0TWpCbE15MDBZbVE0TFRneU5qa3ROelUwT1dKaVlXTmxNMlk1TkRCaE5tUmlPVGN0WkRZME9DMDBaR1pqTFdFM05XVXRaV0V4TTJVMVlUTmtNVEE0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NjMyMzM2MTIsImF0X2hhc2giOiJNbU9MTDNfMzdnWGxZVDN5UVp5LWN3IiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.A3E3y1FbW6lqeK98wQc3PJxkam_W9_M6NbV8ry07jmk0tkxvP4K3ts7zuewVXXqg9GRuBGMlkg0Z16ao2uGUA6qQCeWhc3cLlfH46WktDHBEMkSwc0857-JoxJRwS-MAgueyxxKmcqmMeqdw2c_YCsccuDxPTOUovMXpPYQZMKVOruXIAoAkHn51Nlera5iAXQ9vZvljhaqPzaiJO4Z3kgwmvNmIETl2U7riLVqspsZgqGlCHcriEIfjGmrGrC29WzP6rBIx-s6yNusKKE_TZO8vUawEwGNeiwrxYf6N6TsJah9MVEMFiyw5dO1dBw_gWgK74hPgkRGRg9W2tFemeQ",
-							"type": "text"
+			"name": "Okta",
+			"item": [
+				{
+					"name": "Introspect Token",
+					"request": {
+						"auth": {
+							"type": "noauth"
 						},
-						{
-							"key": "token_type_hint",
-							"value": "id_token",
-							"type": "text"
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "token_type_hint",
+									"value": "id_token",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "0oa11wt68a2ALFUB20h8",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
+									"type": "text"
+								}
+							]
 						},
-						{
-							"key": "client_id",
-							"value": "0oa11wt68a2ALFUB20h8",
-							"type": "text"
-						},
-						{
-							"key": "client_secret",
-							"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
-							"type": "text"
+						"url": {
+							"raw": "https://{{Okta.EndpointUri}}/oauth2/default/v1/introspect",
+							"protocol": "https",
+							"host": [
+								"{{Okta.EndpointUri}}"
+							],
+							"path": [
+								"oauth2",
+								"default",
+								"v1",
+								"introspect"
+							]
 						}
-					]
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "https://oktapreview.sitecore.com/oauth2/default/v1/introspect",
-					"protocol": "https",
-					"host": [
-						"oktapreview",
-						"sitecore",
-						"com"
-					],
-					"path": [
-						"oauth2",
-						"default",
-						"v1",
-						"introspect"
-					]
+				{
+					"name": "User Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{Okta.EndpointUri}}/oauth2/default/v1/userinfo",
+							"protocol": "https",
+							"host": [
+								"{{Okta.EndpointUri}}"
+							],
+							"path": [
+								"oauth2",
+								"default",
+								"v1",
+								"userinfo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My User",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "SSWS ",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Cookie",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://{{Okta.EndpointUri}}/api/v1/users/{{Me.User.Identifier}}",
+							"protocol": "https",
+							"host": [
+								"{{Okta.EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"{{Me.User.Identifier}}"
+							]
+						}
+					},
+					"response": []
 				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJraWQiOiIzZDcxOUluMGZ0WmtTNk9SM3lxNEJJNUNCTmJYdE9Mb3E2M1dYUXhkM1hnIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULnVVQ3RtbkdMU1FQTnJqNUJVZEY5MnlyNkRBaU9JQ3NlN29FODh1S3RvT00iLCJpc3MiOiJodHRwczovL2V4dGVybmFsc2l0ZWNvcmUub2t0YXByZXZpZXcuY29tL29hdXRoMi9kZWZhdWx0IiwiYXVkIjoiYXBpOi8vZGVmYXVsdCIsImlhdCI6MTY2NDM1ODgxMCwiZXhwIjoxNjY0MzYyNDEwLCJjaWQiOiIwb2ExMXd0NjhhMkFMRlVCMjBoOCIsInVpZCI6IjAwdXF5dTVieGNmZm1IM3hQMGg3Iiwic2NwIjpbIm9wZW5pZCIsInByb2ZpbGUiLCJlbWFpbCJdLCJhdXRoX3RpbWUiOjE2NjQzNTg3OTUsInN1YiI6Iml2YW4ubGllY2tlbnNAc2l0ZWNvcmUuY29tIn0.Q_d8SdV0OmIe1Yd7W8K4gh096RwH0lHr6Ak1nw2aCx0ZPRm3udlSjIWnLLkkMD-B9Jl7dPvQ0zG4l5IJggNVlYWwXKUyBzIvRBN5ZsyPamdjQsh5Ole7MJTyg4OD5_yhGikWwXzJ9htVaO1XZ5u_-LYoZrwWhojxc17LMAymCp6_tcEbm5-_Tm03mPI____-pdJNDmDFCqTLOpTBm8EafWDkAZEOu5LtzyXxpDjR6jffW-fz98JL4kbzZbpzDGTIaaIC3TnAelNadqiZGRGqXmtnerpoW4M-mNSZde1lcQeZSCYv8s4DM5M0jIaqXJvwfY_CMq3dveyU1UGOxPhKVQ",
+						"type": "string"
+					}
+				]
 			},
-			"response": []
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
 		}
 	],
 	"auth": {
