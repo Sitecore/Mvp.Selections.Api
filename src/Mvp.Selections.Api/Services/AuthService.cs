@@ -106,6 +106,7 @@ namespace Mvp.Selections.Api.Services
                                 _userRepository.Add(newUser);
                                 _userRepository.SaveChanges();
                                 result.StatusCode = HttpStatusCode.OK;
+                                result.User = newUser;
                             }
                             else
                             {

@@ -12,7 +12,7 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20220920123231_Initial")]
+    [Migration("20220927074958_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2288,7 +2288,7 @@ namespace Mvp.Selections.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<short>("CountryId")
+                    b.Property<short?>("CountryId")
                         .HasColumnType("smallint");
 
                     b.Property<string>("CreatedBy")
@@ -2635,9 +2635,7 @@ namespace Mvp.Selections.Data.Migrations
                 {
                     b.HasOne("Mvp.Selections.Domain.Country", "Country")
                         .WithMany("Users")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CountryId");
 
                     b.HasOne("Mvp.Selections.Domain.User", null)
                         .WithMany("Mentors")

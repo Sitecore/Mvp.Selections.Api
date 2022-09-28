@@ -146,7 +146,7 @@ namespace Mvp.Selections.Data.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageType = table.Column<int>(type: "int", nullable: false),
-                    CountryId = table.Column<short>(type: "smallint", nullable: false),
+                    CountryId = table.Column<short>(type: "smallint", nullable: true),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -161,8 +161,7 @@ namespace Mvp.Selections.Data.Migrations
                         name: "FK_Users_Countries_CountryId",
                         column: x => x.CountryId,
                         principalTable: "Countries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Users_Users_UserId",
                         column: x => x.UserId,
