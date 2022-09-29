@@ -27,6 +27,7 @@ namespace Mvp.Selections.Data.Repositories
         public Task<User?> GetForAuthAsync(string identifier)
         {
             return Context.Users
+                .Include(u => u.Country)
                 .Include(u => u.Roles)
                 .ThenInclude(r => (r as SelectionRole) !.Country)
                 .Include(u => u.Roles)
