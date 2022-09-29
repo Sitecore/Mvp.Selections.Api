@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetProduct")]
-        [OpenApiOperation("GetProduct", "Products", "Admin")]
+        [OpenApiOperation("GetProduct", "Products")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(int), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Product))]
@@ -44,7 +44,7 @@ namespace Mvp.Selections.Api
             IActionResult result;
             try
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Product product = await _productService.GetAsync(id);
@@ -65,7 +65,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetAllProducts")]
-        [OpenApiOperation("GetAllProducts", "Products", "Admin")]
+        [OpenApiOperation("GetAllProducts", "Products")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -80,7 +80,7 @@ namespace Mvp.Selections.Api
             IActionResult result;
             try
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);
