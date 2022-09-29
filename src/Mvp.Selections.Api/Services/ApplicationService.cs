@@ -150,7 +150,7 @@ namespace Mvp.Selections.Api.Services
 
             Selection selection = await _selectionService.GetAsync(selectionId);
             DateTime utcNow = DateTime.UtcNow;
-            if (selection != null && (selection.ApplicationsActive ?? (selection.ApplicationsStart <= utcNow && selection.ApplicationsEnd > utcNow)))
+            if (selection != null && selection.AreApplicationsOpen())
             {
                 newApplication.Selection = selection;
             }
@@ -255,7 +255,10 @@ namespace Mvp.Selections.Api.Services
             OperationResult<Application> result = new ();
             OperationResult<Application> getResult = await GetAsync(user, id);
             Application updatedApplication = null;
-            if (getResult.StatusCode == HttpStatusCode.OK && getResult.Result != null && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
+            if (
+                getResult.StatusCode == HttpStatusCode.OK
+                && getResult.Result != null
+                && (user.HasRight(Right.Admin) || application.Selection.AreApplicationsOpen()))
             {
                 updatedApplication = getResult.Result;
                 if (application.Eligibility != null)
@@ -273,26 +276,23 @@ namespace Mvp.Selections.Api.Services
                     updatedApplication.Objectives = application.Objectives;
                 }
 
-                if (updatedApplication.Status != ApplicationStatus.Submitted)
-                {
-                    updatedApplication.Status = application.Status;
-                }
+                updatedApplication.Status = application.Status;
 
-                foreach (Contribution link in application.Contributions)
+                foreach (Contribution contribution in application.Contributions)
                 {
-                    if (link.Id == Guid.Empty)
+                    if (contribution.Id == Guid.Empty)
                     {
-                        Contribution newLink = CreateNewContribution(link);
-                        foreach (Product product in link.RelatedProducts)
+                        Contribution newContribution = CreateNewContribution(contribution);
+                        foreach (Product product in contribution.RelatedProducts)
                         {
                             Product dbProduct = await _productService.GetAsync(product.Id);
                             if (dbProduct != null)
                             {
-                                newLink.RelatedProducts.Add(dbProduct);
+                                newContribution.RelatedProducts.Add(dbProduct);
                             }
                             else
                             {
-                                string message = $"Could not find Product '{product.Id}' for Link '{link.Name}'.";
+                                string message = $"Could not find Product '{product.Id}' for Contribution '{contribution.Name}'.";
                                 result.Messages.Add(message);
                                 _logger.LogInformation(message);
                             }
@@ -300,32 +300,32 @@ namespace Mvp.Selections.Api.Services
 
                         if (result.Messages.Count == 0)
                         {
-                            updatedApplication.Contributions.Add(newLink);
+                            updatedApplication.Contributions.Add(newContribution);
                         }
                     }
                     else
                     {
-                        Contribution updatedLink = updatedApplication.Contributions.SingleOrDefault(l => l.Id == link.Id);
-                        if (updatedLink != null)
+                        Contribution updatedContribution = updatedApplication.Contributions.SingleOrDefault(l => l.Id == contribution.Id);
+                        if (updatedContribution != null)
                         {
-                            updatedLink.Name = link.Name;
-                            updatedLink.Description = link.Description;
-                            updatedLink.Uri = link.Uri;
-                            updatedLink.Type = link.Type;
-                            updatedLink.Date = link.Date;
+                            updatedContribution.Name = contribution.Name;
+                            updatedContribution.Description = contribution.Description;
+                            updatedContribution.Uri = contribution.Uri;
+                            updatedContribution.Type = contribution.Type;
+                            updatedContribution.Date = contribution.Date;
 
-                            foreach (Product product in link.RelatedProducts)
+                            foreach (Product product in contribution.RelatedProducts)
                             {
-                                if (updatedLink.RelatedProducts.All(rp => rp.Id != product.Id))
+                                if (updatedContribution.RelatedProducts.All(rp => rp.Id != product.Id))
                                 {
                                     Product dbProduct = await _productService.GetAsync(product.Id);
                                     if (dbProduct != null)
                                     {
-                                        updatedLink.RelatedProducts.Add(dbProduct);
+                                        updatedContribution.RelatedProducts.Add(dbProduct);
                                     }
                                     else
                                     {
-                                        string message = $"Could not find Product '{product.Id}' for Link '{link.Name}'.";
+                                        string message = $"Could not find Product '{product.Id}' for Contribution '{contribution.Name}'.";
                                         result.Messages.Add(message);
                                         _logger.LogInformation(message);
                                     }
@@ -334,7 +334,7 @@ namespace Mvp.Selections.Api.Services
                         }
                         else
                         {
-                            string message = $"Could not find Link '{link.Id}'.";
+                            string message = $"Could not find Contribution '{contribution.Id}'.";
                             result.Messages.Add(message);
                             _logger.LogInformation(message);
                         }
@@ -344,7 +344,7 @@ namespace Mvp.Selections.Api.Services
             else if (getResult.StatusCode == HttpStatusCode.OK)
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
-                string message = $"Application '{id}' was submitted and can no longer be altered.";
+                string message = $"Application '{id}' can no longer be altered.";
                 result.Messages.Add(message);
                 _logger.LogInformation(message);
             }
@@ -383,7 +383,7 @@ namespace Mvp.Selections.Api.Services
             }
             else if (getResult.StatusCode == HttpStatusCode.OK && getResult.Result != null)
             {
-                string message = $"Application '{id}' was submitted and can no longer be altered.";
+                string message = $"Application '{id}' can no longer be altered.";
                 result.Messages.Add(message);
                 _logger.LogInformation(message);
             }
