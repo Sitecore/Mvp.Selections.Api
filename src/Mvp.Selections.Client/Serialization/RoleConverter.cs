@@ -105,11 +105,31 @@ namespace Mvp.Selections.Client.Serialization
                         case "name":
                             result.Name = reader.GetString() ?? string.Empty;
                             break;
+                        case "users":
+                            converter = options.GetConverter(typeof(ICollection<User>));
+                            if (converter is JsonConverter<ICollection<User>> usersConverter)
+                            {
+                                ICollection<User>? users = usersConverter.Read(ref reader, typeof(ICollection<User>), options);
+                                if (users != null)
+                                {
+                                    foreach (User user in users)
+                                    {
+                                        result.Users.Add(user);
+                                    }
+                                }
+                            }
+
+                            break;
 
                         // BaseEntity
                         case "id":
                             Role roleWithId = GetSubClass(typeDiscriminator, reader.GetGuid());
                             roleWithId.Name = result.Name;
+                            foreach (User user in result.Users)
+                            {
+                                roleWithId.Users.Add(user);
+                            }
+
                             roleWithId.CreatedBy = result.CreatedBy;
                             roleWithId.CreatedOn = result.CreatedOn;
                             roleWithId.ModifiedBy = result.ModifiedBy;

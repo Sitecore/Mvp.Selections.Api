@@ -107,6 +107,22 @@ namespace Mvp.Selections.Client.Tests.Serialization
             Assert.Equal("Region A", ((SelectionRole)role).Country!.Region!.Name);
         }
 
+        [Fact]
+        public void CanDeserializeInUserArray()
+        {
+            // Arrange
+            string json =
+                "[{\"identifier\":\"00u12gh3hyyboZUgN0h8\",\"name\":\"Rob Earlam\",\"email\":\"rob.earlam@sitecore.com\",\"imageType\":\"Anonymous\",\"mentors\":[],\"applications\":[],\"consents\":[],\"links\":[],\"reviews\":[],\"roles\":[{\"$type\":\"Mvp.Selections.Domain.SystemRole, Mvp.Selections.Domain\",\"rights\":\"Apply\",\"name\":\"Candidate\",\"users\":[{\"identifier\":\"00uqyu5bxcffmH3xP0h71\",\"name\":\"Ivan Lieckens (Applicant)\",\"email\":\"ivan.lieckens@sitecore.com\",\"imageType\":\"Anonymous\",\"country\":{\"name\":\"Netherlands\",\"users\":[],\"id\":150,\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"},\"mentors\":[],\"applications\":[],\"consents\":[],\"links\":[],\"reviews\":[],\"roles\":[],\"titles\":[],\"rights\":\"Apply\",\"id\":\"0a90c9bf-b542-4caa-c745-08daa0818e6f\",\"createdOn\":\"2022-09-27T12:12:32.9794531\",\"createdBy\":\"00uqyu5bxcffmH3xP0h7\",\"modifiedOn\":\"2022-09-28T17:06:40.6017683\",\"modifiedBy\":\"00uqyu5bxcffmH3xP0h7\"}],\"id\":\"00000000-0000-0000-0000-000000000002\",\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"}],\"titles\":[],\"rights\":\"Apply\",\"id\":\"c244b683-186b-4821-3e4b-08daa0da3ee0\",\"createdOn\":\"2022-09-27T22:47:24.4719466\",\"createdBy\":\"00u12gh3hyyboZUgN0h8\"},{\"identifier\":\"00uqyu5bxcffmH3xP0h71\",\"name\":\"Ivan Lieckens (Applicant)\",\"email\":\"ivan.lieckens@sitecore.com\",\"imageType\":\"Anonymous\",\"country\":{\"name\":\"Netherlands\",\"users\":[],\"id\":150,\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"},\"mentors\":[],\"applications\":[],\"consents\":[],\"links\":[],\"reviews\":[],\"roles\":[{\"$type\":\"Mvp.Selections.Domain.SystemRole, Mvp.Selections.Domain\",\"rights\":\"Apply\",\"name\":\"Candidate\",\"users\":[{\"identifier\":\"00u12gh3hyyboZUgN0h8\",\"name\":\"Rob Earlam\",\"email\":\"rob.earlam@sitecore.com\",\"imageType\":\"Anonymous\",\"mentors\":[],\"applications\":[],\"consents\":[],\"links\":[],\"reviews\":[],\"roles\":[],\"titles\":[],\"rights\":\"Apply\",\"id\":\"c244b683-186b-4821-3e4b-08daa0da3ee0\",\"createdOn\":\"2022-09-27T22:47:24.4719466\",\"createdBy\":\"00u12gh3hyyboZUgN0h8\"}],\"id\":\"00000000-0000-0000-0000-000000000002\",\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"}],\"titles\":[],\"rights\":\"Apply\",\"id\":\"0a90c9bf-b542-4caa-c745-08daa0818e6f\",\"createdOn\":\"2022-09-27T12:12:32.9794531\",\"createdBy\":\"00uqyu5bxcffmH3xP0h7\",\"modifiedOn\":\"2022-09-28T17:06:40.6017683\",\"modifiedBy\":\"00uqyu5bxcffmH3xP0h7\"},{\"identifier\":\"00uqyu5bxcffmH3xP0h7\",\"name\":\"Ivan Lieckens (Admin)\",\"email\":\"ivan.lieckens@sitecore.com\",\"imageType\":\"Anonymous\",\"country\":{\"name\":\"Belgium\",\"users\":[],\"id\":21,\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"},\"mentors\":[],\"applications\":[],\"consents\":[],\"links\":[],\"reviews\":[],\"roles\":[{\"$type\":\"Mvp.Selections.Domain.SystemRole, Mvp.Selections.Domain\",\"rights\":\"Admin\",\"name\":\"Admin\",\"users\":[],\"id\":\"00000000-0000-0000-0000-000000000001\",\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"}],\"titles\":[],\"rights\":\"Admin\",\"id\":\"00000000-0000-0000-0000-000000000001\",\"createdOn\":\"2022-09-01T00:00:00\",\"createdBy\":\"System\"}]";
+
+            // Act
+            IList<User>? users = JsonSerializer.Deserialize<IList<User>>(json, GetOptions());
+
+            // Assert
+            Assert.NotNull(users);
+            Assert.Equal(1, users?.FirstOrDefault()?.Roles?.Count);
+            Assert.Equal(1, users?.FirstOrDefault()?.Roles?.FirstOrDefault()?.Users?.Count);
+        }
+
         private static JsonSerializerOptions GetOptions()
         {
             JsonSerializerOptions result = new ()
