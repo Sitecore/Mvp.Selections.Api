@@ -258,7 +258,7 @@ namespace Mvp.Selections.Api.Services
             if (
                 getResult.StatusCode == HttpStatusCode.OK
                 && getResult.Result != null
-                && (user.HasRight(Right.Admin) || application.Selection.AreApplicationsOpen()))
+                && (user.HasRight(Right.Admin) || getResult.Result.Selection.AreApplicationsOpen()))
             {
                 updatedApplication = getResult.Result;
                 if (application.Eligibility != null)
