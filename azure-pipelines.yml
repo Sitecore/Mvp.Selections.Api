@@ -67,6 +67,7 @@ steps:
     configuration: '$(buildConfiguration)'
 
 - task: PublishBuildArtifacts@1
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'MVPSelectionsAPI'
