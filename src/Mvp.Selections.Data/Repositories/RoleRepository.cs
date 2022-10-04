@@ -18,5 +18,11 @@ namespace Mvp.Selections.Data.Repositories
             page--;
             return await Context.Roles.OfType<T>().OrderBy(r => r.Name).Skip(page * pageSize).Take(pageSize).ToListAsync();
         }
+
+        public async Task<T?> GetAsync<T>(Guid id)
+            where T : Role
+        {
+            return await Context.Roles.OfType<T>().SingleOrDefaultAsync(r => r.Id == id);
+        }
     }
 }

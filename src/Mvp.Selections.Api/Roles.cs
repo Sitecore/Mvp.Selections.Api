@@ -15,6 +15,7 @@ using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
+using Mvp.Selections.Api.Services;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -52,6 +53,42 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     IList<SystemRole> systemRoles = await _roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(systemRoles), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("GetSystemRole")]
+        [OpenApiOperation("GetSystemRole", "Roles", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SystemRole))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> GetSystem(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/system/{id:Guid}")]
+            HttpRequest req,
+            Guid id)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    SystemRole role = await _roleService.GetAsync<SystemRole>(id);
+                    result = new ContentResult { Content = Serializer.Serialize(role), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

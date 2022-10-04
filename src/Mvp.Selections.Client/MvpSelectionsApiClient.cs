@@ -125,6 +125,11 @@ namespace Mvp.Selections.Client
 
         #region Roles
 
+        public async Task<Response<SystemRole>> GetSystemRoleAsync(Guid id)
+        {
+            return await GetAsync<SystemRole>($"/api/v1/roles/system/{id}");
+        }
+
         public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };

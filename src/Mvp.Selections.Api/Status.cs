@@ -64,6 +64,13 @@ namespace Mvp.Selections.Api
                     Logger.LogCritical(message);
                 }
 
+                if (string.IsNullOrEmpty(_oktaClientOptions.ValidIssuer))
+                {
+                    const string message = "No valid issuer available for Okta validations.";
+                    messages.Add(message);
+                    Logger.LogCritical(message);
+                }
+
                 try
                 {
                     List<Country> countries = await _context.Countries.ToListAsync();
