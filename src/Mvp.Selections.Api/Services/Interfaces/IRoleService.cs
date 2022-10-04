@@ -17,5 +17,8 @@ namespace Mvp.Selections.Api.Services.Interfaces
         Task<bool> AssignUserAsync(Guid roleId, Guid userId);
 
         Task<bool> RemoveUserAsync(Guid roleId, Guid userId);
+
+        Task<T> GetAsync<T>(Guid id)
+            where T : Role;
     }
 }

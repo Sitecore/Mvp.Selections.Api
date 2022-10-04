@@ -10,9 +10,9 @@ namespace Mvp.Selections.Api.Configuration
 
         public string ClientSecret { get; set; }
 
-        public Uri ValidationEndpoint { get; set; } = new ("https://externalsitecore.oktapreview.com/oauth2/default/v1/introspect");
+        public Uri ValidationEndpoint { get; set; }
 
-        public string ValidIssuer { get; set; } = "https://externalsitecore.oktapreview.com/oauth2/default";
+        public string ValidIssuer { get; set; } = string.Empty;
 
         public short CacheDuration { get; set; } = 10;
     }

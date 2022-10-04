@@ -92,5 +92,11 @@ namespace Mvp.Selections.Api.Services
 
             return result;
         }
+
+        public Task<T> GetAsync<T>(Guid id)
+            where T : Role
+        {
+            return _roleRepository.GetAsync<T>(id);
+        }
     }
 }
