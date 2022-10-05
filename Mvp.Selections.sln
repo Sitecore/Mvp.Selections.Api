@@ -11,7 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Data", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Client", "src\Mvp.Selections.Client\Mvp.Selections.Client.csproj", "{6F2CA521-59C0-4C32-BD75-84872141B041}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvp.Selections.Client.Tests", "src\Mvp.Selections.Client.Tests\Mvp.Selections.Client.Tests.csproj", "{2E61EE99-219F-4244-BF74-471432C290D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Client.Tests", "src\Mvp.Selections.Client.Tests\Mvp.Selections.Client.Tests.csproj", "{2E61EE99-219F-4244-BF74-471432C290D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{44AD4EFD-07A6-4019-BD62-15AB92B8EE27}"
+	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -7,170 +7,46 @@ namespace Mvp.Selections.Client.Serialization
     // NOTE [ILs] https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-6-0#support-polymorphic-deserialization
     public class RoleConverter : JsonConverter<Role>
     {
-        public override Role Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override Role? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType != JsonTokenType.StartObject)
+            Utf8JsonReader discriminatorReader = reader;
+            if (discriminatorReader.TokenType != JsonTokenType.StartObject)
             {
-                throw new JsonException($"Expected 'StartObject', seeing '{reader.TokenType}' instead.");
+                throw new JsonException($"Expected 'StartObject', seeing '{discriminatorReader.TokenType}' instead.");
             }
 
-            reader.Read();
-            if (reader.TokenType != JsonTokenType.PropertyName)
+            discriminatorReader.Read();
+            if (discriminatorReader.TokenType != JsonTokenType.PropertyName)
             {
-                throw new JsonException($"Expected 'PropertyName', seeing '{reader.TokenType}' instead.");
+                throw new JsonException($"Expected 'PropertyName', seeing '{discriminatorReader.TokenType}' instead.");
             }
 
-            string? propertyName = reader.GetString();
+            string? propertyName = discriminatorReader.GetString();
             if (propertyName != "$type")
             {
                 throw new JsonException("Expected property '$type' first.");
             }
 
-            reader.Read();
-            if (reader.TokenType != JsonTokenType.String)
+            discriminatorReader.Read();
+            if (discriminatorReader.TokenType != JsonTokenType.String)
             {
-                throw new JsonException($"Expected property '$type' to be of type 'String', seeing '{reader.TokenType}' instead.");
+                throw new JsonException($"Expected property '$type' to be of type 'String', seeing '{discriminatorReader.TokenType}' instead.");
             }
 
-            string typeDiscriminator = reader.GetString() ?? string.Empty;
-            Role result = GetSubClass(typeDiscriminator, Guid.Empty);
-
-            while (reader.Read())
+            string typeDiscriminator = discriminatorReader.GetString() ?? string.Empty;
+            Type? t = Type.GetType(typeDiscriminator);
+            if (t == null || !t.IsAssignableTo(typeof(Role)))
             {
-                if (reader.TokenType == JsonTokenType.EndObject)
-                {
-                    break;
-                }
-
-                if (reader.TokenType == JsonTokenType.PropertyName)
-                {
-                    propertyName = reader.GetString();
-                    reader.Read();
-                    JsonConverter converter;
-                    switch (propertyName)
-                    {
-                        // SystemRole
-                        case "rights":
-                            string rights = reader.GetString() ?? string.Empty;
-                            if (Enum.TryParse(typeof(Right), rights, false, out object? rightsResult) && rightsResult != null)
-                            {
-                                ((SystemRole)result).Rights = (Right)rightsResult;
-                            }
-
-                            break;
-
-                        // SelectionRole
-                        case "country":
-                            converter = options.GetConverter(typeof(Country));
-                            if (converter is JsonConverter<Country> countryConverter)
-                            {
-                                ((SelectionRole)result).Country = countryConverter.Read(ref reader, typeof(Country), options);
-                            }
-
-                            break;
-                        case "application":
-                            converter = options.GetConverter(typeof(Application));
-                            if (converter is JsonConverter<Application> applicationConverter)
-                            {
-                                ((SelectionRole)result).Application = applicationConverter.Read(ref reader, typeof(Application), options);
-                            }
-
-                            break;
-                        case "mvpType":
-                            converter = options.GetConverter(typeof(MvpType));
-                            if (converter is JsonConverter<MvpType> mvpTypeConverter)
-                            {
-                                ((SelectionRole)result).MvpType = mvpTypeConverter.Read(ref reader, typeof(MvpType), options);
-                            }
-
-                            break;
-                        case "region":
-                            converter = options.GetConverter(typeof(Region));
-                            if (converter is JsonConverter<Region> regionConverter)
-                            {
-                                ((SelectionRole)result).Region = regionConverter.Read(ref reader, typeof(Region), options);
-                            }
-
-                            break;
-                        case "selection":
-                            converter = options.GetConverter(typeof(Selection));
-                            if (converter is JsonConverter<Selection> selectionConverter)
-                            {
-                                ((SelectionRole)result).Selection = selectionConverter.Read(ref reader, typeof(Selection), options);
-                            }
-
-                            break;
-
-                        // Role
-                        case "name":
-                            result.Name = reader.GetString() ?? string.Empty;
-                            break;
-                        case "users":
-                            converter = options.GetConverter(typeof(ICollection<User>));
-                            if (converter is JsonConverter<ICollection<User>> usersConverter)
-                            {
-                                ICollection<User>? users = usersConverter.Read(ref reader, typeof(ICollection<User>), options);
-                                if (users != null)
-                                {
-                                    foreach (User user in users)
-                                    {
-                                        result.Users.Add(user);
-                                    }
-                                }
-                            }
-
-                            break;
-
-                        // BaseEntity
-                        case "id":
-                            Role roleWithId = GetSubClass(typeDiscriminator, reader.GetGuid());
-                            roleWithId.Name = result.Name;
-                            foreach (User user in result.Users)
-                            {
-                                roleWithId.Users.Add(user);
-                            }
-
-                            roleWithId.CreatedBy = result.CreatedBy;
-                            roleWithId.CreatedOn = result.CreatedOn;
-                            roleWithId.ModifiedBy = result.ModifiedBy;
-                            roleWithId.ModifiedOn = result.ModifiedOn;
-                            if (roleWithId is SystemRole systemRole)
-                            {
-                                systemRole.Rights = ((SystemRole)result).Rights;
-                            }
-                            else if (roleWithId is SelectionRole selectionRole)
-                            {
-                                selectionRole.Country = ((SelectionRole)result).Country;
-                                selectionRole.Application = ((SelectionRole)result).Application;
-                                selectionRole.MvpType = ((SelectionRole)result).MvpType;
-                                selectionRole.Region = ((SelectionRole)result).Region;
-                                selectionRole.Selection = ((SelectionRole)result).Selection;
-                            }
-
-                            result = roleWithId;
-                            break;
-                        case "createdOn":
-                            result.CreatedOn = reader.GetDateTime();
-                            break;
-                        case "createdBy":
-                            result.CreatedBy = reader.GetString() ?? string.Empty;
-                            break;
-                        case "modifiedOn":
-                            result.ModifiedOn = reader.GetDateTime();
-                            break;
-                        case "modifiedBy":
-                            result.ModifiedBy = reader.GetString() ?? string.Empty;
-                            break;
-                    }
-                }
+                throw new JsonException($"Type '{typeDiscriminator}' was invalid.");
             }
 
-            return result;
+            return JsonSerializer.Deserialize(ref reader, t, options) as Role;
         }
 
         public override void Write(Utf8JsonWriter writer, Role value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
+            JsonConverter converter;
             Type roleType = value.GetType();
             writer.WriteString("$type", $"{roleType.FullName}, {roleType.Assembly.GetName().Name}");
             if (value is SystemRole systemRole)
@@ -179,11 +55,59 @@ namespace Mvp.Selections.Client.Serialization
             }
             else if (value is SelectionRole selectionRole)
             {
-                JsonConverter converter = options.GetConverter(typeof(Country));
+                converter = options.GetConverter(typeof(Application));
+                if (selectionRole.Application != null && converter is JsonConverter<Application> applicationConverter)
+                {
+                    writer.WritePropertyName("country");
+                    applicationConverter.Write(writer, selectionRole.Application, options);
+                }
+                else
+                {
+                    throw new JsonException($"Converter '{converter}' is not of the right type.");
+                }
+
+                converter = options.GetConverter(typeof(Country));
                 if (selectionRole.Country != null && converter is JsonConverter<Country> countryConverter)
                 {
                     writer.WritePropertyName("country");
                     countryConverter.Write(writer, selectionRole.Country, options);
+                }
+                else
+                {
+                    throw new JsonException($"Converter '{converter}' is not of the right type.");
+                }
+
+                converter = options.GetConverter(typeof(MvpType));
+                if (selectionRole.MvpType != null && converter is JsonConverter<MvpType> mvpTypeConverter)
+                {
+                    writer.WritePropertyName("country");
+                    mvpTypeConverter.Write(writer, selectionRole.MvpType, options);
+                }
+                else
+                {
+                    throw new JsonException($"Converter '{converter}' is not of the right type.");
+                }
+
+                converter = options.GetConverter(typeof(Region));
+                if (selectionRole.Region != null && converter is JsonConverter<Region> regionConverter)
+                {
+                    writer.WritePropertyName("country");
+                    regionConverter.Write(writer, selectionRole.Region, options);
+                }
+                else
+                {
+                    throw new JsonException($"Converter '{converter}' is not of the right type.");
+                }
+
+                converter = options.GetConverter(typeof(Selection));
+                if (selectionRole.Selection != null && converter is JsonConverter<Selection> selectionConverter)
+                {
+                    writer.WritePropertyName("country");
+                    selectionConverter.Write(writer, selectionRole.Selection, options);
+                }
+                else
+                {
+                    throw new JsonException($"Converter '{converter}' is not of the right type.");
                 }
             }
 
@@ -191,6 +115,17 @@ namespace Mvp.Selections.Client.Serialization
             writer.WriteString("id", value.Id.ToString("D"));
             writer.WriteString("createdOn", value.CreatedOn.ToString("s"));
             writer.WriteString("createdBy", value.CreatedBy);
+
+            writer.WritePropertyName("users");
+            converter = options.GetConverter(typeof(ICollection<User>));
+            if (converter is JsonConverter<ICollection<User>> usersConverter)
+            {
+                usersConverter.Write(writer, value.Users, options);
+            }
+            else
+            {
+                throw new JsonException($"Converter '{converter}' is not of the right type.");
+            }
 
             if (value.ModifiedOn != null)
             {
@@ -203,18 +138,6 @@ namespace Mvp.Selections.Client.Serialization
             }
 
             writer.WriteEndObject();
-        }
-
-        private static Role GetSubClass(string typeDiscriminator, Guid id)
-        {
-            Role result = typeDiscriminator switch
-            {
-                "Mvp.Selections.Domain.SystemRole, Mvp.Selections.Domain" => new SystemRole(id),
-                "Mvp.Selections.Domain.SelectionRole, Mvp.Selections.Domain" => new SelectionRole(id),
-                _ => throw new JsonException($"SubType '{typeDiscriminator}' is unsupported.")
-            };
-
-            return result;
         }
     }
 }
