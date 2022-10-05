@@ -2,10 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Mvp.Selections.Client</id>
-    <version>3.4.1</version>
+    <version>3.4.2</version>
     <releaseNotes>
       + Fixed issue with RoleConverter
-      + Fixed Serialization of SelectionRole and Role Users property
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>
