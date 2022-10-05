@@ -58,10 +58,10 @@ namespace Mvp.Selections.Client.Serialization
                 converter = options.GetConverter(typeof(Application));
                 if (selectionRole.Application != null && converter is JsonConverter<Application> applicationConverter)
                 {
-                    writer.WritePropertyName("country");
+                    writer.WritePropertyName("application");
                     applicationConverter.Write(writer, selectionRole.Application, options);
                 }
-                else
+                else if (selectionRole.Application != null)
                 {
                     throw new JsonException($"Converter '{converter}' is not of the right type.");
                 }
@@ -72,7 +72,7 @@ namespace Mvp.Selections.Client.Serialization
                     writer.WritePropertyName("country");
                     countryConverter.Write(writer, selectionRole.Country, options);
                 }
-                else
+                else if (selectionRole.Country != null)
                 {
                     throw new JsonException($"Converter '{converter}' is not of the right type.");
                 }
@@ -80,10 +80,10 @@ namespace Mvp.Selections.Client.Serialization
                 converter = options.GetConverter(typeof(MvpType));
                 if (selectionRole.MvpType != null && converter is JsonConverter<MvpType> mvpTypeConverter)
                 {
-                    writer.WritePropertyName("country");
+                    writer.WritePropertyName("mvpType");
                     mvpTypeConverter.Write(writer, selectionRole.MvpType, options);
                 }
-                else
+                else if (selectionRole.MvpType != null)
                 {
                     throw new JsonException($"Converter '{converter}' is not of the right type.");
                 }
@@ -91,10 +91,10 @@ namespace Mvp.Selections.Client.Serialization
                 converter = options.GetConverter(typeof(Region));
                 if (selectionRole.Region != null && converter is JsonConverter<Region> regionConverter)
                 {
-                    writer.WritePropertyName("country");
+                    writer.WritePropertyName("region");
                     regionConverter.Write(writer, selectionRole.Region, options);
                 }
-                else
+                else if (selectionRole.Region != null)
                 {
                     throw new JsonException($"Converter '{converter}' is not of the right type.");
                 }
@@ -102,10 +102,10 @@ namespace Mvp.Selections.Client.Serialization
                 converter = options.GetConverter(typeof(Selection));
                 if (selectionRole.Selection != null && converter is JsonConverter<Selection> selectionConverter)
                 {
-                    writer.WritePropertyName("country");
+                    writer.WritePropertyName("selection");
                     selectionConverter.Write(writer, selectionRole.Selection, options);
                 }
-                else
+                else if (selectionRole.Selection != null)
                 {
                     throw new JsonException($"Converter '{converter}' is not of the right type.");
                 }

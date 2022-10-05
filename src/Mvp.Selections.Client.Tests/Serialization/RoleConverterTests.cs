@@ -50,6 +50,13 @@ namespace Mvp.Selections.Client.Tests.Serialization
             Role role = new SelectionRole(Guid.NewGuid())
             {
                 Name = "Test",
+                Users = new List<User>
+                {
+                    new (Guid.NewGuid())
+                    {
+                        Name = "Test"
+                    }
+                },
                 CreatedOn = DateTime.Today.AddDays(-1),
                 CreatedBy = "System",
                 ModifiedOn = DateTime.Today,
