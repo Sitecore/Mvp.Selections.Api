@@ -12,5 +12,7 @@
         public Uri Uri { get; set; } = null!;
 
         public ProfileLinkType Type { get; set; }
+
+        public User User { get; set; } = null!;
     }
 }
