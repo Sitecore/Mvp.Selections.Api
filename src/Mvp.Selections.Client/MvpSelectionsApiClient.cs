@@ -390,6 +390,20 @@ namespace Mvp.Selections.Client
 
         #endregion Contributions
 
+        #region ProfileLinks
+
+        public async Task<Response<ProfileLink>> AddProfileLinkAsync(Guid userId, ProfileLink profileLink)
+        {
+            return await PostAsync<ProfileLink>($"/api/v1/users/{userId}/profilelinks", profileLink);
+        }
+
+        public async Task<Response<bool>> RemoveProfileLinkAsync(Guid userId, Guid profileLinkId)
+        {
+            return await DeleteAsync($"/api/v1/users/{userId}/profilelinks/{profileLinkId}");
+        }
+
+        #endregion ProfileLinks
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)

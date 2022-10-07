@@ -1293,6 +1293,107 @@
 					]
 				},
 				{
+					"name": "ProfileLinks",
+					"item": [
+						{
+							"name": "ProfileLink",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"ProfileLink.Name\", pm.variables.replaceIn(\"{{$randomLoremWords}}\"));\r",
+											"pm.collectionVariables.set(\"ProfileLink.Uri\", pm.variables.replaceIn(\"{{$randomUrl}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"ProfileLink created matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"ProfileLink.Name\"));\r",
+											"    pm.expect(jsonData.uri).to.eql(pm.variables.get(\"ProfileLink.Uri\"));\r",
+											"    pm.collectionVariables.set(\"ProfileLink.Id\", jsonData.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{ProfileLink.Name}}\",\r\n    \"uri\": \"{{ProfileLink.Uri}}\",\r\n    \"type\": \"Other\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{User.Id}}/profilelinks",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{User.Id}}",
+										"profilelinks"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "ProfileLink",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{User.Id}}/profilelinks/{{ProfileLink.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"{{User.Id}}",
+										"profilelinks",
+										"{{ProfileLink.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Products",
 					"item": [
 						{
@@ -2015,6 +2116,45 @@
 										"v1",
 										"roles",
 										"system"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SystemRole",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Role id matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eq(pm.variables.get(\"SystemRole.Id\"));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/system/{{SystemRole.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"roles",
+										"system",
+										"{{SystemRole.Id}}"
 									]
 								}
 							},
@@ -2799,6 +2939,29 @@
 						}
 					},
 					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if(pm.variables.get(\"ApiSubscription\") != \"\")",
+							"{",
+							"    pm.request.headers.add({ key: \"Ocp-Apim-Subscription-Key\", value: pm.variables.get(\"ApiSubscription\") })",
+							"}"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		},
@@ -4206,12 +4369,12 @@
 								},
 								{
 									"key": "client_id",
-									"value": "0oa11wt68a2ALFUB20h8",
+									"value": "{{Okta.ClientId}}",
 									"type": "text"
 								},
 								{
 									"key": "client_secret",
-									"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
+									"value": "{{Okta.ClientSecret}}",
 									"type": "text"
 								}
 							]
@@ -4321,39 +4484,34 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Open API Document",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/openapi/V3.json",
+					"protocol": "{{EndpointScheme}}",
+					"host": [
+						"{{EndpointUri}}"
+					],
+					"path": [
+						"api",
+						"openapi",
+						"V3.json"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"auth": {
-		"type": "oauth2",
-		"oauth2": [
+		"type": "bearer",
+		"bearer": [
 			{
-				"key": "accessTokenUrl",
-				"value": "https://oktapreview.sitecore.com/oauth2/default/v1/token",
-				"type": "string"
-			},
-			{
-				"key": "authUrl",
-				"value": "https://oktapreview.sitecore.com/oauth2/default/v1/authorize",
-				"type": "string"
-			},
-			{
-				"key": "clientSecret",
-				"value": "_h32pmlHl9xeZjwnHK02lg9UVgytHi7GC45adgrm",
-				"type": "string"
-			},
-			{
-				"key": "clientId",
-				"value": "0oa11wt68a2ALFUB20h8",
-				"type": "string"
-			},
-			{
-				"key": "useBrowser",
-				"value": true,
-				"type": "boolean"
-			},
-			{
-				"key": "addTokenTo",
-				"value": "header",
+				"key": "token",
+				"value": "eyJraWQiOiIzZDcxOUluMGZ0WmtTNk9SM3lxNEJJNUNCTmJYdE9Mb3E2M1dYUXhkM1hnIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjY1MTUxODk4LCJleHAiOjE2NjUxNTU0OTgsImp0aSI6IklELk9HYWxNc2dqc2RHNHFiZy1KbGU1OWZxcFh2T19tTklrZTd5RGdmSjJUZjQiLCJhbXIiOlsicHdkIiwib3RwIiwibWZhIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2MzgwMDc0ODY3NzQ5MzgwNjYuTURJMk5UVTBOemd0TVdKbE5DMDBNMkUxTFdFM056VXRPV0UzTldRek1USTNNREptTlRCa1kyTTJaalF0TW1NMU5TMDBPV0l4TFRrME0yVXRZVGd4TUdVMlpEQTVZalUxIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NjUxNTE4ODEsImF0X2hhc2giOiJpUFFpVkRsYnQ2S3NhN1BIVzQ2VktnIiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.iM8g5NYcJbjryKZdUj6Wn5_4rvsdwYWbePgfG9rypCrECNc0t7nW9unop4G9AkcTTUHXOCHOmg8_Vv034e8f9XipgtGZoo2RTMiX8Q0da6ZU5rPEkqK0Yw4bCGqclXFo5ZUkvMOteBv35A7iVpN707j6awnkVZR0Af6fT9s0lJR9M2S_bjUDNrqjBAvc-8WIt5FsCzlZbvcgn3h9AomzhUlvCbGBR_4GRaqSDQVQ2lA1TgqAQ4t2GsqArH4uLsunLUoqnduBHz1hpLyrsuZgxFDbDkndQgsTIKmR8QTsqwjX_kkEx09OmlB5wRnnadm4oyTaNzA23pdhShp732Y7Pg",
 				"type": "string"
 			}
 		]
@@ -4556,6 +4714,21 @@
 		},
 		{
 			"key": "Contribution.Uri",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProfileLink.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProfileLink.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProfileLink.Uri",
 			"value": "",
 			"type": "string"
 		}

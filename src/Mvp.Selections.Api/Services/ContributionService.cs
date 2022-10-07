@@ -92,8 +92,9 @@ namespace Mvp.Selections.Api.Services
                 if (await _contributionRepository.RemoveAsync(id))
                 {
                     await _contributionRepository.SaveChangesAsync();
-                    result.StatusCode = HttpStatusCode.OK;
                 }
+
+                result.StatusCode = HttpStatusCode.OK;
             }
             else if (applicationResult.StatusCode == HttpStatusCode.OK && applicationResult.Result.Status != ApplicationStatus.Open)
             {

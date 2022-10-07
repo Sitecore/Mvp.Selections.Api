@@ -17,29 +17,29 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Contributions : Base<Contributions>
+    public class ProfileLinks : Base<ProfileLinks>
     {
-        private readonly IContributionService _contributionService;
+        private readonly IProfileLinkService _profileLinkService;
 
-        public Contributions(ILogger<Contributions> logger, ISerializerHelper serializer, IAuthService authService, IContributionService contributionService)
+        public ProfileLinks(ILogger<ProfileLinks> logger, ISerializerHelper serializer, IAuthService authService, IProfileLinkService profileLinkService)
             : base(logger, serializer, authService)
         {
-            _contributionService = contributionService;
+            _profileLinkService = profileLinkService;
         }
 
-        [FunctionName("AddContribution")]
-        [OpenApiOperation("AddContribution", "Contributions", "Admin", "Apply")]
-        [OpenApiParameter("applicationId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiRequestBody(JsonContentType, typeof(Contribution))]
+        [FunctionName("AddProfileLink")]
+        [OpenApiOperation("AddProfileLink", "ProfileLinks", "Admin", "Apply")]
+        [OpenApiParameter("userId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiRequestBody(JsonContentType, typeof(ProfileLink))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Contribution))]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(ProfileLink))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Add(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/applications/{applicationId:Guid}/contributions")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/users/{userId:Guid}/profilelinks")]
             HttpRequest req,
-            Guid applicationId)
+            Guid userId)
         {
             IActionResult result;
             try
@@ -47,8 +47,8 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    Contribution input = await Serializer.DeserializeAsync<Contribution>(req.Body);
-                    OperationResult<Contribution> addResult = await _contributionService.AddAsync(authResult.User, applicationId, input);
+                    ProfileLink input = await Serializer.DeserializeAsync<ProfileLink>(req.Body);
+                    OperationResult<ProfileLink> addResult = await _profileLinkService.AddAsync(authResult.User, userId, input);
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
@@ -77,9 +77,9 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        [FunctionName("RemoveContribution")]
-        [OpenApiOperation("RemoveContribution", "Contributions", "Admin", "Apply")]
-        [OpenApiParameter("applicationId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [FunctionName("RemoveProfileLink")]
+        [OpenApiOperation("RemoveProfileLink", "ProfileLinks", "Admin", "Apply")]
+        [OpenApiParameter("userId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
@@ -88,9 +88,9 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/applications/{applicationId:Guid}/contributions/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/users/{userId:Guid}/profilelinks/{id:Guid}")]
             HttpRequest req,
-            Guid applicationId,
+            Guid userId,
             Guid id)
         {
             IActionResult result;
@@ -99,7 +99,7 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
-                    OperationResult<Contribution> removeResult = await _contributionService.RemoveAsync(authResult.User, applicationId, id);
+                    OperationResult<ProfileLink> removeResult = await _profileLinkService.RemoveAsync(authResult.User, userId, id);
                     result = removeResult.StatusCode == HttpStatusCode.OK
                         ? new NoContentResult()
                         : new ContentResult
