@@ -25,6 +25,8 @@ namespace Mvp.Selections.Api
                 configuration.GetSection(OktaClientOptions.OktaClient).Bind(options));
             builder.Services.AddOptions<TokenOptions>().Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(TokenOptions.Token).Bind(options));
+            builder.Services.AddOptions<MvpSelectionsOptions>().Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(MvpSelectionsOptions.MvpSelections).Bind(options));
 
             // Helpers
             builder.Services.AddSingleton<ISerializerHelper, JsonSerializerHelper>();
