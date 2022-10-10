@@ -2,6 +2,8 @@
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -11,6 +13,8 @@ namespace Mvp.Selections.Api.Services
 {
     public class ContributionService : IContributionService
     {
+        private readonly MvpSelectionsOptions _options;
+
         private readonly ILogger<ContributionService> _logger;
 
         private readonly IContributionRepository _contributionRepository;
@@ -19,8 +23,9 @@ namespace Mvp.Selections.Api.Services
 
         private readonly IProductService _productService;
 
-        public ContributionService(ILogger<ContributionService> logger, IContributionRepository contributionRepository, IApplicationService applicationService, IProductService productService)
+        public ContributionService(IOptions<MvpSelectionsOptions> options, ILogger<ContributionService> logger, IContributionRepository contributionRepository, IApplicationService applicationService, IProductService productService)
         {
+            _options = options.Value;
             _logger = logger;
             _contributionRepository = contributionRepository;
             _applicationService = applicationService;
@@ -31,7 +36,13 @@ namespace Mvp.Selections.Api.Services
         {
             OperationResult<Contribution> result = new ();
             OperationResult<Application> applicationResult = await _applicationService.GetAsync(user, applicationId);
-            if (applicationResult.StatusCode == HttpStatusCode.OK && (applicationResult.Result.Status == ApplicationStatus.Open || user.HasRight(Right.Admin)))
+            if (
+                applicationResult.StatusCode == HttpStatusCode.OK
+                && ((
+                    applicationResult.Result.Status == ApplicationStatus.Open
+                    && contribution.Date >= applicationResult.Result.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
+                    && contribution.Date <= applicationResult.Result.Selection.ApplicationsEnd)
+                    || user.HasRight(Right.Admin)))
             {
                 Application application = applicationResult.Result;
                 Contribution newContribution = new (Guid.Empty)
@@ -65,6 +76,15 @@ namespace Mvp.Selections.Api.Services
                     result.StatusCode = HttpStatusCode.OK;
                     result.Result = newContribution;
                 }
+            }
+            else if (
+                applicationResult.StatusCode == HttpStatusCode.OK
+                && contribution.Date <= applicationResult.Result.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
+                && contribution.Date >= applicationResult.Result.Selection.ApplicationsEnd)
+            {
+                string message = $"The Contribution's Date '{contribution.Date}' isn't in the valid time frame for the current Selection.";
+                result.Messages.Add(message);
+                _logger.LogInformation(message);
             }
             else if (applicationResult.StatusCode == HttpStatusCode.OK && applicationResult.Result.Status != ApplicationStatus.Open)
             {
