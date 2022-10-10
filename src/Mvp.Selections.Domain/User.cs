@@ -40,7 +40,8 @@ namespace Mvp.Selections.Domain
 
         public Right RecalculateRights()
         {
-            _rights = Roles.OfType<SystemRole>().Aggregate(Right.Any, (current, role) => current | role.Rights);
+            // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract - Roles may be forced to null output in projection for serialization
+            _rights = Roles?.OfType<SystemRole>().Aggregate(Right.Any, (current, role) => current | role.Rights) ?? Right.Any;
             return _rights.Value;
         }
 
