@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -52,7 +53,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(getResult.Result),
+                            Content = Serializer.Serialize(CleanOutput(getResult.Result)),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -98,7 +99,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(CleanOutput(applications)), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -137,7 +138,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Application> applications = await _applicationService.GetAllForSelectionAsync(authResult.User, selectionId, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(CleanOutput(applications)), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -178,7 +179,7 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                     IList<Application> applications = await _applicationService.GetAllForUserAsync(authResult.User, userId, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(CleanOutput(applications)), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -220,7 +221,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(addResult.Result),
+                            Content = Serializer.Serialize(CleanOutput(addResult.Result)),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -271,7 +272,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result),
+                            Content = Serializer.Serialize(CleanOutput(updateResult.Result)),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -335,6 +336,106 @@ namespace Mvp.Selections.Api
             {
                 Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<Application> CleanOutput(IEnumerable<Application> applications)
+        {
+            return applications.Select(CleanOutput);
+        }
+
+        private static Application CleanOutput(Application application)
+        {
+            Application result = new (application.Id)
+            {
+                MvpType = application.MvpType,
+                Selection = new Selection(application.Selection.Id)
+                {
+                    Titles = null!,
+                    ApplicationsActive = application.Selection.ApplicationsActive,
+                    ApplicationsEnd = application.Selection.ApplicationsEnd,
+                    ApplicationsStart = application.Selection.ApplicationsStart,
+                    ModifiedBy = application.Selection.ModifiedBy,
+                    ModifiedOn = application.Selection.ModifiedOn,
+                    ReviewsActive = application.Selection.ReviewsActive,
+                    ReviewsEnd = application.Selection.ReviewsEnd,
+                    ReviewsStart = application.Selection.ReviewsStart,
+                    Year = application.Selection.Year
+                },
+                Country = new Country(application.Country.Id)
+                {
+                    Users = null!,
+                    ModifiedBy = application.Country.ModifiedBy,
+                    ModifiedOn = application.Country.ModifiedOn,
+                    Name = application.Country.Name
+                },
+                ModifiedBy = application.ModifiedBy,
+                ModifiedOn = application.ModifiedOn,
+                Applicant = new (application.Applicant.Id)
+                {
+                    ModifiedBy = application.Applicant.ModifiedBy,
+                    ModifiedOn = application.Applicant.ModifiedOn,
+                    Country = null,
+                    Roles = null!,
+                    Name = application.Applicant.Name,
+                    Titles = null!,
+                    Applications = null!,
+                    Consents = null!,
+                    Email = application.Applicant.Email,
+                    Identifier = application.Applicant.Identifier,
+                    ImageType = application.Applicant.ImageType,
+                    Links = null!,
+                    Mentors = null!,
+                    Reviews = null!
+                },
+                Reviews = null!,
+                Eligibility = application.Eligibility,
+                Mentor = application.Mentor,
+                Objectives = application.Objectives,
+                Status = application.Status
+            };
+
+            foreach (Contribution contribution in application.Contributions)
+            {
+                Contribution cleanContribution = new (contribution.Id)
+                {
+                    ModifiedBy = contribution.ModifiedBy,
+                    ModifiedOn = contribution.ModifiedOn,
+                    Description = contribution.Description,
+                    Application = null!,
+                    Date = contribution.Date,
+                    Name = contribution.Name,
+                    Type = contribution.Type,
+                    Uri = contribution.Uri
+                };
+
+                foreach (Product product in contribution.RelatedProducts)
+                {
+                    Product cleanProduct = new (product.Id)
+                    {
+                        ModifiedBy = product.ModifiedBy,
+                        ModifiedOn = product.ModifiedOn,
+                        Contributions = null!,
+                        Name = product.Name
+                    };
+
+                    cleanContribution.RelatedProducts.Add(cleanProduct);
+                }
+
+                result.Contributions.Add(cleanContribution);
+            }
+
+            if (application.Country.Region != null)
+            {
+                result.Country.Region = new Region(application.Country.Region.Id)
+                {
+                    Countries = null!,
+                    ModifiedBy = application.Country.Region.ModifiedBy,
+                    ModifiedOn = application.Country.Region.ModifiedOn,
+                    Name = application.Country.Region.Name
+                };
             }
 
             return result;
