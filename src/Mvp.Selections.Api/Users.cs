@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,28 @@ namespace Mvp.Selections.Api
             : base(logger, serializer, authService)
         {
             _userService = userService;
+        }
+
+        public static IEnumerable<User> CleanOutput(IEnumerable<User> users)
+        {
+            IEnumerable<User> result = Array.Empty<User>();
+            if (users != null)
+            {
+                result = users.Select(CleanOutput);
+            }
+
+            return result;
+        }
+
+        public static User CleanOutput(User user)
+        {
+            User result = null;
+            if (user != null)
+            {
+                result = CleanOutputInternal(user);
+            }
+
+            return result;
         }
 
         [FunctionName("GetCurrentUser")]
@@ -227,6 +250,161 @@ namespace Mvp.Selections.Api
             {
                 Logger.LogError(e, e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        private static User CleanOutputInternal(User user)
+        {
+            User result = new (user.Id)
+            {
+                CreatedBy = user.CreatedBy,
+                CreatedOn = user.CreatedOn,
+                ModifiedBy = user.ModifiedBy,
+                ModifiedOn = user.ModifiedOn,
+                Name = user.Name,
+                Reviews = null!,
+                Titles = null!,
+                Email = user.Email,
+                Applications = null!,
+                Consents = null!,
+                Identifier = user.Identifier,
+                ImageType = user.ImageType,
+                Mentors = null!
+            };
+
+            foreach (Role role in user.Roles)
+            {
+                Role outputRole;
+                if (role is SystemRole systemRole)
+                {
+                    outputRole = new SystemRole(systemRole.Id)
+                    {
+                        CreatedBy = systemRole.CreatedBy,
+                        CreatedOn = systemRole.CreatedOn,
+                        ModifiedBy = systemRole.ModifiedBy,
+                        ModifiedOn = systemRole.ModifiedOn,
+                        Name = systemRole.Name,
+                        Rights = systemRole.Rights,
+                        Users = null!
+                    };
+                }
+                else if (role is SelectionRole selectionRole)
+                {
+                    outputRole = new SelectionRole(selectionRole.Id)
+                    {
+                        CreatedBy = selectionRole.CreatedBy,
+                        CreatedOn = selectionRole.CreatedOn,
+                        ModifiedBy = selectionRole.ModifiedBy,
+                        ModifiedOn = selectionRole.ModifiedOn,
+                        Name = selectionRole.Name,
+                        Users = null!
+                    };
+
+                    if (selectionRole.Region != null)
+                    {
+                        ((SelectionRole)outputRole).Region = new Region(selectionRole.Region.Id)
+                        {
+                            CreatedBy = selectionRole.Region.CreatedBy,
+                            CreatedOn = selectionRole.Region.CreatedOn,
+                            ModifiedBy = selectionRole.Region.ModifiedBy,
+                            ModifiedOn = selectionRole.Region.ModifiedOn,
+                            Countries = null!,
+                            Name = selectionRole.Region.Name
+                        };
+                    }
+
+                    if (selectionRole.Selection != null)
+                    {
+                        ((SelectionRole)outputRole).Selection = new Selection(selectionRole.Selection.Id)
+                        {
+                            CreatedBy = selectionRole.Selection.CreatedBy,
+                            CreatedOn = selectionRole.Selection.CreatedOn,
+                            ModifiedBy = selectionRole.Selection.ModifiedBy,
+                            ModifiedOn = selectionRole.Selection.ModifiedOn,
+                            Titles = null!,
+                            Year = selectionRole.Selection.Year,
+                            ApplicationsEnd = selectionRole.Selection.ApplicationsEnd,
+                            ApplicationsStart = selectionRole.Selection.ApplicationsStart,
+                            ApplicationsActive = selectionRole.Selection.ApplicationsActive,
+                            ReviewsActive = selectionRole.Selection.ReviewsActive,
+                            ReviewsEnd = selectionRole.Selection.ReviewsEnd,
+                            ReviewsStart = selectionRole.Selection.ReviewsStart
+                        };
+                    }
+
+                    if (selectionRole.Country != null)
+                    {
+                        ((SelectionRole)outputRole).Country = new Country(selectionRole.Country.Id)
+                        {
+                            CreatedBy = selectionRole.Country.CreatedBy,
+                            CreatedOn = selectionRole.Country.CreatedOn,
+                            ModifiedBy = selectionRole.Country.ModifiedBy,
+                            ModifiedOn = selectionRole.Country.ModifiedOn,
+                            Name = selectionRole.Country.Name,
+                            Users = null!
+                        };
+                    }
+
+                    if (selectionRole.MvpType != null)
+                    {
+                        ((SelectionRole)outputRole).MvpType = new MvpType(selectionRole.MvpType.Id)
+                        {
+                            CreatedBy = selectionRole.MvpType.CreatedBy,
+                            CreatedOn = selectionRole.MvpType.CreatedOn,
+                            ModifiedBy = selectionRole.MvpType.ModifiedBy,
+                            ModifiedOn = selectionRole.MvpType.ModifiedOn,
+                            Name = selectionRole.MvpType.Name
+                        };
+                    }
+
+                    if (selectionRole.Application != null)
+                    {
+                        ((SelectionRole)outputRole).Application = new Application(selectionRole.Application.Id)
+                        {
+                            CreatedBy = selectionRole.Application.CreatedBy,
+                            CreatedOn = selectionRole.Application.CreatedOn,
+                            ModifiedBy = selectionRole.Application.ModifiedBy,
+                            ModifiedOn = selectionRole.Application.ModifiedOn,
+                            Status = selectionRole.Application.Status,
+                            Contributions = null!,
+                            Reviews = null!
+                        };
+                    }
+                }
+                else
+                {
+                    outputRole = null;
+                }
+
+                result.Roles.Add(outputRole);
+            }
+
+            if (user.Country != null)
+            {
+                result.Country = new Country(user.Country.Id)
+                {
+                    CreatedBy = user.Country.CreatedBy,
+                    CreatedOn = user.Country.CreatedOn,
+                    ModifiedBy = user.Country.ModifiedBy,
+                    ModifiedOn = user.Country.ModifiedOn,
+                    Name = user.Country.Name,
+                    Users = null!
+                };
+
+                if (user.Country.Region != null)
+                {
+                    result.Country.Region = new Region(user.Country.Region.Id)
+                    {
+                        CreatedBy = user.Country.Region.CreatedBy,
+                        CreatedOn = user.Country.Region.CreatedOn,
+                        ModifiedBy = user.Country.Region.ModifiedBy,
+                        ModifiedOn = user.Country.Region.ModifiedOn,
+                        Countries = null!,
+                        Name = user.Country.Region.Name
+                    };
+                }
             }
 
             return result;

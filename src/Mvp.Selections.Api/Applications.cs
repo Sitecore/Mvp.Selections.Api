@@ -30,6 +30,28 @@ namespace Mvp.Selections.Api
             _applicationService = applicationService;
         }
 
+        public static IEnumerable<Application> CleanOutput(IEnumerable<Application> applications)
+        {
+            IEnumerable<Application> result = Array.Empty<Application>();
+            if (applications != null)
+            {
+                result = applications.Select(CleanOutput);
+            }
+
+            return result;
+        }
+
+        public static Application CleanOutput(Application application)
+        {
+            Application result = null;
+            if (application != null)
+            {
+                result = CleanOutputInternal(application);
+            }
+
+            return result;
+        }
+
         [FunctionName("GetApplication")]
         [OpenApiOperation("GetApplication", "Applications", "Admin", "Apply", "Review")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
@@ -53,7 +75,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(CleanOutput(getResult.Result)),
+                            Content = Serializer.Serialize(CleanOutputInternal(getResult.Result)),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -221,7 +243,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(CleanOutput(addResult.Result)),
+                            Content = Serializer.Serialize(CleanOutputInternal(addResult.Result)),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -272,7 +294,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(CleanOutput(updateResult.Result)),
+                            Content = Serializer.Serialize(CleanOutputInternal(updateResult.Result)),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -341,12 +363,7 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        private static IEnumerable<Application> CleanOutput(IEnumerable<Application> applications)
-        {
-            return applications.Select(CleanOutput);
-        }
-
-        private static Application CleanOutput(Application application)
+        private static Application CleanOutputInternal(Application application)
         {
             Application result = new (application.Id)
             {
@@ -357,6 +374,8 @@ namespace Mvp.Selections.Api
                     ApplicationsActive = application.Selection.ApplicationsActive,
                     ApplicationsEnd = application.Selection.ApplicationsEnd,
                     ApplicationsStart = application.Selection.ApplicationsStart,
+                    CreatedBy = application.Selection.CreatedBy,
+                    CreatedOn = application.Selection.CreatedOn,
                     ModifiedBy = application.Selection.ModifiedBy,
                     ModifiedOn = application.Selection.ModifiedOn,
                     ReviewsActive = application.Selection.ReviewsActive,
@@ -367,17 +386,20 @@ namespace Mvp.Selections.Api
                 Country = new Country(application.Country.Id)
                 {
                     Users = null!,
+                    CreatedBy = application.Country.CreatedBy,
+                    CreatedOn = application.Country.CreatedOn,
                     ModifiedBy = application.Country.ModifiedBy,
                     ModifiedOn = application.Country.ModifiedOn,
                     Name = application.Country.Name
                 },
                 ModifiedBy = application.ModifiedBy,
                 ModifiedOn = application.ModifiedOn,
-                Applicant = new (application.Applicant.Id)
+                Applicant = new User(application.Applicant.Id)
                 {
+                    CreatedBy = application.Applicant.CreatedBy,
+                    CreatedOn = application.Applicant.CreatedOn,
                     ModifiedBy = application.Applicant.ModifiedBy,
                     ModifiedOn = application.Applicant.ModifiedOn,
-                    Country = null,
                     Roles = null!,
                     Name = application.Applicant.Name,
                     Titles = null!,
@@ -401,6 +423,8 @@ namespace Mvp.Selections.Api
             {
                 Contribution cleanContribution = new (contribution.Id)
                 {
+                    CreatedBy = contribution.CreatedBy,
+                    CreatedOn = contribution.CreatedOn,
                     ModifiedBy = contribution.ModifiedBy,
                     ModifiedOn = contribution.ModifiedOn,
                     Description = contribution.Description,
@@ -415,6 +439,8 @@ namespace Mvp.Selections.Api
                 {
                     Product cleanProduct = new (product.Id)
                     {
+                        CreatedBy = product.CreatedBy,
+                        CreatedOn = product.CreatedOn,
                         ModifiedBy = product.ModifiedBy,
                         ModifiedOn = product.ModifiedOn,
                         Contributions = null!,
@@ -432,6 +458,8 @@ namespace Mvp.Selections.Api
                 result.Country.Region = new Region(application.Country.Region.Id)
                 {
                     Countries = null!,
+                    CreatedBy = application.Country.Region.CreatedBy,
+                    CreatedOn = application.Country.Region.CreatedOn,
                     ModifiedBy = application.Country.Region.ModifiedBy,
                     ModifiedOn = application.Country.Region.ModifiedOn,
                     Name = application.Country.Region.Name

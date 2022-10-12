@@ -21,7 +21,7 @@ namespace Mvp.Selections.Api.Services
 
         private readonly Expression<Func<User, object>>[] _standardIncludes =
         {
-            r => r.Country,
+            r => r.Country.Region,
             r => r.Links,
             r => r.Roles
         };
