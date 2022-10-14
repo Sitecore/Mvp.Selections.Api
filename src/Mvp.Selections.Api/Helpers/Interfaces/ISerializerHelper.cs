@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Helpers.Interfaces
 {
@@ -9,6 +10,6 @@ namespace Mvp.Selections.Api.Helpers.Interfaces
 
         Task<T> DeserializeAsync<T>(Stream stream);
 
-        string Serialize(object data);
+        string Serialize(object data, IContractResolver contractResolver = null);
     }
 }

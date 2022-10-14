@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Mvp.Selections.Api")]
 [assembly: InternalsVisibleTo("Mvp.Selections.Data")]
 [assembly: InternalsVisibleTo("Mvp.Selections.Client")]
 [assembly: InternalsVisibleTo("Mvp.Selections.Client.Tests")]
