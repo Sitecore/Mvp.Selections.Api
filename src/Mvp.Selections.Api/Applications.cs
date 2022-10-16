@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,8 @@ using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -53,7 +56,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(CleanOutput(getResult.Result)),
+                            Content = Serializer.Serialize(getResult.Result, new ApplicationsContractResolver()),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -99,7 +102,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(CleanOutput(applications)), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -138,7 +141,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Application> applications = await _applicationService.GetAllForSelectionAsync(authResult.User, selectionId, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(CleanOutput(applications)), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -179,7 +182,7 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                     IList<Application> applications = await _applicationService.GetAllForUserAsync(authResult.User, userId, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(CleanOutput(applications)), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -221,7 +224,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(CleanOutput(addResult.Result)),
+                            Content = Serializer.Serialize(addResult.Result, new ApplicationsContractResolver()),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -272,7 +275,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(CleanOutput(updateResult.Result)),
+                            Content = Serializer.Serialize(updateResult.Result, new ApplicationsContractResolver()),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -341,104 +344,43 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        private static IEnumerable<Application> CleanOutput(IEnumerable<Application> applications)
+        private class ApplicationsContractResolver : CamelCasePropertyNamesContractResolver
         {
-            return applications.Select(CleanOutput);
-        }
+            // ReSharper disable once UnusedMember.Local - Following documentation example
+            public static readonly ApplicationsContractResolver Instance = new ();
 
-        private static Application CleanOutput(Application application)
-        {
-            Application result = new (application.Id)
+            private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
             {
-                MvpType = application.MvpType,
-                Selection = new Selection(application.Selection.Id)
+                JsonProperty result;
+                if (member.DeclaringType == typeof(Application) && member.Name == nameof(Application.Reviews))
                 {
-                    Titles = null!,
-                    ApplicationsActive = application.Selection.ApplicationsActive,
-                    ApplicationsEnd = application.Selection.ApplicationsEnd,
-                    ApplicationsStart = application.Selection.ApplicationsStart,
-                    ModifiedBy = application.Selection.ModifiedBy,
-                    ModifiedOn = application.Selection.ModifiedOn,
-                    ReviewsActive = application.Selection.ReviewsActive,
-                    ReviewsEnd = application.Selection.ReviewsEnd,
-                    ReviewsStart = application.Selection.ReviewsStart,
-                    Year = application.Selection.Year
-                },
-                Country = new Country(application.Country.Id)
+                    result = null;
+                }
+                else if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
                 {
-                    Users = null!,
-                    ModifiedBy = application.Country.ModifiedBy,
-                    ModifiedOn = application.Country.ModifiedOn,
-                    Name = application.Country.Name
-                },
-                ModifiedBy = application.ModifiedBy,
-                ModifiedOn = application.ModifiedOn,
-                Applicant = new (application.Applicant.Id)
+                    result = null;
+                }
+                else if (member.DeclaringType == typeof(Selection) && member.Name == nameof(Selection.Titles))
                 {
-                    ModifiedBy = application.Applicant.ModifiedBy,
-                    ModifiedOn = application.Applicant.ModifiedOn,
-                    Country = null,
-                    Roles = null!,
-                    Name = application.Applicant.Name,
-                    Titles = null!,
-                    Applications = null!,
-                    Consents = null!,
-                    Email = application.Applicant.Email,
-                    Identifier = application.Applicant.Identifier,
-                    ImageType = application.Applicant.ImageType,
-                    Links = null!,
-                    Mentors = null!,
-                    Reviews = null!
-                },
-                Reviews = null!,
-                Eligibility = application.Eligibility,
-                Mentor = application.Mentor,
-                Objectives = application.Objectives,
-                Status = application.Status
-            };
-
-            foreach (Contribution contribution in application.Contributions)
-            {
-                Contribution cleanContribution = new (contribution.Id)
+                    result = null;
+                }
+                else if (member.DeclaringType == typeof(Contribution) && member.Name == nameof(Contribution.Application))
                 {
-                    ModifiedBy = contribution.ModifiedBy,
-                    ModifiedOn = contribution.ModifiedOn,
-                    Description = contribution.Description,
-                    Application = null!,
-                    Date = contribution.Date,
-                    Name = contribution.Name,
-                    Type = contribution.Type,
-                    Uri = contribution.Uri
-                };
-
-                foreach (Product product in contribution.RelatedProducts)
+                    result = null;
+                }
+                else if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
                 {
-                    Product cleanProduct = new (product.Id)
-                    {
-                        ModifiedBy = product.ModifiedBy,
-                        ModifiedOn = product.ModifiedOn,
-                        Contributions = null!,
-                        Name = product.Name
-                    };
-
-                    cleanContribution.RelatedProducts.Add(cleanProduct);
+                    result = null;
+                }
+                else
+                {
+                    result = base.CreateProperty(member, memberSerialization);
                 }
 
-                result.Contributions.Add(cleanContribution);
+                return result;
             }
-
-            if (application.Country.Region != null)
-            {
-                result.Country.Region = new Region(application.Country.Region.Id)
-                {
-                    Countries = null!,
-                    ModifiedBy = application.Country.Region.ModifiedBy,
-                    ModifiedOn = application.Country.Region.ModifiedOn,
-                    Name = application.Country.Region.Name
-                };
-            }
-
-            return result;
         }
     }
 }

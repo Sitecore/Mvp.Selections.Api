@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -13,7 +13,6 @@ using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
-using Mvp.Selections.Api.Services;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 

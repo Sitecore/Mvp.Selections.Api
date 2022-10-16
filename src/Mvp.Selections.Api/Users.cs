@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +17,8 @@ using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -45,7 +49,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     User user = await _userService.GetAsync(authResult.User.Id);
-                    result = new ContentResult { Content = Serializer.Serialize(user), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(user, new UsersContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -83,7 +87,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result),
+                            Content = Serializer.Serialize(updateResult.Result, new UsersContractResolver()),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -128,7 +132,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     User user = await _userService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(user), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(user, new UsersContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -165,7 +169,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<User> users = await _userService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(users), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(users, new UsersContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -207,7 +211,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result),
+                            Content = Serializer.Serialize(updateResult.Result, new UsersContractResolver()),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -230,6 +234,32 @@ namespace Mvp.Selections.Api
             }
 
             return result;
+        }
+
+        private class UsersContractResolver : CamelCasePropertyNamesContractResolver
+        {
+            public static readonly UsersContractResolver Instance = new ();
+
+            private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+            {
+                JsonProperty result;
+                if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
+                {
+                    result = null;
+                }
+                else if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
+                {
+                    result = null;
+                }
+                else
+                {
+                    result = base.CreateProperty(member, memberSerialization);
+                }
+
+                return result;
+            }
         }
     }
 }

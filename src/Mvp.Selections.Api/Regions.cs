@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AspNetCore.Http;
@@ -17,6 +19,8 @@ using Mvp.Selections.Api.Model.Regions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -50,7 +54,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Region region = await _regionService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(region, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -87,7 +91,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Region> regions = await _regionService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(regions), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(regions, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -123,7 +127,7 @@ namespace Mvp.Selections.Api
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
                     Region region = await _regionService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(region, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -161,7 +165,7 @@ namespace Mvp.Selections.Api
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
                     Region region = await _regionService.UpdateAsync(id, input);
-                    result = new ContentResult { Content = Serializer.Serialize(region), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(region, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -305,6 +309,29 @@ namespace Mvp.Selections.Api
             }
 
             return result;
+        }
+
+        private class RegionsContractResolver : CamelCasePropertyNamesContractResolver
+        {
+            // ReSharper disable once UnusedMember.Local - Following documentation example
+            public static readonly RegionsContractResolver Instance = new ();
+
+            private readonly string[] _countryExcludedMembers = { nameof(Country.Region), nameof(Country.Users) };
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+            {
+                JsonProperty result;
+                if (member.DeclaringType == typeof(Country) && _countryExcludedMembers.Contains(member.Name))
+                {
+                    result = null;
+                }
+                else
+                {
+                    result = base.CreateProperty(member, memberSerialization);
+                }
+
+                return result;
+            }
         }
     }
 }

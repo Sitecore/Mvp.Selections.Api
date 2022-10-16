@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,8 @@ using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -49,7 +52,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Country> countries = await _countryService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(countries), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(countries, new CountriesContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -63,6 +66,31 @@ namespace Mvp.Selections.Api
             }
 
             return result;
+        }
+
+        private class CountriesContractResolver : CamelCasePropertyNamesContractResolver
+        {
+            // ReSharper disable once UnusedMember.Local - Following documentation example
+            public static readonly CountriesContractResolver Instance = new ();
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+            {
+                JsonProperty result;
+                if (member.DeclaringType == typeof(Country) && member.Name == nameof(Country.Users))
+                {
+                    result = null;
+                }
+                else if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
+                {
+                    result = null;
+                }
+                else
+                {
+                    result = base.CreateProperty(member, memberSerialization);
+                }
+
+                return result;
+            }
         }
     }
 }

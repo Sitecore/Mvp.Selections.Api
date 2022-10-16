@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,8 @@ using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -52,7 +55,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(addResult.Result),
+                            Content = Serializer.Serialize(addResult.Result, new ContributionsContractResolver()),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -121,6 +124,27 @@ namespace Mvp.Selections.Api
             }
 
             return result;
+        }
+
+        private class ContributionsContractResolver : CamelCasePropertyNamesContractResolver
+        {
+            // ReSharper disable once UnusedMember.Local - Following documentation example
+            public static readonly ContributionsContractResolver Instance = new ();
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+            {
+                JsonProperty result;
+                if (member.DeclaringType == typeof(Contribution) && member.Name == nameof(Contribution.Application))
+                {
+                    result = null;
+                }
+                else
+                {
+                    result = base.CreateProperty(member, memberSerialization);
+                }
+
+                return result;
+            }
         }
     }
 }
