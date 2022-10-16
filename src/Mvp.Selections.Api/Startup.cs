@@ -27,9 +27,11 @@ namespace Mvp.Selections.Api
                 configuration.GetSection(TokenOptions.Token).Bind(options));
             builder.Services.AddOptions<MvpSelectionsOptions>().Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(MvpSelectionsOptions.MvpSelections).Bind(options));
+            builder.Services.AddOptions<JsonOptions>().Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(JsonOptions.Json).Bind(options));
 
             // Helpers
-            builder.Services.AddSingleton<ISerializerHelper, JsonSerializerHelper>();
+            builder.Services.AddScoped<ISerializerHelper, JsonSerializerHelper>();
             builder.Services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
             builder.Services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
 

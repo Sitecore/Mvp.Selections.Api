@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Domain;
 using Newtonsoft.Json;
@@ -11,19 +13,11 @@ namespace Mvp.Selections.Api.Helpers
 {
     public class JsonSerializerHelper : ISerializerHelper
     {
-        private static readonly JsonSerializerSettings Settings;
+        private readonly JsonOptions _options;
 
-        static JsonSerializerHelper()
+        public JsonSerializerHelper(IOptionsSnapshot<JsonOptions> options)
         {
-            Settings = new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                TypeNameHandling = TypeNameHandling.Auto,
-                SerializationBinder = new MvpSelectionsDomainSerializationBinder()
-            };
-            Settings.Converters.Add(new StringEnumConverter());
+            _options = options.Value;
         }
 
         public string ContentType => "application/json";
@@ -32,28 +26,17 @@ namespace Mvp.Selections.Api.Helpers
         {
             using StreamReader reader = new (stream);
             string streamContent = await reader.ReadToEndAsync();
-            return JsonConvert.DeserializeObject<T>(streamContent, Settings);
+            return JsonConvert.DeserializeObject<T>(streamContent, _options.JsonSerializerSettings);
         }
 
-        public string Serialize(object data)
+        public string Serialize(object data, IContractResolver contractResolver = null)
         {
-            return JsonConvert.SerializeObject(data, Settings);
-        }
-
-        // NOTE [ILs] We MUST whitelist deserialization to prevent code execution attacks:
-        // https://www.alphabot.com/security/blog/2017/net/How-to-configure-Json.NET-to-create-a-vulnerable-web-API.html
-        private class MvpSelectionsDomainSerializationBinder : DefaultSerializationBinder
-        {
-            public override Type BindToType(string assemblyName, string typeName)
+            if (contractResolver != null)
             {
-                Type result = null;
-                if (assemblyName.Equals(typeof(BaseEntity<>).Assembly.GetName().Name))
-                {
-                    result = base.BindToType(assemblyName, typeName);
-                }
-
-                return result;
+                _options.JsonSerializerSettings.ContractResolver = contractResolver;
             }
+
+            return JsonConvert.SerializeObject(data, _options.JsonSerializerSettings);
         }
     }
 }

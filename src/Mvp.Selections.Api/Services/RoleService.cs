@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -14,13 +15,18 @@ namespace Mvp.Selections.Api.Services
 
         private readonly IRoleRepository _roleRepository;
 
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
 
-        public RoleService(ILogger<RoleService> logger, IRoleRepository roleRepository, IUserRepository userRepository)
+        private readonly Expression<Func<Role, object>>[] _standardIncludes =
+        {
+            r => r.Users
+        };
+
+        public RoleService(ILogger<RoleService> logger, IRoleRepository roleRepository, IUserService userService)
         {
             _logger = logger;
             _roleRepository = roleRepository;
-            _userRepository = userRepository;
+            _userService = userService;
         }
 
         public async Task<Role> AddSystemRoleAsync(SystemRole systemRole)
@@ -51,7 +57,7 @@ namespace Mvp.Selections.Api.Services
         {
             bool result = false;
             Role role = await _roleRepository.GetAsync(roleId);
-            User user = await _userRepository.GetAsync(userId);
+            User user = await _userService.GetAsync(userId);
             if (role != null && user != null)
             {
                 role.Users.Add(user);
@@ -74,7 +80,7 @@ namespace Mvp.Selections.Api.Services
         {
             bool result = false;
             Role role = await _roleRepository.GetAsync(roleId);
-            User user = await _userRepository.GetAsync(userId);
+            User user = await _userService.GetAsync(userId);
             if (role != null && user != null)
             {
                 role.Users.Remove(user);
