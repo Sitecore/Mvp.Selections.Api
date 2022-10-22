@@ -17,6 +17,7 @@ namespace Mvp.Selections.Data.Repositories
 
         public async Task<IList<Application>> GetAllAsync(Guid selectionId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
         {
+            page--;
             return await Context.Applications
                 .Where(a => a.Selection.Id == selectionId)
                 .OrderByDescending(a => a.CreatedOn)

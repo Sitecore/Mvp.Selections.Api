@@ -48,6 +48,9 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IConsentService, ConsentService>();
             builder.Services.AddScoped<IContributionService, ContributionService>();
             builder.Services.AddScoped<IProfileLinkService, ProfileLinkService>();
+            builder.Services.AddScoped<IReviewService, ReviewService>();
+            builder.Services.AddScoped<IScoreCategoryService, ScoreCategoryService>();
+            builder.Services.AddScoped<IScoreService, ScoreService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -61,6 +64,9 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IConsentRepository, ConsentRepository>();
             builder.Services.AddScoped<IContributionRepository, ContributionRepository>();
             builder.Services.AddScoped<IProfileLinkRepository, ProfileLinkRepository>();
+            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+            builder.Services.AddScoped<IScoreCategoryRepository, ScoreCategoryRepository>();
+            builder.Services.AddScoped<IScoreRepository, ScoreRepository>();
 
             // Database
             FunctionsHostBuilderContext context = builder.GetContext();

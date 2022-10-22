@@ -149,7 +149,6 @@ namespace Mvp.Selections.Api.Services
             };
 
             Selection selection = await _selectionService.GetAsync(selectionId);
-            DateTime utcNow = DateTime.UtcNow;
             if (selection != null && selection.AreApplicationsOpen())
             {
                 newApplication.Selection = selection;
@@ -233,10 +232,24 @@ namespace Mvp.Selections.Api.Services
                     _logger.LogInformation(message);
                 }
             }
-            else
+            else if (user.Country != null)
             {
                 newApplication.Applicant = user;
                 newApplication.Country = user.Country;
+            }
+            else
+            {
+                string message = $"User '{user.Id}' has no Country on their profile.";
+                result.Messages.Add(message);
+                _logger.LogInformation(message);
+            }
+
+            IList<Application> existingApplications = await GetAllForUserAsync(user, newApplication.Applicant.Id, null);
+            if (existingApplications.Any(a => a.Selection.Id == selectionId))
+            {
+                string message = $"Can not submit multiple applications to Selection '{selectionId}'.";
+                result.Messages.Add(message);
+                _logger.LogInformation(message);
             }
 
             if (result.Messages.Count == 0)

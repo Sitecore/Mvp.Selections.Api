@@ -77,6 +77,11 @@ namespace Mvp.Selections.Data
                 .WithMany(r => r.CategoryScores)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<ScoreCategory>()
+                .HasOne(sc => sc.ParentCategory)
+                .WithMany(sc => sc.SubCategories)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Application>()
                 .HasOne(a => a.Applicant)
                 .WithMany(u => u.Applications)
