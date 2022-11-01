@@ -2024,6 +2024,201 @@
 					]
 				},
 				{
+					"name": "Reviews",
+					"item": [
+						{
+							"name": "Review",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/reviews/{{Review.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"reviews",
+										"{{Review.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Reviews",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/reviews/",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}",
+										"reviews",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Review",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.collectionVariables.set(\"Review.Comment\", pm.variables.replaceIn(\"{{$randomLoremSentences}}\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"comment\": \"{{Review.Comment}}\",\r\n  \"status\": \"Open\",\r\n  \"categoryScores\": [\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Content.Id}}\",\r\n      \"scoreId\": \"{{Score.Content.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Engagement.Id}}\",\r\n      \"scoreId\": \"{{Score.Engagement.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Speaking.Id}}\",\r\n      \"scoreId\": \"{{Score.Speaking.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Feedback.Id}}\",\r\n      \"scoreId\": \"{{Score.Feedback.Id}}\"\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/reviews/",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"applications",
+										"{{Application.Id}}",
+										"reviews",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Review",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"comment\": \"{{Review.Comment}}\",\r\n  \"status\": \"Open\",\r\n  \"categoryScores\": [\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Content.Id}}\",\r\n      \"scoreId\": \"{{Score.Content.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Engagement.Id}}\",\r\n      \"scoreId\": \"{{Score.Engagement.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Speaking.Id}}\",\r\n      \"scoreId\": \"{{Score.Speaking.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Feedback.Id}}\",\r\n      \"scoreId\": \"{{Score.Feedback.Id}}\"\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/reviews/{{Review.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"reviews",
+										"{{Review.Id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Review",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {\r",
+											"    pm.response.to.have.status(204);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/reviews/{{Review.Id}}",
+									"protocol": "{{EndpointScheme}}",
+									"host": [
+										"{{EndpointUri}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"reviews",
+										"{{Review.Id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Roles",
 					"item": [
 						{
@@ -4511,7 +4706,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJraWQiOiIzZDcxOUluMGZ0WmtTNk9SM3lxNEJJNUNCTmJYdE9Mb3E2M1dYUXhkM1hnIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjY1MTUxODk4LCJleHAiOjE2NjUxNTU0OTgsImp0aSI6IklELk9HYWxNc2dqc2RHNHFiZy1KbGU1OWZxcFh2T19tTklrZTd5RGdmSjJUZjQiLCJhbXIiOlsicHdkIiwib3RwIiwibWZhIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2MzgwMDc0ODY3NzQ5MzgwNjYuTURJMk5UVTBOemd0TVdKbE5DMDBNMkUxTFdFM056VXRPV0UzTldRek1USTNNREptTlRCa1kyTTJaalF0TW1NMU5TMDBPV0l4TFRrME0yVXRZVGd4TUdVMlpEQTVZalUxIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NjUxNTE4ODEsImF0X2hhc2giOiJpUFFpVkRsYnQ2S3NhN1BIVzQ2VktnIiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.iM8g5NYcJbjryKZdUj6Wn5_4rvsdwYWbePgfG9rypCrECNc0t7nW9unop4G9AkcTTUHXOCHOmg8_Vv034e8f9XipgtGZoo2RTMiX8Q0da6ZU5rPEkqK0Yw4bCGqclXFo5ZUkvMOteBv35A7iVpN707j6awnkVZR0Af6fT9s0lJR9M2S_bjUDNrqjBAvc-8WIt5FsCzlZbvcgn3h9AomzhUlvCbGBR_4GRaqSDQVQ2lA1TgqAQ4t2GsqArH4uLsunLUoqnduBHz1hpLyrsuZgxFDbDkndQgsTIKmR8QTsqwjX_kkEx09OmlB5wRnnadm4oyTaNzA23pdhShp732Y7Pg",
+				"value": "eyJraWQiOiIzZDcxOUluMGZ0WmtTNk9SM3lxNEJJNUNCTmJYdE9Mb3E2M1dYUXhkM1hnIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjY1Mzk3MjQ4LCJleHAiOjE2NjU0MDA4NDgsImp0aSI6IklELmdTQjVsVlJJMGVoUUgwWHZUaFRpd2g1VHRQa2g0TVhYb3c4MGhiSW1GbHciLCJhbXIiOlsicHdkIiwib3RwIiwibWZhIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2MzgwMDk5NDAyOTM4MjE0NDguTW1Gak5URXdPRFF0WVRZd01DMDBPR0pqTFRneFkyTXRabVJoWVRBeVptSTVZVFl3T0RBNE1XRmxORGd0T0RFek9DMDBZVGN3TFdFeU5UVXRZV0ZoTldZMk1tRmpPRE0xIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NjUzOTcyMzIsImF0X2hhc2giOiJCRVltUmNQVDFKZmgteDZmVTRTS2JRIiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.LBYSYadZKb5wSY_HugBxsPpELVVhc8vuzpMX8w0jtvSMH88E71vwjrQLRE_MthE2L48djOKNV70H8FnQ2Uyj2kf8TeUStp4BV_GTbOx5-mCgtLQuP5TjqRvJx_zwIDTTgFDY4RRYgTouuW6XT_mbaQGDi4a06rq_f2Nr7ZQethwzuRruj0jvmP7RCKcjx3i83uxikn_rdjcugE8aPdK37fziVO7l-RcdF0CSqA_3_lEHXaT160Opyq51d6Ifc6wgcze5DhvJts3272KlFmHXyPuzO9YEa14taIlxsBFpMDXavxNtUwS-1_yVvJcyZkm9NBPg9k6W9Ro0v1ZsD40OUg",
 				"type": "string"
 			}
 		]
@@ -4731,6 +4926,55 @@
 			"key": "ProfileLink.Uri",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "Review.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ScoreCategory.Content.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Score.Content.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ScoreCategory.Engagement.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Score.Engagement.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ScoreCategory.Speaking.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Score.Speaking.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ScoreCategory.Feedback.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Score.Feedback.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Review.Comment",
+			"value": ""
 		}
 	]
 }
