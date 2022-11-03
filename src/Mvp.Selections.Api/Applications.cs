@@ -374,6 +374,10 @@ namespace Mvp.Selections.Api
                 {
                     result = null;
                 }
+                else if (member.DeclaringType == typeof(Product) && member.Name == nameof(Product.Contributions))
+                {
+                    result = null;
+                }
                 else
                 {
                     result = base.CreateProperty(member, memberSerialization);
