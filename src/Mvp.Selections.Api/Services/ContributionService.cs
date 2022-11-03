@@ -38,6 +38,7 @@ namespace Mvp.Selections.Api.Services
             OperationResult<Application> applicationResult = await _applicationService.GetAsync(user, applicationId);
             if (
                 applicationResult.StatusCode == HttpStatusCode.OK
+                && applicationResult.Result != null
                 && ((
                     applicationResult.Result.Status == ApplicationStatus.Open
                     && contribution.Date >= applicationResult.Result.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
@@ -79,6 +80,7 @@ namespace Mvp.Selections.Api.Services
             }
             else if (
                 applicationResult.StatusCode == HttpStatusCode.OK
+                && applicationResult.Result != null
                 && contribution.Date <= applicationResult.Result.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
                 && contribution.Date >= applicationResult.Result.Selection.ApplicationsEnd)
             {
@@ -86,9 +88,18 @@ namespace Mvp.Selections.Api.Services
                 result.Messages.Add(message);
                 _logger.LogInformation(message);
             }
-            else if (applicationResult.StatusCode == HttpStatusCode.OK && applicationResult.Result.Status != ApplicationStatus.Open)
+            else if (
+                applicationResult.StatusCode == HttpStatusCode.OK
+                && applicationResult.Result != null
+                && applicationResult.Result.Status != ApplicationStatus.Open)
             {
                 string message = $"The Application '{applicationId}' is not open so it can not be modified anymore.";
+                result.Messages.Add(message);
+                _logger.LogInformation(message);
+            }
+            else if (applicationResult.StatusCode == HttpStatusCode.OK && applicationResult.Result == null)
+            {
+                string message = $"The Application '{applicationId}' was not found.";
                 result.Messages.Add(message);
                 _logger.LogInformation(message);
             }
