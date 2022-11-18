@@ -17,7 +17,7 @@ namespace Mvp.Selections.Client
     {
         public const string AuthorizationScheme = "Bearer";
 
-        private static readonly JsonSerializerOptions _JsonSerializerOptions;
+        private static readonly JsonSerializerOptions JsonSerializerOptions;
 
         private readonly HttpClient _client;
 
@@ -25,14 +25,14 @@ namespace Mvp.Selections.Client
 
         static MvpSelectionsApiClient()
         {
-            _JsonSerializerOptions = new JsonSerializerOptions
+            JsonSerializerOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
-            _JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            _JsonSerializerOptions.Converters.Add(new RoleConverter());
+            JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            JsonSerializerOptions.Converters.Add(new RoleConverter());
         }
 
         public MvpSelectionsApiClient(HttpClient client, IOptions<MvpSelectionsApiClientOptions> options, ITokenProvider tokenProvider)
@@ -439,6 +439,60 @@ namespace Mvp.Selections.Client
 
         #endregion Reviews
 
+        #region ScoreCategories
+
+        public Task<Response<IList<ScoreCategory>>> GetScoreCategoriesAsync(Guid selectionId, short mvpTypeId)
+        {
+            return GetAsync<IList<ScoreCategory>>($"/api/v1/selections/{selectionId}/mvptypes/{mvpTypeId}/scorecategories");
+        }
+
+        public Task<Response<ScoreCategory>> AddScoreCategoryAsync(Guid selectionId, short mvpTypeId, ScoreCategory scoreCategory)
+        {
+            return PostAsync<ScoreCategory>($"/api/v1/selections/{selectionId}/mvptypes/{mvpTypeId}/scorecategories", scoreCategory);
+        }
+
+        public Task<Response<bool>> RemoveScoreCategoryAsync(Guid scoreCategoryId)
+        {
+            return DeleteAsync($"/api/v1/scorecategories/{scoreCategoryId}");
+        }
+
+        #endregion ScoreCategories
+
+        #region Scores
+
+        public Task<Response<Score>> GetScoreAsync(int id)
+        {
+            return GetAsync<Score>($"/api/v1/scores/{id}");
+        }
+
+        public Task<Response<IList<Score>>> GetScoresAsync(int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetScoresAsync(listParameters);
+        }
+
+        public Task<Response<IList<Score>>> GetScoresAsync(ListParameters listParameters)
+        {
+            return GetAsync<IList<Score>>($"/api/v1/scores?{listParameters.ToQueryString()}");
+        }
+
+        public Task<Response<Score>> AddScoreAsync(Score score)
+        {
+            return PostAsync<Score>("/api/v1/scores", score);
+        }
+
+        public Task<Response<Score>> UpdateScoreAsync(Score score)
+        {
+            return PatchAsync<Score>($"/api/v1/scores/{score.Id}", score);
+        }
+
+        public Task<Response<bool>> RemoveScoreAsync(int id)
+        {
+            return DeleteAsync($"/api/v1/scores/{id}");
+        }
+
+        #endregion Scores
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)
@@ -453,7 +507,7 @@ namespace Mvp.Selections.Client
             using HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
             }
             else
             {
@@ -467,7 +521,7 @@ namespace Mvp.Selections.Client
         private async Task<Response<T>> PostAsync<T>(string requestUri, object content)
         {
             Response<T> result = new ();
-            JsonContent jsonContent = JsonContent.Create(content, null, _JsonSerializerOptions);
+            JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Post,
@@ -478,7 +532,7 @@ namespace Mvp.Selections.Client
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
             }
             else
             {
@@ -492,7 +546,7 @@ namespace Mvp.Selections.Client
         private async Task<Response<T>> PatchAsync<T>(string requestUri, object content)
         {
             Response<T> result = new ();
-            JsonContent jsonContent = JsonContent.Create(content, null, _JsonSerializerOptions);
+            JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Patch,
@@ -503,7 +557,7 @@ namespace Mvp.Selections.Client
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
             }
             else
             {

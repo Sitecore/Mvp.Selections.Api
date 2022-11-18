@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AspNetCore.Http;
@@ -17,10 +15,9 @@ using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
+using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -270,38 +267,6 @@ namespace Mvp.Selections.Api
             }
 
             return result;
-        }
-
-        private class RolesContractResolver : CamelCasePropertyNamesContractResolver
-        {
-            // ReSharper disable once UnusedMember.Local - Following documentation example
-            public static readonly RolesContractResolver Instance = new ();
-
-            private readonly string[] _userExcludedMembers =
-            {
-                nameof(User.Applications),
-                nameof(User.Consents),
-                nameof(User.Mentors),
-                nameof(User.Reviews),
-                nameof(User.Titles),
-                nameof(User.Links),
-                nameof(User.Roles)
-            };
-
-            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
-            {
-                JsonProperty result;
-                if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
-                {
-                    result = null;
-                }
-                else
-                {
-                    result = base.CreateProperty(member, memberSerialization);
-                }
-
-                return result;
-            }
         }
     }
 }
