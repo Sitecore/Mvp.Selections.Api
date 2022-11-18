@@ -73,7 +73,7 @@ namespace Mvp.Selections.Api
 
                 try
                 {
-                    List<Country> countries = await _context.Countries.ToListAsync();
+                    List<Country> unused = await _context.Countries.ToListAsync();
                 }
                 catch (Exception ex)
                 {

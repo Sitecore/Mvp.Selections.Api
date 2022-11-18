@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.AspNetCore.Http;
@@ -17,10 +15,9 @@ using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Regions;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -309,29 +306,6 @@ namespace Mvp.Selections.Api
             }
 
             return result;
-        }
-
-        private class RegionsContractResolver : CamelCasePropertyNamesContractResolver
-        {
-            // ReSharper disable once UnusedMember.Local - Following documentation example
-            public static readonly RegionsContractResolver Instance = new ();
-
-            private readonly string[] _countryExcludedMembers = { nameof(Country.Region), nameof(Country.Users) };
-
-            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
-            {
-                JsonProperty result;
-                if (member.DeclaringType == typeof(Country) && _countryExcludedMembers.Contains(member.Name))
-                {
-                    result = null;
-                }
-                else
-                {
-                    result = base.CreateProperty(member, memberSerialization);
-                }
-
-                return result;
-            }
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +12,9 @@ using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -126,29 +124,5 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        private class ContributionsContractResolver : CamelCasePropertyNamesContractResolver
-        {
-            // ReSharper disable once UnusedMember.Local - Following documentation example
-            public static readonly ContributionsContractResolver Instance = new ();
-
-            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
-            {
-                JsonProperty result;
-                if (member.DeclaringType == typeof(Contribution) && member.Name == nameof(Contribution.Application))
-                {
-                    result = null;
-                }
-                else if (member.DeclaringType == typeof(Product) && member.Name == nameof(Product.Contributions))
-                {
-                    result = null;
-                }
-                else
-                {
-                    result = base.CreateProperty(member, memberSerialization);
-                }
-
-                return result;
-            }
-        }
     }
 }
