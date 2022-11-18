@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mvp.Selections.Data;
 
@@ -11,9 +12,10 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20221118172437_ScoreCategoryParentOptional")]
+    partial class ScoreCategoryParentOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2132,10 +2134,15 @@ namespace Mvp.Selections.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("ScoreCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Value")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ScoreCategoryId");
 
                     b.ToTable("Scores");
                 });
@@ -2366,21 +2373,6 @@ namespace Mvp.Selections.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("ScoreScoreCategory", b =>
-                {
-                    b.Property<Guid>("ScoreCategoriesId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ScoreOptionsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("ScoreCategoriesId", "ScoreOptionsId");
-
-                    b.HasIndex("ScoreOptionsId");
-
-                    b.ToTable("ScoreScoreCategory");
-                });
-
             modelBuilder.Entity("Mvp.Selections.Domain.SelectionRole", b =>
                 {
                     b.HasBaseType("Mvp.Selections.Domain.Role");
@@ -2587,6 +2579,13 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("ScoreCategory");
                 });
 
+            modelBuilder.Entity("Mvp.Selections.Domain.Score", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.ScoreCategory", null)
+                        .WithMany("ScoreOptions")
+                        .HasForeignKey("ScoreCategoryId");
+                });
+
             modelBuilder.Entity("Mvp.Selections.Domain.ScoreCategory", b =>
                 {
                     b.HasOne("Mvp.Selections.Domain.MvpType", "MvpType")
@@ -2597,7 +2596,8 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasOne("Mvp.Selections.Domain.ScoreCategory", "ParentCategory")
                         .WithMany("SubCategories")
-                        .HasForeignKey("ParentCategoryId");
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Mvp.Selections.Domain.Selection", "Selection")
                         .WithMany()
@@ -2675,21 +2675,6 @@ namespace Mvp.Selections.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ScoreScoreCategory", b =>
-                {
-                    b.HasOne("Mvp.Selections.Domain.ScoreCategory", null)
-                        .WithMany()
-                        .HasForeignKey("ScoreCategoriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Mvp.Selections.Domain.Score", null)
-                        .WithMany()
-                        .HasForeignKey("ScoreOptionsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Mvp.Selections.Domain.SelectionRole", b =>
                 {
                     b.HasOne("Mvp.Selections.Domain.Application", "Application")
@@ -2747,6 +2732,8 @@ namespace Mvp.Selections.Data.Migrations
 
             modelBuilder.Entity("Mvp.Selections.Domain.ScoreCategory", b =>
                 {
+                    b.Navigation("ScoreOptions");
+
                     b.Navigation("SubCategories");
                 });
 

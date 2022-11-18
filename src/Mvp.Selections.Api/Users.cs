@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +13,9 @@ using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
@@ -234,32 +231,6 @@ namespace Mvp.Selections.Api
             }
 
             return result;
-        }
-
-        private class UsersContractResolver : CamelCasePropertyNamesContractResolver
-        {
-            public static readonly UsersContractResolver Instance = new ();
-
-            private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
-
-            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
-            {
-                JsonProperty result;
-                if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
-                {
-                    result = null;
-                }
-                else if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
-                {
-                    result = null;
-                }
-                else
-                {
-                    result = base.CreateProperty(member, memberSerialization);
-                }
-
-                return result;
-            }
         }
     }
 }

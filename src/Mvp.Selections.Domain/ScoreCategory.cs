@@ -15,10 +15,10 @@
 
         public Selection Selection { get; set; } = null!;
 
-        public ScoreCategory ParentCategory { get; set; } = null!;
+        public ScoreCategory? ParentCategory { get; set; } = null!;
 
         public ICollection<Score> ScoreOptions { get; init; } = new List<Score>();
 
-        public ICollection<ScoreCategory> SubCategories { get; set; } = new List<ScoreCategory>();
+        public ICollection<ScoreCategory> SubCategories { get; init; } = new List<ScoreCategory>();
     }
 }
