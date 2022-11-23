@@ -383,6 +383,11 @@ namespace Mvp.Selections.Client
             return PostAsync<Contribution>($"/api/v1/applications/{applicationId}/contributions", contribution);
         }
 
+        public Task<Response<Contribution>> UpdateContributionAsync(Guid contributionId, Contribution contribution)
+        {
+            return PatchAsync<Contribution>($"/api/v1/contributions/{contributionId}", contribution);
+        }
+
         public Task<Response<bool>> RemoveContributionAsync(Guid applicationId, Guid contributionId)
         {
             return DeleteAsync($"/api/v1/applications/{applicationId}/contributions/{contributionId}");

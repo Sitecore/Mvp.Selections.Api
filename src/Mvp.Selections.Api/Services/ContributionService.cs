@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -139,6 +140,69 @@ namespace Mvp.Selections.Api.Services
                 {
                     result.Messages.Add(message);
                 }
+            }
+
+            return result;
+        }
+
+        public async Task<OperationResult<Contribution>> UpdateAsync(User user, Guid id, Contribution contribution)
+        {
+            OperationResult<Contribution> result = new ();
+            Contribution existingContribution = await _contributionRepository.GetAsync(id);
+            if (existingContribution != null)
+            {
+                if (!string.IsNullOrWhiteSpace(contribution.Name))
+                {
+                    existingContribution.Name = contribution.Name;
+                }
+
+                if (!string.IsNullOrWhiteSpace(contribution.Description))
+                {
+                    existingContribution.Description = contribution.Description;
+                }
+
+                if (contribution.Date > DateTime.MinValue)
+                {
+                    existingContribution.Date = contribution.Date;
+                }
+
+                if (contribution.Uri != null && !string.IsNullOrWhiteSpace(contribution.Uri.OriginalString))
+                {
+                    existingContribution.Uri = contribution.Uri;
+                }
+
+                existingContribution.Type = contribution.Type;
+
+                foreach (Product product in contribution.RelatedProducts)
+                {
+                    if (existingContribution.RelatedProducts.All(p => p.Id != product.Id))
+                    {
+                        Product additionalProduct = await _productService.GetAsync(product.Id);
+                        if (additionalProduct != null)
+                        {
+                            existingContribution.RelatedProducts.Add(additionalProduct);
+                        }
+                        else
+                        {
+                            string message = $"The Product '{product.Id}' was not found.";
+                            _logger.LogInformation(message);
+                            result.Messages.Add(message);
+                        }
+                    }
+                }
+
+                if (result.Messages.Count == 0)
+                {
+                    await _contributionRepository.SaveChangesAsync();
+                    result.Result = existingContribution;
+                    result.StatusCode = HttpStatusCode.OK;
+                }
+            }
+            else
+            {
+                string message = $"The Contribution '{id}' was not found.";
+                _logger.LogInformation(message);
+                result.Messages.Add(message);
             }
 
             return result;
