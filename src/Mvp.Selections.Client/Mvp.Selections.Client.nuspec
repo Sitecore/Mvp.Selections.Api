@@ -2,10 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Mvp.Selections.Client</id>
-    <version>3.7.0</version>
+    <version>3.8.0</version>
     <releaseNotes>
-      + ScoreCategories (Add, Remove, Get)
-      + Scores (Add, Update, Remove, Get, GetAll)
+      + Contributions (Update)
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>
