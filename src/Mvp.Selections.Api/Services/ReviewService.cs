@@ -116,7 +116,8 @@ namespace Mvp.Selections.Api.Services
             if (
                 getApplicationResult.StatusCode == HttpStatusCode.OK
                 && getApplicationResult.Result != null
-                && (getApplicationResult.Result.Selection.AreReviewsOpen() || user.HasRight(Right.Admin)))
+                && (getApplicationResult.Result.Selection.AreReviewsOpen() || user.HasRight(Right.Admin))
+                && getApplicationResult.Result.Applicant.Id != user.Id)
             {
                 Review newReview = new (Guid.Empty)
                 {
@@ -141,6 +142,12 @@ namespace Mvp.Selections.Api.Services
                     result.Result = newReview;
                     result.StatusCode = HttpStatusCode.OK;
                 }
+            }
+            else if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null && getApplicationResult.Result.Applicant.Id == user.Id)
+            {
+                string message = $"User '{user.Id}' tried to review their own Application '{applicationId}'.";
+                _logger.LogWarning(message);
+                result.Messages.Add(message);
             }
             else if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null)
             {
