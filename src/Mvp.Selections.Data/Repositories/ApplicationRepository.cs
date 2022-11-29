@@ -15,10 +15,43 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public async Task<IList<Application>> GetAllAsync(Guid selectionId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
+        public async Task<IList<Application>> GetAllAsync(
+            ApplicationStatus? status = null,
+            int page = 1,
+            short pageSize = 100,
+            params Expression<Func<Application, object>>[] includes)
         {
             page--;
-            return await Context.Applications
+            IQueryable<Application> query = Context.Applications;
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
+                .OrderByDescending(a => a.CreatedOn)
+                .ThenBy(a => a.Id)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Includes(includes)
+                .ToListAsync();
+        }
+
+        public async Task<IList<Application>> GetAllAsync(
+            Guid selectionId,
+            ApplicationStatus? status = null,
+            int page = 1,
+            short pageSize = 100,
+            params Expression<Func<Application, object>>[] includes)
+        {
+            page--;
+            IQueryable<Application> query = Context.Applications;
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
                 .Where(a => a.Selection.Id == selectionId)
                 .OrderByDescending(a => a.CreatedOn)
                 .ThenBy(a => a.Id)
@@ -28,16 +61,46 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForReview(
+        public async Task<IList<Application>> GetAllAsync(
+            short countryId,
+            ApplicationStatus? status = null,
+            int page = 1,
+            short pageSize = 100,
+            params Expression<Func<Application, object>>[] includes)
+        {
+            page--;
+            IQueryable<Application> query = Context.Applications;
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
+                .Where(a => a.Country.Id == countryId)
+                .OrderByDescending(a => a.CreatedOn)
+                .ThenBy(a => a.Id)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Includes(includes)
+                .ToListAsync();
+        }
+
+        public async Task<IList<Application>> GetAllForReviewAsync(
             IEnumerable<SelectionRole> selectionRoles,
+            ApplicationStatus? status = null,
             int page = 1,
             short pageSize = 100,
             params Expression<Func<Application, object>>[] includes)
         {
             ExpressionStarter<Application> predicate = BuildForReviewPredicate(selectionRoles);
             page--;
-            return await Context.Applications
-                .AsExpandable()
+            IQueryable<Application> query = Context.Applications.AsExpandable();
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
                 .Where(predicate)
                 .OrderByDescending(a => a.CreatedOn)
                 .ThenBy(a => a.Id)
@@ -47,17 +110,23 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForReview(
+        public async Task<IList<Application>> GetAllForReviewAsync(
             IEnumerable<SelectionRole> selectionRoles,
             Guid selectionId,
+            ApplicationStatus? status = null,
             int page = 1,
             short pageSize = 100,
             params Expression<Func<Application, object>>[] includes)
         {
             ExpressionStarter<Application> predicate = BuildForReviewPredicate(selectionRoles);
             page--;
-            return await Context.Applications
-                .AsExpandable()
+            IQueryable<Application> query = Context.Applications.AsExpandable();
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
                 .Where(a => a.Selection.Id == selectionId)
                 .Where(predicate)
                 .OrderByDescending(a => a.CreatedOn)
@@ -68,11 +137,25 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForUser(Guid userId, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
+        public async Task<IList<Application>> GetAllForReviewAsync(
+            IEnumerable<SelectionRole> selectionRoles,
+            short countryId,
+            ApplicationStatus? status = null,
+            int page = 1,
+            short pageSize = 100,
+            params Expression<Func<Application, object>>[] includes)
         {
+            ExpressionStarter<Application> predicate = BuildForReviewPredicate(selectionRoles);
             page--;
-            return await Context.Applications
-                .Where(a => a.Applicant.Id == userId)
+            IQueryable<Application> query = Context.Applications.AsExpandable();
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
+                .Where(a => a.Country.Id == countryId)
+                .Where(predicate)
                 .OrderByDescending(a => a.CreatedOn)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
@@ -81,15 +164,22 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForUser(
+        public async Task<IList<Application>> GetAllForUserAsync(
             Guid userId,
             Guid selectionId,
+            ApplicationStatus? status = null,
             int page = 1,
             short pageSize = 100,
             params Expression<Func<Application, object>>[] includes)
         {
             page--;
-            return await Context.Applications
+            IQueryable<Application> query = Context.Applications;
+            if (status != null)
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            return await query
                 .Where(a => a.Applicant.Id == userId && a.Selection.Id == selectionId)
                 .OrderByDescending(a => a.CreatedOn)
                 .ThenBy(a => a.Id)
@@ -99,7 +189,7 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForUser(
+        public async Task<IList<Application>> GetAllForUserAsync(
             Guid userId,
             ApplicationStatus? status,
             int page = 1,
