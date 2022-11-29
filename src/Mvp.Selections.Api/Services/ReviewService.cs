@@ -81,10 +81,16 @@ namespace Mvp.Selections.Api.Services
             else if (user.HasRight(Right.Review))
             {
                 OperationResult<Application> getApplicationResult = await _applicationService.GetAsync(user, applicationId);
-                if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null)
+                if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null && getApplicationResult.Result.Applicant.Id != user.Id)
                 {
                     result.Result = await _reviewRepository.GetAllAsync(applicationId, page, pageSize, _standardIncludes);
                     result.StatusCode = HttpStatusCode.OK;
+                }
+                else if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null)
+                {
+                    string message = $"User '{user.Id}' attempted to retrieve the Reviews for their own Application '{applicationId}' but is not authorized.";
+                    _logger.LogWarning(message);
+                    result.Messages.Add(message);
                 }
                 else if (getApplicationResult.StatusCode != HttpStatusCode.OK)
                 {
@@ -119,28 +125,68 @@ namespace Mvp.Selections.Api.Services
                 && (getApplicationResult.Result.Selection.AreReviewsOpen() || user.HasRight(Right.Admin))
                 && getApplicationResult.Result.Applicant.Id != user.Id)
             {
-                Review newReview = new (Guid.Empty)
+                OperationResult<IList<Review>> getAllReviewsResult = await GetAllAsync(user, applicationId, 1, short.MaxValue);
+                if (getAllReviewsResult.StatusCode == HttpStatusCode.OK && getAllReviewsResult.Result.All(r => r.Reviewer.Id != user.Id))
                 {
-                    Application = getApplicationResult.Result,
-                    Reviewer = user,
-                    Comment = review.Comment,
-                    Status = review.Status
-                };
-                foreach (ReviewCategoryScore reviewCategoryScore in review.CategoryScores)
-                {
-                    ReviewCategoryScore newReviewCategoryScore = await CreateNewReviewCategoryScoreAsync(
-                        result, newReview, reviewCategoryScore.ScoreCategoryId, reviewCategoryScore.ScoreId);
-                    if (newReviewCategoryScore != null)
+                    Review newReview = new (Guid.Empty)
                     {
-                        newReview.CategoryScores.Add(newReviewCategoryScore);
+                        Application = getApplicationResult.Result,
+                        Reviewer = user,
+                        Comment = review.Comment,
+                        Status = review.Status
+                    };
+
+                    OperationResult<IList<ScoreCategory>> getScoreCategoriesResult =
+                        await _scoreCategoryService.GetAllAsync(
+                            getApplicationResult.Result.Selection.Id,
+                            getApplicationResult.Result.MvpType.Id);
+                    if (getScoreCategoriesResult.StatusCode == HttpStatusCode.OK)
+                    {
+                        if (review.CategoryScores.Count < getScoreCategoriesResult.Result.Count)
+                        {
+                            string message = $"The submitted Review should have {getScoreCategoriesResult.Result.Count} CategoryScores but it only has {review.CategoryScores.Count}.";
+                            _logger.LogInformation(message);
+                            result.Messages.Add(message);
+                        }
+                        else
+                        {
+                            foreach (ReviewCategoryScore reviewCategoryScore in review.CategoryScores)
+                            {
+                                if (getScoreCategoriesResult.Result.Any(sc => sc.Id == reviewCategoryScore.ScoreCategoryId))
+                                {
+                                    ReviewCategoryScore newReviewCategoryScore = await CreateNewReviewCategoryScoreAsync(
+                                        result, newReview, reviewCategoryScore.ScoreCategoryId, reviewCategoryScore.ScoreId);
+                                    if (newReviewCategoryScore != null)
+                                    {
+                                        newReview.CategoryScores.Add(newReviewCategoryScore);
+                                    }
+                                }
+                                else
+                                {
+                                    string message = $"The submitted Review uses ScoreCategory '{reviewCategoryScore.ScoreCategoryId}' which is not supported for this Application.";
+                                    _logger.LogInformation(message);
+                                    result.Messages.Add(message);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result.Messages.AddRange(getScoreCategoriesResult.Messages);
+                    }
+
+                    if (result.Messages.Count == 0)
+                    {
+                        await _reviewRepository.SaveChangesAsync();
+                        result.Result = newReview;
+                        result.StatusCode = HttpStatusCode.OK;
                     }
                 }
-
-                if (result.Messages.Count == 0)
+                else
                 {
-                    await _reviewRepository.SaveChangesAsync();
-                    result.Result = newReview;
-                    result.StatusCode = HttpStatusCode.OK;
+                    string message = $"User '{user.Id}' tried to submit multiple Reviews to Application '{applicationId}'.";
+                    _logger.LogWarning(message);
+                    result.Messages.Add(message);
                 }
             }
             else if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null && getApplicationResult.Result.Applicant.Id == user.Id)
