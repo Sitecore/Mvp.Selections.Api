@@ -23,6 +23,10 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
             {
                 result = null;
             }
+            else if (member.DeclaringType == typeof(Role) && member.Name == nameof(Role.Users))
+            {
+                result = null;
+            }
             else
             {
                 result = base.CreateProperty(member, memberSerialization);
