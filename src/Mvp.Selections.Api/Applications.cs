@@ -80,6 +80,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetAllApplications")]
         [OpenApiOperation("GetAllApplications", "Applications", "Admin", "Apply", "Review")]
+        [OpenApiParameter("status", In = ParameterLocation.Query, Type = typeof(ApplicationStatus))]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -98,7 +99,8 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);
-                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, lp.Page, lp.PageSize);
+                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, status, lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -118,6 +120,7 @@ namespace Mvp.Selections.Api
         [FunctionName("GetAllApplicationsForSelection")]
         [OpenApiOperation("GetAllApplicationsForSelection", "Applications", "Admin", "Apply", "Review")]
         [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiParameter("status", In = ParameterLocation.Query, Type = typeof(ApplicationStatus))]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -137,7 +140,49 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     ListParameters lp = new (req);
-                    IList<Application> applications = await _applicationService.GetAllForSelectionAsync(authResult.User, selectionId, lp.Page, lp.PageSize);
+                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                    IList<Application> applications = await _applicationService.GetAllForSelectionAsync(authResult.User, selectionId, status, lp.Page, lp.PageSize);
+                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                }
+                else
+                {
+                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+
+            return result;
+        }
+
+        [FunctionName("GetAllApplicationsForCountry")]
+        [OpenApiOperation("GetAllApplicationsForCountry", "Applications", "Admin", "Review")]
+        [OpenApiParameter("countryId", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
+        [OpenApiParameter("status", In = ParameterLocation.Query, Type = typeof(ApplicationStatus))]
+        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
+        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Application>))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public async Task<IActionResult> GetAllForCountry(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/countries/{countryId:int}/applications")]
+            HttpRequest req,
+            short countryId)
+        {
+            IActionResult result;
+            try
+            {
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
+                if (authResult.StatusCode == HttpStatusCode.OK)
+                {
+                    ListParameters lp = new (req);
+                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                    IList<Application> applications = await _applicationService.GetAllForCountryAsync(authResult.User, countryId, status, lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
