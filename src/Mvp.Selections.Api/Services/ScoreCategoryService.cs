@@ -53,7 +53,7 @@ namespace Mvp.Selections.Api.Services
                 MvpType mvpType = await _mvpTypeService.GetAsync(mvpTypeId);
                 if (mvpType != null)
                 {
-                    result.Result = await _scoreCategoryRepository.GetAllAsync(selectionId, mvpTypeId, _standardIncludes);
+                    result.Result = await _scoreCategoryRepository.GetAllTopCategoriesAsync(selectionId, mvpTypeId, _standardIncludes);
                     result.StatusCode = HttpStatusCode.OK;
                 }
                 else

@@ -14,11 +14,13 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public async Task<IList<ScoreCategory>> GetAllAsync(Guid selectionId, short mvpTypeId, params Expression<Func<ScoreCategory, object>>[] includes)
+        public async Task<IList<ScoreCategory>> GetAllTopCategoriesAsync(Guid selectionId, short mvpTypeId, params Expression<Func<ScoreCategory, object>>[] includes)
         {
             return await Context.ScoreCategories
-                .Where(sc => sc.MvpType.Id == mvpTypeId && sc.Selection.Id == selectionId)
+                .Where(sc => sc.MvpType.Id == mvpTypeId && sc.Selection.Id == selectionId && sc.ParentCategory == null)
                 .Includes(includes)
+                .Include(sc => sc.SubCategories)
+                .ThenInclude(sc => sc.ScoreOptions)
                 .ToListAsync();
         }
     }

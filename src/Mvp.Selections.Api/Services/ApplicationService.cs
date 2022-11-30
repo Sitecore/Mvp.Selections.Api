@@ -121,6 +121,7 @@ namespace Mvp.Selections.Api.Services
 
             return result;
         }
+
         public async Task<IList<Application>> GetAllForCountryAsync(User user, short countryId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
             IList<Application> result;
