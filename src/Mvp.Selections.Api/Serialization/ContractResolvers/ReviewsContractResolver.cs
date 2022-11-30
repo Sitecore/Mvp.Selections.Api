@@ -10,28 +10,22 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly ReviewsContractResolver Instance = new ();
 
-        private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
+        private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Roles) };
+
+        private readonly string[] _reviewCategoryScoreExcludedMembers = { nameof(ReviewCategoryScore.ReviewId), nameof(ReviewCategoryScore.Review), nameof(ReviewCategoryScore.ScoreCategory), nameof(ReviewCategoryScore.Score) };
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty result;
-            if (member.DeclaringType == typeof(Application) && member.Name == nameof(Application.Reviews))
-            {
-                result = null;
-            }
-            else if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
-            {
-                result = null;
-            }
-            else if (member.DeclaringType == typeof(Selection) && member.Name == nameof(Selection.Titles))
-            {
-                result = null;
-            }
-            else if (member.DeclaringType == typeof(Contribution) && member.Name == nameof(Contribution.Application))
+            if (member.DeclaringType == typeof(Review) && member.Name == nameof(Review.Application))
             {
                 result = null;
             }
             else if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
+            {
+                result = null;
+            }
+            else if (member.DeclaringType == typeof(ReviewCategoryScore) && _reviewCategoryScoreExcludedMembers.Contains(member.Name))
             {
                 result = null;
             }

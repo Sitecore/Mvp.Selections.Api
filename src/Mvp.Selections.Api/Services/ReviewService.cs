@@ -142,9 +142,10 @@ namespace Mvp.Selections.Api.Services
                             getApplicationResult.Result.MvpType.Id);
                     if (getScoreCategoriesResult.StatusCode == HttpStatusCode.OK)
                     {
-                        if (review.CategoryScores.Count < getScoreCategoriesResult.Result.Count)
+                        int expectedScoreCount = CalculateExpectedReviewCategoryScoreSubmissionCount(getScoreCategoriesResult.Result);
+                        if (review.CategoryScores.Count < expectedScoreCount || review.CategoryScores.Count > expectedScoreCount)
                         {
-                            string message = $"The submitted Review should have {getScoreCategoriesResult.Result.Count} CategoryScores but it only has {review.CategoryScores.Count}.";
+                            string message = $"The submitted Review should have {expectedScoreCount} ReviewCategoryScores but it has {review.CategoryScores.Count}.";
                             _logger.LogInformation(message);
                             result.Messages.Add(message);
                         }
@@ -152,7 +153,7 @@ namespace Mvp.Selections.Api.Services
                         {
                             foreach (ReviewCategoryScore reviewCategoryScore in review.CategoryScores)
                             {
-                                if (getScoreCategoriesResult.Result.Any(sc => sc.Id == reviewCategoryScore.ScoreCategoryId))
+                                if (IsValidScoreCategoryForReview(reviewCategoryScore.ScoreCategoryId, getScoreCategoriesResult.Result))
                                 {
                                     ReviewCategoryScore newReviewCategoryScore = await CreateNewReviewCategoryScoreAsync(
                                         result, newReview, reviewCategoryScore.ScoreCategoryId, reviewCategoryScore.ScoreId);
@@ -177,6 +178,7 @@ namespace Mvp.Selections.Api.Services
 
                     if (result.Messages.Count == 0)
                     {
+                        newReview = _reviewRepository.Add(newReview);
                         await _reviewRepository.SaveChangesAsync();
                         result.Result = newReview;
                         result.StatusCode = HttpStatusCode.OK;
@@ -304,6 +306,40 @@ namespace Mvp.Selections.Api.Services
             else if (existingReview == null)
             {
                 result.StatusCode = HttpStatusCode.OK;
+            }
+
+            return result;
+        }
+
+        private static bool IsValidScoreCategoryForReview(Guid scoreCategoryId, ICollection<ScoreCategory> scoreCategories)
+        {
+            bool result = scoreCategories.Any(sc => sc.Id == scoreCategoryId);
+            if (!result)
+            {
+                foreach (ScoreCategory category in scoreCategories)
+                {
+                    result = IsValidScoreCategoryForReview(scoreCategoryId, category.SubCategories);
+                    if (result)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static int CalculateExpectedReviewCategoryScoreSubmissionCount(IEnumerable<ScoreCategory> scoreCategories)
+        {
+            int result = 0;
+            foreach (ScoreCategory category in scoreCategories)
+            {
+                if (category.ScoreOptions.Count > 0)
+                {
+                    result++;
+                }
+
+                result += CalculateExpectedReviewCategoryScoreSubmissionCount(category.SubCategories);
             }
 
             return result;
