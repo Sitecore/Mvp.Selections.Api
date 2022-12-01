@@ -30,7 +30,7 @@ namespace Mvp.Selections.Api.Services
 
         private readonly Expression<Func<Application, object>>[] _standardIncludes =
         {
-            app => app.Applicant,
+            app => app.Applicant.Links,
             app => app.Country.Region,
             app => app.Contributions,
             app => app.MvpType,
