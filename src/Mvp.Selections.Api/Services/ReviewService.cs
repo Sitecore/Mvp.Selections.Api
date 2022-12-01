@@ -123,7 +123,8 @@ namespace Mvp.Selections.Api.Services
                 getApplicationResult.StatusCode == HttpStatusCode.OK
                 && getApplicationResult.Result != null
                 && (getApplicationResult.Result.Selection.AreReviewsOpen() || user.HasRight(Right.Admin))
-                && getApplicationResult.Result.Applicant.Id != user.Id)
+                && getApplicationResult.Result.Applicant.Id != user.Id
+                && getApplicationResult.Result.Status == ApplicationStatus.Submitted)
             {
                 OperationResult<IList<Review>> getAllReviewsResult = await GetAllAsync(user, applicationId, 1, short.MaxValue);
                 if (getAllReviewsResult.StatusCode == HttpStatusCode.OK && getAllReviewsResult.Result.All(r => r.Reviewer.Id != user.Id))
@@ -190,6 +191,12 @@ namespace Mvp.Selections.Api.Services
                     _logger.LogWarning(message);
                     result.Messages.Add(message);
                 }
+            }
+            else if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null && getApplicationResult.Result.Status != ApplicationStatus.Submitted)
+            {
+                string message = $"User '{user.Id}' tried to review Application '{applicationId}' which is not submitted.";
+                _logger.LogWarning(message);
+                result.Messages.Add(message);
             }
             else if (getApplicationResult.StatusCode == HttpStatusCode.OK && getApplicationResult.Result != null && getApplicationResult.Result.Applicant.Id == user.Id)
             {
