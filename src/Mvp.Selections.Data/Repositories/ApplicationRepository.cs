@@ -29,7 +29,7 @@ namespace Mvp.Selections.Data.Repositories
             }
 
             return await query
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -53,7 +53,7 @@ namespace Mvp.Selections.Data.Repositories
 
             return await query
                 .Where(a => a.Selection.Id == selectionId)
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -77,7 +77,7 @@ namespace Mvp.Selections.Data.Repositories
 
             return await query
                 .Where(a => a.Country.Id == countryId)
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -102,7 +102,7 @@ namespace Mvp.Selections.Data.Repositories
 
             return await query
                 .Where(predicate)
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -129,7 +129,7 @@ namespace Mvp.Selections.Data.Repositories
             return await query
                 .Where(a => a.Selection.Id == selectionId)
                 .Where(predicate)
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -156,7 +156,7 @@ namespace Mvp.Selections.Data.Repositories
             return await query
                 .Where(a => a.Country.Id == countryId)
                 .Where(predicate)
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -181,7 +181,7 @@ namespace Mvp.Selections.Data.Repositories
 
             return await query
                 .Where(a => a.Applicant.Id == userId && a.Selection.Id == selectionId)
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -204,7 +204,7 @@ namespace Mvp.Selections.Data.Repositories
             }
 
             return await query
-                .OrderByDescending(a => a.CreatedOn)
+                .OrderBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)

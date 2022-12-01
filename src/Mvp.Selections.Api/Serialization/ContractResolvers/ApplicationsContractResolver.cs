@@ -43,6 +43,10 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
             {
                 result = null;
             }
+            else if (member.DeclaringType == typeof(ProfileLink) && member.Name == nameof(ProfileLink.User))
+            {
+                result = null;
+            }
             else
             {
                 result = base.CreateProperty(member, memberSerialization);
