@@ -11,11 +11,11 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -25,7 +25,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IRoleService _roleService;
 
-        public Roles(ILogger<Roles> logger, ISerializerHelper serializer, IAuthService authService, IRoleService roleService)
+        public Roles(ILogger<Roles> logger, ISerializer serializer, IAuthService authService, IRoleService roleService)
             : base(logger, serializer, authService)
         {
             _roleService = roleService;
@@ -52,7 +52,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<SystemRole> systemRoles = await _roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(systemRoles, new RolesContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(systemRoles, RolesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -88,7 +88,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     SystemRole role = await _roleService.GetAsync<SystemRole>(id);
-                    result = new ContentResult { Content = Serializer.Serialize(role, new RolesContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(role, RolesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -124,7 +124,7 @@ namespace Mvp.Selections.Api
                 {
                     SystemRole input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
                     Role role = await _roleService.AddSystemRoleAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(role, new RolesContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(role, RolesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

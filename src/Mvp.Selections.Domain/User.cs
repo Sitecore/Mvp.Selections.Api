@@ -19,6 +19,8 @@ namespace Mvp.Selections.Domain
 
         public ImageType ImageType { get; set; }
 
+        public Uri? ImageUri { get; set; }
+
         public Country? Country { get; set; }
 
         public ICollection<User> Mentors { get; init; } = new List<User>();

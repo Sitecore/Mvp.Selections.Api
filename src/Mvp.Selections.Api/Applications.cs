@@ -11,10 +11,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Extensions;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -24,7 +24,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IApplicationService _applicationService;
 
-        public Applications(ILogger<Applications> logger, ISerializerHelper serializer, IAuthService authService, IApplicationService applicationService)
+        public Applications(ILogger<Applications> logger, ISerializer serializer, IAuthService authService, IApplicationService applicationService)
             : base(logger, serializer, authService)
         {
             _applicationService = applicationService;
@@ -53,7 +53,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(getResult.Result, new ApplicationsContractResolver()),
+                            Content = Serializer.Serialize(getResult.Result, ApplicationsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -101,7 +101,7 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                     IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -142,7 +142,7 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                     IList<Application> applications = await _applicationService.GetAllForSelectionAsync(authResult.User, selectionId, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -183,7 +183,7 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                     IList<Application> applications = await _applicationService.GetAllForCountryAsync(authResult.User, countryId, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -224,7 +224,7 @@ namespace Mvp.Selections.Api
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                     IList<Application> applications = await _applicationService.GetAllForUserAsync(authResult.User, userId, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, new ApplicationsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -266,7 +266,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(addResult.Result, new ApplicationsContractResolver()),
+                            Content = Serializer.Serialize(addResult.Result, ApplicationsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -317,7 +317,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result, new ApplicationsContractResolver()),
+                            Content = Serializer.Serialize(updateResult.Result, ApplicationsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
