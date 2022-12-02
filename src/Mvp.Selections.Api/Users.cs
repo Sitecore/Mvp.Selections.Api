@@ -10,10 +10,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -23,7 +23,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IUserService _userService;
 
-        public Users(ILogger<Users> logger, ISerializerHelper serializer, IAuthService authService, IUserService userService)
+        public Users(ILogger<Users> logger, ISerializer serializer, IAuthService authService, IUserService userService)
             : base(logger, serializer, authService)
         {
             _userService = userService;

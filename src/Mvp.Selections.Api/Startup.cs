@@ -6,6 +6,8 @@ using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Helpers.Interfaces;
+using Mvp.Selections.Api.Serialization;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data;
@@ -31,7 +33,7 @@ namespace Mvp.Selections.Api
                 configuration.GetSection(JsonOptions.Json).Bind(options));
 
             // Helpers
-            builder.Services.AddScoped<ISerializerHelper, JsonSerializerHelper>();
+            builder.Services.AddScoped<ISerializer, JsonSerializer>();
             builder.Services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
             builder.Services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
 

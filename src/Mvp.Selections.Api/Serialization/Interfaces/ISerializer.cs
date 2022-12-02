@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json.Serialization;
 
-namespace Mvp.Selections.Api.Helpers.Interfaces
+namespace Mvp.Selections.Api.Serialization.Interfaces
 {
-    public interface ISerializerHelper
+    public interface ISerializer
     {
         string ContentType { get; }
 

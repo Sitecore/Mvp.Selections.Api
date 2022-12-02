@@ -11,11 +11,11 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -25,7 +25,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IRoleService _roleService;
 
-        public Roles(ILogger<Roles> logger, ISerializerHelper serializer, IAuthService authService, IRoleService roleService)
+        public Roles(ILogger<Roles> logger, ISerializer serializer, IAuthService authService, IRoleService roleService)
             : base(logger, serializer, authService)
         {
             _roleService = roleService;

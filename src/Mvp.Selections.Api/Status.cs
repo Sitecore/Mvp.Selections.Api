@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Configuration;
-using Mvp.Selections.Api.Helpers.Interfaces;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data;
 using Mvp.Selections.Domain;
@@ -24,7 +24,7 @@ namespace Mvp.Selections.Api
 
         private readonly Context _context;
 
-        public Status(ILogger<Status> logger, ISerializerHelper serializer, IAuthService authService, IOptions<OktaClientOptions> oktaClientOptions, Context context)
+        public Status(ILogger<Status> logger, ISerializer serializer, IAuthService authService, IOptions<OktaClientOptions> oktaClientOptions, Context context)
             : base(logger, serializer, authService)
         {
             _oktaClientOptions = oktaClientOptions.Value;
