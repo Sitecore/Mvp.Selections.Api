@@ -52,7 +52,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(getResult.Result, new ReviewsContractResolver()),
+                            Content = Serializer.Serialize(getResult.Result, ReviewsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -103,7 +103,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(getResult.Result, new ReviewsContractResolver()),
+                            Content = Serializer.Serialize(getResult.Result, ReviewsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -154,7 +154,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(addResult.Result, new ReviewsContractResolver()),
+                            Content = Serializer.Serialize(addResult.Result, ReviewsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -205,7 +205,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result, new ReviewsContractResolver()),
+                            Content = Serializer.Serialize(updateResult.Result, ReviewsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }

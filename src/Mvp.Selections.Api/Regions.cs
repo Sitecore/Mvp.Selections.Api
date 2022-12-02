@@ -51,7 +51,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Region region = await _regionService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(region, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(region, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -88,7 +88,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Region> regions = await _regionService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(regions, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(regions, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -124,7 +124,7 @@ namespace Mvp.Selections.Api
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
                     Region region = await _regionService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(region, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(region, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -162,7 +162,7 @@ namespace Mvp.Selections.Api
                 {
                     Region input = await Serializer.DeserializeAsync<Region>(req.Body);
                     Region region = await _regionService.UpdateAsync(id, input);
-                    result = new ContentResult { Content = Serializer.Serialize(region, new RegionsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(region, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

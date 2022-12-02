@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
@@ -19,38 +20,40 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Countries : Base<Countries>
+    public class Applicants : Base<Applicants>
     {
-        private readonly ICountryService _countryService;
+        private readonly IApplicationService _applicationService;
 
-        public Countries(ILogger<Countries> logger, ISerializer serializer, IAuthService authService, ICountryService countryService)
+        public Applicants(ILogger<Applicants> logger, ISerializer serializer, IAuthService authService, IApplicationService applicationService)
             : base(logger, serializer, authService)
         {
-            _countryService = countryService;
+            _applicationService = applicationService;
         }
 
-        [FunctionName("GetAllCountries")]
-        [OpenApiOperation("GetAllCountries", "Countries")]
+        [FunctionName("GetApplicants")]
+        [OpenApiOperation("GetApplicants", "Users", "Admin", "Review")]
+        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Country>))]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<User>))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/countries")]
-            HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{selectionId:Guid}/applicants")]
+            HttpRequest req,
+            Guid selectionId)
         {
             IActionResult result;
             try
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
-                if (authResult.StatusCode == HttpStatusCode.OK)
+                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
+                if (authResult.TokenUser != null)
                 {
                     ListParameters lp = new (req);
-                    IList<Country> countries = await _countryService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(countries, CountriesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    IList<Applicant> applicants = await _applicationService.GetApplicantsAsync(authResult.User, selectionId, lp.Page, lp.PageSize);
+                    result = new ContentResult { Content = Serializer.Serialize(applicants, ApplicantContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

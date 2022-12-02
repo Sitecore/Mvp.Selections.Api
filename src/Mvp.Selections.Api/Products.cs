@@ -49,7 +49,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Product product = await _productService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(product, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(product, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -86,7 +86,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Product> products = await _productService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(products, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(products, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -122,7 +122,7 @@ namespace Mvp.Selections.Api
                 {
                     Product input = await Serializer.DeserializeAsync<Product>(req.Body);
                     Product product = await _productService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(product, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(product, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -160,7 +160,7 @@ namespace Mvp.Selections.Api
                 {
                     Product input = await Serializer.DeserializeAsync<Product>(req.Body);
                     Product product = await _productService.UpdateAsync(id, input);
-                    result = new ContentResult { Content = Serializer.Serialize(product, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(product, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

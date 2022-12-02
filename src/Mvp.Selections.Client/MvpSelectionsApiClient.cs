@@ -527,6 +527,21 @@ namespace Mvp.Selections.Client
 
         #endregion Scores
 
+        #region Applicants
+
+        public Task<Response<IList<Applicant>>> GetApplicantsAsync(Guid selectionId, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetApplicantsAsync(selectionId, listParameters);
+        }
+
+        public Task<Response<IList<Applicant>>> GetApplicantsAsync(Guid selectionId, ListParameters listParameters)
+        {
+            return GetAsync<IList<Applicant>>($"/api/v1/selections/{selectionId}/applicants?{listParameters.ToQueryString()}");
+        }
+
+        #endregion Applicants
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)

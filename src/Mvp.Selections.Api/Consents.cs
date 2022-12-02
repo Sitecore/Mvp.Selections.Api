@@ -49,7 +49,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     IList<Consent> consents = await _consentService.GetAllForUserAsync(authResult.User, userId);
-                    result = new ContentResult { Content = Serializer.Serialize(consents, new ConsentsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(consents, ConsentsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -83,7 +83,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     IList<Consent> consents = await _consentService.GetAllForUserAsync(authResult.User, authResult.User.Id);
-                    result = new ContentResult { Content = Serializer.Serialize(consents, new ConsentsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(consents, ConsentsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -124,7 +124,7 @@ namespace Mvp.Selections.Api
                     result = giveResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(giveResult.Result, new ConsentsContractResolver()),
+                            Content = Serializer.Serialize(giveResult.Result, ConsentsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -172,7 +172,7 @@ namespace Mvp.Selections.Api
                     result = giveResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(giveResult.Result, new ConsentsContractResolver()),
+                            Content = Serializer.Serialize(giveResult.Result, ConsentsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
