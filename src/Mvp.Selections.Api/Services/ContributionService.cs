@@ -36,7 +36,7 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<Contribution>> AddAsync(User user, Guid applicationId, Contribution contribution)
         {
             OperationResult<Contribution> result = new ();
-            OperationResult<Application> applicationResult = await _applicationService.GetAsync(user, applicationId);
+            OperationResult<Application> applicationResult = await _applicationService.GetAsync(user, applicationId, false);
             if (
                 applicationResult.StatusCode == HttpStatusCode.OK
                 && applicationResult.Result != null

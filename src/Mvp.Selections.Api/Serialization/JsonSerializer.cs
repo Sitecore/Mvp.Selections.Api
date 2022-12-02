@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -10,10 +12,13 @@ namespace Mvp.Selections.Api.Serialization
 {
     public class JsonSerializer : ISerializer
     {
+        private readonly ILogger<JsonSerializer> _logger;
+
         private readonly JsonOptions _options;
 
-        public JsonSerializer(IOptionsSnapshot<JsonOptions> options)
+        public JsonSerializer(ILogger<JsonSerializer> logger, IOptionsSnapshot<JsonOptions> options)
         {
+            _logger = logger;
             _options = options.Value;
         }
 
@@ -28,12 +33,21 @@ namespace Mvp.Selections.Api.Serialization
 
         public string Serialize(object data, IContractResolver contractResolver = null)
         {
+#if DEBUG
+            Stopwatch timer = Stopwatch.StartNew();
+#endif
             if (contractResolver != null)
             {
                 _options.JsonSerializerSettings.ContractResolver = contractResolver;
             }
 
-            return JsonConvert.SerializeObject(data, _options.JsonSerializerSettings);
+            string result = JsonConvert.SerializeObject(data, _options.JsonSerializerSettings);
+#if DEBUG
+            timer.Stop();
+            _logger.LogDebug($"Serialized '{data.GetType().AssemblyQualifiedName}' in {timer.ElapsedMilliseconds}ms.");
+#endif
+
+            return result;
         }
     }
 }

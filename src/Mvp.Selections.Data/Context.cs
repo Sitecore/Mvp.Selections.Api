@@ -11,12 +11,12 @@ namespace Mvp.Selections.Data
 
         public static readonly Guid DefaultReviewerRoleId = new ("00000000-0000-0000-0000-000000000003");
 
-        public Context()
+        public Context(DbContextOptions<Context> options)
+            : base(options)
         {
         }
 
-        public Context(DbContextOptions<Context> options)
-        : base(options)
+        protected Context()
         {
         }
 
@@ -24,6 +24,7 @@ namespace Mvp.Selections.Data
 
         public DbSet<Role> Roles => Set<Role>();
 
+        // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<ProfileLink> ProfileLinks => Set<ProfileLink>();
 
         public DbSet<Consent> Consents => Set<Consent>();
@@ -32,18 +33,22 @@ namespace Mvp.Selections.Data
 
         public DbSet<Application> Applications => Set<Application>();
 
+        // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Contribution> Contributions => Set<Contribution>();
 
         public DbSet<Review> Reviews => Set<Review>();
 
+        // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Region> Regions => Set<Region>();
 
         public DbSet<Country> Countries => Set<Country>();
 
         public DbSet<ScoreCategory> ScoreCategories => Set<ScoreCategory>();
 
+        // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Score> Scores => Set<Score>();
 
+        // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Product> Products => Set<Product>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -120,7 +125,7 @@ namespace Mvp.Selections.Data
         }
 #endif
 
-        private IEnumerable<Country> SeedCountries()
+        private static IEnumerable<Country> SeedCountries()
         {
             return new List<Country>
             {

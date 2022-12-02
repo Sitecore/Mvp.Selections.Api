@@ -118,7 +118,7 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<Review>> AddAsync(User user, Guid applicationId, Review review)
         {
             OperationResult<Review> result = new ();
-            OperationResult<Application> getApplicationResult = await _applicationService.GetAsync(user, applicationId);
+            OperationResult<Application> getApplicationResult = await _applicationService.GetAsync(user, applicationId, false);
             if (
                 getApplicationResult.StatusCode == HttpStatusCode.OK
                 && getApplicationResult.Result != null

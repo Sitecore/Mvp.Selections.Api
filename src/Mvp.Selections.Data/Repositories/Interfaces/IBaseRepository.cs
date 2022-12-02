@@ -9,7 +9,11 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
     {
         Task<T?> GetAsync(TId id, params Expression<Func<T, object>>[] includes);
 
+        Task<T?> GetReadOnlyAsync(TId id, params Expression<Func<T, object>>[] includes);
+
         Task<IList<T>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes);
+
+        Task<IList<T>> GetAllReadOnlyAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes);
 
         T Add(T entity);
 

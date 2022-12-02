@@ -72,7 +72,7 @@ namespace Mvp.Selections.Api
 
             // Database
             FunctionsHostBuilderContext context = builder.GetContext();
-            builder.Services.AddDbContext<Context>(options =>
+            builder.Services.AddDbContextPool<Context>(options =>
                 options.UseSqlServer(
                     context.Configuration.GetConnectionString("MvpSelectionsData"),
                     o => o.EnableRetryOnFailure().UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)));
