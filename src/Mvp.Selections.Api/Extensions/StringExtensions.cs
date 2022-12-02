@@ -11,7 +11,7 @@ namespace Mvp.Selections.Api.Extensions
             byte[] inputBytes = Encoding.UTF8.GetBytes(input);
             byte[] hashBytes = MD5.HashData(inputBytes);
 
-            return Convert.ToHexString(hashBytes);
+            return Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
     }
 }
