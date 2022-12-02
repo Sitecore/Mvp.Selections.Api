@@ -52,11 +52,11 @@ namespace Mvp.Selections.Data.Repositories
             {
                 IList<short> countryIds = role.Region?.Countries.Select(c => c.Id).ToList() ?? new List<short>();
                 result = result.Or(a =>
-                    (role.Country == null || role.Country.Id == a.Country.Id) &&
-                    (role.MvpType == null || role.MvpType.Id == a.MvpType.Id) &&
-                    (role.Application == null || role.Application.Id == a.Id) &&
-                    (role.Selection == null || role.Selection.Id == a.Selection.Id) &&
-                    (role.Region == null || countryIds.Contains(a.Country.Id)));
+                    (role.CountryId == null || role.CountryId == a.Country.Id) &&
+                    (role.MvpTypeId == null || role.MvpTypeId == a.MvpType.Id) &&
+                    (role.ApplicationId == null || role.ApplicationId == a.Id) &&
+                    (role.SelectionId == null || role.SelectionId == a.Selection.Id) &&
+                    (role.RegionId == null || countryIds.Contains(a.Country.Id)));
             }
 
             return result;

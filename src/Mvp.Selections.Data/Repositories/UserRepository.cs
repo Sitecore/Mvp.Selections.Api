@@ -29,8 +29,6 @@ namespace Mvp.Selections.Data.Repositories
             return Context.Users
                 .Include(u => u.Country)
                 .Include(u => u.Roles)
-                .ThenInclude(r => (r as SelectionRole) !.Country)
-                .Include(u => u.Roles)
                 .ThenInclude(r => (r as SelectionRole) !.Region!.Countries)
                 .SingleOrDefaultAsync(u => u.Identifier == identifier);
         }
