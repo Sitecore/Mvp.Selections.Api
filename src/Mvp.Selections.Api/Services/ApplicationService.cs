@@ -56,105 +56,14 @@ namespace Mvp.Selections.Api.Services
             _mvpTypeService = mvpTypeService;
         }
 
-        public async Task<OperationResult<Application>> GetAsync(User user, Guid id)
+        public Task<OperationResult<Application>> GetAsync(User user, Guid id, bool isReadOnly = true)
         {
-            OperationResult<Application> result = new ();
-            Application application = await _applicationRepository.GetAsync(
-                id,
-                _standardIncludes);
-
-            if (CanSeeApplication(user, application))
-            {
-                result.Result = application;
-                result.StatusCode = HttpStatusCode.OK;
-            }
-            else
-            {
-                result.StatusCode = HttpStatusCode.Forbidden;
-                _logger.LogWarning($"User '{user.Id}' tried to access Application '{id}' to which there is no access.");
-            }
-
-            return result;
+            return GetInternalAsync(user, id, _standardIncludes, isReadOnly);
         }
 
-        public async Task<IList<Application>> GetAllAsync(User user, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
+        public Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            IList<Application> result;
-            if (user.HasRight(Right.Admin))
-            {
-                result = await _applicationRepository.GetAllAsync(status, page, pageSize, _standardIncludes);
-            }
-            else if (user.HasRight(Right.Review))
-            {
-                result = await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), status, page, pageSize, _standardIncludes);
-            }
-            else if (user.HasRight(Right.Apply))
-            {
-                result = await _applicationRepository.GetAllForUserAsync(user.Id, status, page, pageSize, _standardIncludes);
-            }
-            else
-            {
-                result = new List<Application>();
-            }
-
-            return result;
-        }
-
-        public async Task<IList<Application>> GetAllForSelectionAsync(User user, Guid selectionId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
-        {
-            IList<Application> result;
-            if (user.HasRight(Right.Admin))
-            {
-                result = await _applicationRepository.GetAllAsync(selectionId, status, page, pageSize, _standardIncludes);
-            }
-            else if (user.HasRight(Right.Review))
-            {
-                result = await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), selectionId, status, page, pageSize, _standardIncludes);
-            }
-            else if (user.HasRight(Right.Apply))
-            {
-                result = await _applicationRepository.GetAllForUserAsync(user.Id, selectionId, status, page, pageSize, _standardIncludes);
-            }
-            else
-            {
-                result = new List<Application>();
-            }
-
-            return result;
-        }
-
-        public async Task<IList<Application>> GetAllForCountryAsync(User user, short countryId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
-        {
-            IList<Application> result;
-            if (user.HasRight(Right.Admin))
-            {
-                result = await _applicationRepository.GetAllAsync(countryId, status, page, pageSize, _standardIncludes);
-            }
-            else if (user.HasRight(Right.Review))
-            {
-                result = await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), countryId, status, page, pageSize, _standardIncludes);
-            }
-            else
-            {
-                result = new List<Application>();
-            }
-
-            return result;
-        }
-
-        public async Task<IList<Application>> GetAllForUserAsync(User user, Guid userId, ApplicationStatus? status, int page = 1, short pageSize = 100)
-        {
-            IList<Application> result;
-            if (user.HasRight(Right.Admin) || (user.HasRight(Right.Apply) && user.Id == userId))
-            {
-                result = await _applicationRepository.GetAllForUserAsync(userId, status, page, pageSize, _standardIncludes);
-            }
-            else
-            {
-                result = new List<Application>();
-            }
-
-            return result;
+            return GetAllInternalAsync(user, userId, selectionId, countryId, status, page, pageSize, _standardIncludes, true);
         }
 
         public async Task<OperationResult<Application>> AddAsync(User user, Guid selectionId, Application application)
@@ -264,7 +173,7 @@ namespace Mvp.Selections.Api.Services
                 _logger.LogInformation(message);
             }
 
-            IList<Application> existingApplications = await GetAllForUserAsync(user, newApplication.Applicant.Id, null);
+            IList<Application> existingApplications = await GetAllAsync(user, newApplication.Applicant.Id, selectionId);
             if (existingApplications.Any(a => a.Selection.Id == selectionId))
             {
                 string message = $"Can not submit multiple applications to Selection '{selectionId}'.";
@@ -286,7 +195,7 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<Application>> UpdateAsync(User user, Guid id, Application application)
         {
             OperationResult<Application> result = new ();
-            OperationResult<Application> getResult = await GetAsync(user, id);
+            OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, false);
             Application updatedApplication = null;
             if (
                 getResult.StatusCode == HttpStatusCode.OK
@@ -310,6 +219,23 @@ namespace Mvp.Selections.Api.Services
                 }
 
                 updatedApplication.Status = application.Status;
+
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse - MvpType can be null after deserialization
+                if (application.MvpType != null)
+                {
+                    MvpType mvpType = await _mvpTypeService.GetAsync(application.MvpType.Id);
+                    if (mvpType != null)
+                    {
+                        updatedApplication.MvpType = mvpType;
+                    }
+                    else
+                    {
+                        // ReSharper disable once ConstantConditionalAccessQualifier - MvpType can be null after deserialization
+                        string message = $"Could not find MvpType '{application.MvpType?.Id}'.";
+                        result.Messages.Add(message);
+                        _logger.LogInformation(message);
+                    }
+                }
 
                 foreach (Contribution contribution in application.Contributions)
                 {
@@ -399,7 +325,7 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<Application>> RemoveAsync(User user, Guid id)
         {
             OperationResult<Application> result = new ();
-            OperationResult<Application> getResult = await GetAsync(user, id);
+            OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, true);
             if (getResult.StatusCode == HttpStatusCode.OK && getResult.Result != null && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
             {
                 if (await _applicationRepository.RemoveAsync(id))
@@ -436,7 +362,13 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<IList<Applicant>> GetApplicantsAsync(User user, Guid selectionId, int page = 1, short pageSize = 100)
         {
-            IList<Application> applications = await GetAllForSelectionAsync(user, selectionId, ApplicationStatus.Submitted, page, pageSize);
+            Expression<Func<Application, object>>[] includes =
+            {
+                app => app.Applicant,
+                app => app.Country,
+                app => app.MvpType
+            };
+            IList<Application> applications = await GetAllInternalAsync(user, null, selectionId, null, ApplicationStatus.Submitted, page, pageSize, includes, true);
             return applications
                 .Select(application =>
                     new Applicant
@@ -450,15 +382,15 @@ namespace Mvp.Selections.Api.Services
                 .ToList();
         }
 
-        private static Contribution CreateNewContribution(Contribution link)
+        private static Contribution CreateNewContribution(Contribution contribution)
         {
-            return new (Guid.Empty)
+            return new Contribution(Guid.Empty)
             {
-                Name = link.Name,
-                Description = link.Description,
-                Type = link.Type,
-                Uri = link.Uri,
-                Date = link.Date
+                Name = contribution.Name,
+                Description = contribution.Description,
+                Type = contribution.Type,
+                Uri = contribution.Uri,
+                Date = contribution.Date
             };
         }
 
@@ -507,6 +439,56 @@ namespace Mvp.Selections.Api.Services
                         }
                     }
                 }
+            }
+
+            return result;
+        }
+
+        private async Task<OperationResult<Application>> GetInternalAsync(User user, Guid id, Expression<Func<Application, object>>[] includes, bool isReadOnly)
+        {
+            OperationResult<Application> result = new ();
+            Application application = isReadOnly ?
+                await _applicationRepository.GetReadOnlyAsync(id, includes ?? _standardIncludes) :
+                await _applicationRepository.GetAsync(id, includes ?? _standardIncludes);
+
+            if (CanSeeApplication(user, application))
+            {
+                result.Result = application;
+                result.StatusCode = HttpStatusCode.OK;
+            }
+            else
+            {
+                result.StatusCode = HttpStatusCode.Forbidden;
+                _logger.LogWarning($"User '{user.Id}' tried to access Application '{id}' to which there is no access.");
+            }
+
+            return result;
+        }
+
+        private async Task<IList<Application>> GetAllInternalAsync(User user, Guid? userId, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[] includes, bool isReadOnly)
+        {
+            IList<Application> result;
+            if (user.HasRight(Right.Admin))
+            {
+                result = isReadOnly ?
+                    await _applicationRepository.GetAllReadOnlyAsync(userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await _applicationRepository.GetAllAsync(userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+            }
+            else if (user.HasRight(Right.Review))
+            {
+                result = isReadOnly ?
+                    await _applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+            }
+            else if (user.HasRight(Right.Apply))
+            {
+                result = isReadOnly ?
+                    await _applicationRepository.GetAllForUserReadOnlyAsync(user.Id, selectionId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await _applicationRepository.GetAllForUserAsync(user.Id, selectionId, status, page, pageSize, includes ?? _standardIncludes);
+            }
+            else
+            {
+                result = new List<Application>();
             }
 
             return result;

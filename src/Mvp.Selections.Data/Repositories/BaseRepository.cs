@@ -23,17 +23,22 @@ namespace Mvp.Selections.Data.Repositories
 
         public async Task<T?> GetAsync(TId id, params Expression<Func<T, object>>[] includes)
         {
-            IQueryable<T> query = Context.Set<T>();
-            query = includes.Aggregate(query, (current, include) => current.Include(include));
-            return await query.SingleOrDefaultAsync(t => t.Id.Equals(id));
+            return await GetQuery(id, includes).SingleOrDefaultAsync();
+        }
+
+        public async Task<T?> GetReadOnlyAsync(TId id, params Expression<Func<T, object>>[] includes)
+        {
+            return await GetQuery(id, includes).AsNoTracking().SingleOrDefaultAsync();
         }
 
         public async Task<IList<T>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes)
         {
-            page--;
-            IQueryable<T> query = Context.Set<T>();
-            query = includes.Aggregate(query, (current, include) => current.Include(include));
-            return await query.OrderByDescending(t => t.CreatedOn).ThenBy(t => t.Id).Skip(page * pageSize).Take(pageSize).ToListAsync();
+            return await GetAllQuery(page, pageSize, includes).ToListAsync();
+        }
+
+        public async Task<IList<T>> GetAllReadOnlyAsync(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes)
+        {
+            return await GetAllQuery(page, pageSize, includes).AsNoTracking().ToListAsync();
         }
 
         public T Add(T entity)
@@ -64,6 +69,21 @@ namespace Mvp.Selections.Data.Repositories
         {
             SetAuditProperties();
             return Context.SaveChangesAsync();
+        }
+
+        private IQueryable<T> GetQuery(TId id, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = Context.Set<T>();
+            query = includes.Aggregate(query, (current, include) => current.Include(include));
+            return query.Where(t => t.Id.Equals(id));
+        }
+
+        private IQueryable<T> GetAllQuery(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes)
+        {
+            page--;
+            IQueryable<T> query = Context.Set<T>();
+            query = includes.Aggregate(query, (current, include) => current.Include(include));
+            return query.OrderByDescending(t => t.CreatedOn).ThenBy(t => t.Id).Skip(page * pageSize).Take(pageSize);
         }
 
         private void SetAuditProperties()

@@ -255,13 +255,13 @@ namespace Mvp.Selections.Client
             return GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
         }
 
-        public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(short countryId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
+        public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(Guid selectionId, short countryId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetApplicationsForCountryAsync(countryId, status, listParameters);
+            return GetApplicationsForCountryAsync(selectionId, countryId, status, listParameters);
         }
 
-        public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(short countryId, ApplicationStatus? status, ListParameters listParameters)
+        public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(Guid selectionId, short countryId, ApplicationStatus? status, ListParameters listParameters)
         {
             string statusQueryString = string.Empty;
             if (status != null)
@@ -269,7 +269,7 @@ namespace Mvp.Selections.Client
                 statusQueryString = $"&status={status}";
             }
 
-            return GetAsync<IList<Application>>($"/api/v1/countries/{countryId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
+            return GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/countries/{countryId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
         }
 
         public Task<Response<IList<Application>>> GetApplicationsForUserAsync(Guid userId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)

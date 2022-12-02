@@ -100,7 +100,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, status, lp.Page, lp.PageSize);
+                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, null, null, status, lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -141,7 +141,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllForSelectionAsync(authResult.User, selectionId, status, lp.Page, lp.PageSize);
+                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, null, status, lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -160,6 +160,7 @@ namespace Mvp.Selections.Api
 
         [FunctionName("GetAllApplicationsForCountry")]
         [OpenApiOperation("GetAllApplicationsForCountry", "Applications", "Admin", "Review")]
+        [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter("countryId", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiParameter("status", In = ParameterLocation.Query, Type = typeof(ApplicationStatus))]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
@@ -170,8 +171,9 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetAllForCountry(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/countries/{countryId:int}/applications")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{selectionId:Guid}/countries/{countryId:int}/applications")]
             HttpRequest req,
+            Guid selectionId,
             short countryId)
         {
             IActionResult result;
@@ -182,7 +184,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllForCountryAsync(authResult.User, countryId, status, lp.Page, lp.PageSize);
+                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, countryId, status, lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
@@ -223,7 +225,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllForUserAsync(authResult.User, userId, status, lp.Page, lp.PageSize);
+                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, null, null, status, lp.Page, lp.PageSize);
                     result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
