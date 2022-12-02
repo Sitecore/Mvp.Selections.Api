@@ -1,21 +1,18 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Configuration;
-using Mvp.Selections.Api.Helpers.Interfaces;
-using Mvp.Selections.Domain;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
-namespace Mvp.Selections.Api.Helpers
+namespace Mvp.Selections.Api.Serialization
 {
-    public class JsonSerializerHelper : ISerializerHelper
+    public class JsonSerializer : ISerializer
     {
         private readonly JsonOptions _options;
 
-        public JsonSerializerHelper(IOptionsSnapshot<JsonOptions> options)
+        public JsonSerializer(IOptionsSnapshot<JsonOptions> options)
         {
             _options = options.Value;
         }

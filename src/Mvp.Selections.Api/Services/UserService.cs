@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -57,6 +58,7 @@ namespace Mvp.Selections.Api.Services
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
                 existingUser.ImageType = user.ImageType;
+                existingUser.ImageUri = GetImageUri(existingUser);
 
                 Country country = user.Country != null ? await _countryRepository.GetAsync(user.Country.Id) : null;
                 if (country != null)
@@ -82,6 +84,43 @@ namespace Mvp.Selections.Api.Services
                 await _userRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.OK;
                 result.Result = existingUser;
+            }
+
+            return result;
+        }
+
+        private static Uri GetGravatarUri(string email)
+        {
+            Uri result = null;
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                string hash = email.Trim().ToLowerInvariant().ToMD5Hash();
+                result = new Uri($"https://www.gravatar.com/avatar/{hash}");
+            }
+
+            return result;
+        }
+
+        private static Uri GetImageUri(User user)
+        {
+            Uri result;
+            switch (user.ImageType)
+            {
+                case ImageType.Community:
+                    // TODO [ILs] No idea how to retrieve this
+                    result = null;
+                    break;
+                case ImageType.Gravatar:
+                    result = GetGravatarUri(user.Email);
+                    break;
+                case ImageType.Twitter:
+                    // TODO [ILs] Find a way to load profile image from Twitter
+                    result = new Uri("https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
+                    break;
+                case ImageType.Anonymous:
+                default:
+                    result = null;
+                    break;
             }
 
             return result;

@@ -9,10 +9,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -22,7 +22,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IContributionService _contributionService;
 
-        public Contributions(ILogger<Contributions> logger, ISerializerHelper serializer, IAuthService authService, IContributionService contributionService)
+        public Contributions(ILogger<Contributions> logger, ISerializer serializer, IAuthService authService, IContributionService contributionService)
             : base(logger, serializer, authService)
         {
             _contributionService = contributionService;
@@ -53,7 +53,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(addResult.Result, new ContributionsContractResolver()),
+                            Content = Serializer.Serialize(addResult.Result, ContributionsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -104,7 +104,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result, new ContributionsContractResolver()),
+                            Content = Serializer.Serialize(updateResult.Result, ContributionsContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }

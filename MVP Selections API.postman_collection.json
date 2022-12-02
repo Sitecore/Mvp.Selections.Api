@@ -7,6 +7,33 @@
 	},
 	"item": [
 		{
+			"name": "Applicants",
+			"item": [
+				{
+					"name": "All Applicants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}/applicants",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"selections",
+								"{{Selection.Id}}",
+								"applicants"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Applications",
 			"item": [
 				{
@@ -3616,7 +3643,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJraWQiOiJCMERmVVlSY2txM29IN0wzcEdHdjF4UEw4eDN3SGprZ1AyYWg2cU5RU2FrIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVzdWY1M2FDRUpvTHEzbDM1NiIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9va3RhLnNpdGVjb3JlLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYWQ3a2tmcHRkdDlBS002MzU3IiwiaWF0IjoxNjY5NjU5OTI2LCJleHAiOjE2Njk2NjM1MjYsImp0aSI6IklELnhyZ3lqNGhjUl8wZ29BUzExbVlqWFdlNlh4ZktlbkNXb0NlcHZTOTdtSkUiLCJhbXIiOlsicHdkIl0sImlkcCI6IjBvYWdkaGxuMzRUSXVxZXg4MzU3Iiwibm9uY2UiOiI2MzgwNTI1NjcyMDE0NjkzNjUuWWpRNVpUY3lOREF0WVRNNVl5MDBZelEzTFdKa09UVXRNalF5WlROaFlXWTBPV1UzTkdKbFpURXlZekF0TURRellpMDBZemxrTFdJME5ERXROekJpTXprd1pESmpOalF4IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2Njk2NTk5MjUsImF0X2hhc2giOiJvdnhVQnlSREQ2NUoyYURtNng2Z0l3In0.OyCStdL7nJSm9ITTFtm-e0Ar0JNClqxCv5_OIj-C3kd8RNN7utPQnOXHgFdWBOS50XLDtLf5lNUC-QWGP6bT8CuKuzCr-r8P8JQArEZCwKeMTi8OS7fqxst39v4ZEIU46b14VxfAw6sOwDM-KMcXBCZ3uPth_wB6Iv85CRwTcbtl36RjpZ1HciCIrmI4zWrS4LhoaRTI3aPuisRGkPcqyqm5lZIeNuyx7Jj5QYMBRYYfDsiZB64wrt8DuMi7N__WnzrmaLv70Qr_IUkV7j6to8ZV-eH7tVc5OBgnFL6g-oFfgLnX6ueXVvMvmjSwaWOlT5LMQhI04BtnltWbFYRklA",
+				"value": "eyJraWQiOiJCMERmVVlSY2txM29IN0wzcEdHdjF4UEw4eDN3SGprZ1AyYWg2cU5RU2FrIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVzdWY1M2FDRUpvTHEzbDM1NiIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9va3RhLnNpdGVjb3JlLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYWQ3a2tmcHRkdDlBS002MzU3IiwiaWF0IjoxNjY5ODI5MDMzLCJleHAiOjE2Njk4MzI2MzMsImp0aSI6IklELktrNG9BUkdkWDU1RkZkdGNILVpfV25Ca0FtS19IWTg4U3Y2R2x5MzFLVEEiLCJhbXIiOlsicHdkIl0sImlkcCI6IjBvYWdkaGxuMzRUSXVxZXg4MzU3Iiwibm9uY2UiOiI2MzgwNTQyNTgyNzg3NzY2NDAuTlRKaFlUY3dNemd0TlRrek1pMDBNV0ptTFRnMVpERXRPRFppT1RJeE5tTmhZVE5sWm1Rek1qVXdOR1l0T1dRMFppMDBPVGsyTFRreVpUa3RZMlptWW1VeVpXVmlaamN3IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2Njk4MjkwMzEsImF0X2hhc2giOiJxN2FadXVfdzk1dENUemRYUGVuakNBIn0.h1OF72xi-ci5fqrScUnSAypIHPZ_MDAaFB5yavH40ywsdf4BSDJXsD5s5YcZQxo-6oVF09-zd5aCegfxerTjW1jdl5uBrZ-Mgk9Ee2w8yvZutXO6EIJv9dCeUNJ9Evm2jTdHtIGiTbyP4L17NcUiVsNVYqDWrs59OcFB2uEXBVdcRB6lCdlnZTYp_4nM-eTbKRWy__ZubjrVqI2rYGh8XSQnLRT_ImMOAFZzTAnP5CJtZuf2i1q_nCn2OJ5BUGQo8EylCbVLdbn4WiLiXDiHV5QQYhPLfpnBJO-H7HsW_ZyrJaguDw4H_f8v6autgQJcjhQAvVxLvZEv7puLqwrEWg",
 				"type": "string"
 			}
 		]

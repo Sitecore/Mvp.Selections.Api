@@ -10,10 +10,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -23,7 +23,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IScoreService _scoreService;
 
-        public Scores(ILogger<Scores> logger, ISerializerHelper serializer, IAuthService authService, IScoreService scoreService)
+        public Scores(ILogger<Scores> logger, ISerializer serializer, IAuthService authService, IScoreService scoreService)
             : base(logger, serializer, authService)
         {
             _scoreService = scoreService;
@@ -49,7 +49,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Score score = await _scoreService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(score, new ScoreContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(score, ScoreContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -86,7 +86,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Score> scores = await _scoreService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(scores, new ScoreContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(scores, ScoreContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -122,7 +122,7 @@ namespace Mvp.Selections.Api
                 {
                     Score input = await Serializer.DeserializeAsync<Score>(req.Body);
                     Score score = await _scoreService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(score, new ScoreContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(score, ScoreContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -163,7 +163,7 @@ namespace Mvp.Selections.Api
                     result = updateResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(updateResult.Result, new ScoreContractResolver()),
+                            Content = Serializer.Serialize(updateResult.Result, ScoreContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }

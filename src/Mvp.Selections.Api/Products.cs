@@ -10,10 +10,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
+using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
@@ -23,7 +23,7 @@ namespace Mvp.Selections.Api
     {
         private readonly IProductService _productService;
 
-        public Products(ILogger<Products> logger, ISerializerHelper serializer, IAuthService authService, IProductService productService)
+        public Products(ILogger<Products> logger, ISerializer serializer, IAuthService authService, IProductService productService)
             : base(logger, serializer, authService)
         {
             _productService = productService;
@@ -49,7 +49,7 @@ namespace Mvp.Selections.Api
                 if (authResult.StatusCode == HttpStatusCode.OK)
                 {
                     Product product = await _productService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(product, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(product, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -86,7 +86,7 @@ namespace Mvp.Selections.Api
                 {
                     ListParameters lp = new (req);
                     IList<Product> products = await _productService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(products, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(products, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -122,7 +122,7 @@ namespace Mvp.Selections.Api
                 {
                     Product input = await Serializer.DeserializeAsync<Product>(req.Body);
                     Product product = await _productService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(product, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(product, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {
@@ -160,7 +160,7 @@ namespace Mvp.Selections.Api
                 {
                     Product input = await Serializer.DeserializeAsync<Product>(req.Body);
                     Product product = await _productService.UpdateAsync(id, input);
-                    result = new ContentResult { Content = Serializer.Serialize(product, new ProductsContractResolver()), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
+                    result = new ContentResult { Content = Serializer.Serialize(product, ProductsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
                 }
                 else
                 {

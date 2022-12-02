@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -431,6 +432,22 @@ namespace Mvp.Selections.Api.Services
             }
 
             return result;
+        }
+
+        public async Task<IList<Applicant>> GetApplicantsAsync(User user, Guid selectionId, int page = 1, short pageSize = 100)
+        {
+            IList<Application> applications = await GetAllForSelectionAsync(user, selectionId, ApplicationStatus.Submitted, page, pageSize);
+            return applications
+                .Select(application =>
+                    new Applicant
+                    {
+                        Name = application.Applicant.Name,
+                        ImageUri = application.Applicant.ImageUri,
+                        ApplicationId = application.Id,
+                        Country = application.Country,
+                        MvpType = application.MvpType
+                    })
+                .ToList();
         }
 
         private static Contribution CreateNewContribution(Contribution link)

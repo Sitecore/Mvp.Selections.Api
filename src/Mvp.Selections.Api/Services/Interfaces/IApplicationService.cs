@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
@@ -23,5 +24,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
         Task<OperationResult<Application>> UpdateAsync(User user, Guid id, Application application);
 
         Task<OperationResult<Application>> RemoveAsync(User user, Guid id);
+
+        Task<IList<Applicant>> GetApplicantsAsync(User user, Guid selectionId, int page = 1, short pageSize = 100);
     }
 }
