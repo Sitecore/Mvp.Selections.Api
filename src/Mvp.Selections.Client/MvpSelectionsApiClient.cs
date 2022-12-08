@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Model;
 using Mvp.Selections.Client.Configuration;
 using Mvp.Selections.Client.Interfaces;
 using Mvp.Selections.Client.Models;
