@@ -366,18 +366,21 @@ namespace Mvp.Selections.Api.Services
             {
                 app => app.Applicant,
                 app => app.Country,
-                app => app.MvpType
+                app => app.MvpType,
+                app => app.Reviews.Where(r => r.Reviewer.Id == user.Id && r.Status == ReviewStatus.Finished)
             };
             IList<Application> applications = await GetAllInternalAsync(user, null, selectionId, null, ApplicationStatus.Submitted, page, pageSize, includes, true);
             return applications
-                .Select(application =>
+                .Where(a => a.Applicant.Id != user.Id || user.HasRight(Right.Admin))
+                .Select(a =>
                     new Applicant
                     {
-                        Name = application.Applicant.Name,
-                        ImageUri = application.Applicant.ImageUri,
-                        ApplicationId = application.Id,
-                        Country = application.Country,
-                        MvpType = application.MvpType
+                        Name = a.Applicant.Name,
+                        ImageUri = a.Applicant.ImageUri,
+                        ApplicationId = a.Id,
+                        Country = a.Country,
+                        MvpType = a.MvpType,
+                        IsReviewed = a.Reviews.Any()
                     })
                 .ToList();
         }
