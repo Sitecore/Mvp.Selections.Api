@@ -14,5 +14,7 @@ namespace Mvp.Selections.Api.Model
         public Country Country { get; set; }
 
         public MvpType MvpType { get; set; }
+
+        public bool IsReviewed { get; set; }
     }
 }
