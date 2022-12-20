@@ -54,7 +54,7 @@ namespace Mvp.Selections.Api
                     result = getResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(getResult.Result, ScoreCategoriesContractResolver.Instance),
+                            Content = Serializer.Serialize(getResult.Result, authResult.User.HasRight(Right.Admin) ? ScoreCategoriesAdminContractResolver.Instance : ScoreCategoriesContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
@@ -107,7 +107,7 @@ namespace Mvp.Selections.Api
                     result = addResult.StatusCode == HttpStatusCode.OK
                         ? new ContentResult
                         {
-                            Content = Serializer.Serialize(addResult.Result, ScoreCategoriesContractResolver.Instance),
+                            Content = Serializer.Serialize(addResult.Result, ScoreCategoriesAdminContractResolver.Instance),
                             ContentType = Serializer.ContentType,
                             StatusCode = (int)HttpStatusCode.OK
                         }
