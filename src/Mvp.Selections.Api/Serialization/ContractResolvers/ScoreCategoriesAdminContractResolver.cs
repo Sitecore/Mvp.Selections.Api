@@ -6,13 +6,11 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
-    public class ScoreCategoriesContractResolver : CamelCasePropertyNamesContractResolver
+    public class ScoreCategoriesAdminContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly ScoreCategoriesContractResolver Instance = new ();
+        public static readonly ScoreCategoriesAdminContractResolver Instance = new ();
 
-        private readonly string[] _scoreCategoryExcludedMembers = { nameof(ScoreCategory.Selection), nameof(ScoreCategory.MvpType), nameof(ScoreCategory.Weight) };
-
-        private readonly string[] _scoreExcludedMembers = { nameof(Score.ScoreCategories), nameof(Score.Value) };
+        private readonly string[] _scoreCategoryExcludedMembers = { nameof(ScoreCategory.Selection), nameof(ScoreCategory.MvpType) };
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
@@ -21,7 +19,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
             {
                 result = null;
             }
-            else if (member.DeclaringType == typeof(Score) && _scoreExcludedMembers.Contains(member.Name))
+            else if (member.DeclaringType == typeof(Score) && member.Name == nameof(Score.ScoreCategories))
             {
                 result = null;
             }
