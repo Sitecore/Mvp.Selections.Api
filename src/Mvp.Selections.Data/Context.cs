@@ -113,18 +113,6 @@ namespace Mvp.Selections.Data
                 .AutoInclude();
         }
 
-#if DEBUG
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                // NOTE [ILs] This is used to make it easy to run dotnet ef core cli commands
-                optionsBuilder.UseSqlServer(
-                        "Server=(LocalDB)\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName=C:\\Code\\Mvp.Selections\\data\\Temp.mdf");
-            }
-        }
-#endif
-
         private static IEnumerable<Country> SeedCountries()
         {
             return new List<Country>

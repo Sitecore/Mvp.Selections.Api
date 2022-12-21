@@ -37,7 +37,8 @@ namespace Mvp.Selections.Api.Services
             Score newScore = new (Guid.Empty)
             {
                 Name = score.Name,
-                Value = score.Value
+                Value = score.Value,
+                SortRank = score.SortRank
             };
             newScore = _scoreRepository.Add(newScore);
             await _scoreRepository.SaveChangesAsync();
@@ -58,6 +59,11 @@ namespace Mvp.Selections.Api.Services
                 if (score.Value > 0)
                 {
                     existingScore.Value = score.Value;
+                }
+
+                if (score.SortRank != 0)
+                {
+                    existingScore.SortRank = score.SortRank;
                 }
 
                 await _scoreRepository.SaveChangesAsync();
