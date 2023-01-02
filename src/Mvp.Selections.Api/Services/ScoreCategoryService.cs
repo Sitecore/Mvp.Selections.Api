@@ -87,7 +87,8 @@ namespace Mvp.Selections.Api.Services
                         Selection = selection,
                         MvpType = mvpType,
                         Name = scoreCategory.Name,
-                        Weight = scoreCategory.Weight
+                        Weight = scoreCategory.Weight,
+                        SortRank = scoreCategory.SortRank
                     };
                     if (scoreCategory.ParentCategory?.Id != null)
                     {

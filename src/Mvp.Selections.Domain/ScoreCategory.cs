@@ -11,6 +11,8 @@
 
         public int Weight { get; set; }
 
+        public int SortRank { get; set; } = 100;
+
         public MvpType MvpType { get; set; } = null!;
 
         public Selection Selection { get; set; } = null!;
