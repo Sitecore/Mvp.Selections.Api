@@ -53,6 +53,8 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<IScoreCategoryService, ScoreCategoryService>();
             builder.Services.AddScoped<IScoreService, ScoreService>();
+            builder.Services.AddScoped<IApplicantService, ApplicationService>();
+            builder.Services.AddScoped<IScoreCardService, ScoreCardService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();

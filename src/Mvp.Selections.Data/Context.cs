@@ -111,6 +111,13 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<Contribution>()
                 .Navigation(al => al.RelatedProducts)
                 .AutoInclude();
+
+            modelBuilder.Entity<ScoreCategory>()
+                .HasMany(sc => sc.ScoreOptions)
+                .WithMany(s => s.ScoreCategories);
+            modelBuilder.Entity<ScoreCategory>()
+                .HasOne(sc => sc.CalculationScore)
+                .WithMany();
         }
 
         private static IEnumerable<Country> SeedCountries()
