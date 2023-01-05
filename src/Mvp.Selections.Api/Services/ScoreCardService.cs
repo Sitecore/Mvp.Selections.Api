@@ -37,7 +37,9 @@ namespace Mvp.Selections.Api.Services
             {
                 decimal totalCategoryScoreValue = scoreCategoriesResult.Result.Sum(sc => sc.CalculateScoreValue());
                 IList<Applicant> applicants = await _applicantService.GetApplicantsAsync(user, selectionId, 1, short.MaxValue);
-                foreach (Applicant applicant in applicants)
+
+                // TODO [ILs] Quick hack to filter by mvpType, can be optimized by DB call itself
+                foreach (Applicant applicant in applicants.Where(a => a.MvpType.Id == mvpTypeId))
                 {
                     await CalculateScoreCardsAsync(result, user, applicant, scoreCategoriesResult.Result, totalCategoryScoreValue);
                 }
