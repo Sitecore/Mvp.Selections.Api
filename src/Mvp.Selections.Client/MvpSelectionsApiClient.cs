@@ -543,6 +543,15 @@ namespace Mvp.Selections.Client
 
         #endregion Applicants
 
+        #region ScoreCards
+
+        public Task<Response<IList<ScoreCard>>> GetScoreCardsAsync(Guid selectionId, short mvpTypeId)
+        {
+            return GetAsync<IList<ScoreCard>>($"/api/v1/selections/{selectionId}/mvptypes/{mvpTypeId}/applicants/scorecards");
+        }
+
+        #endregion ScoreCards
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)

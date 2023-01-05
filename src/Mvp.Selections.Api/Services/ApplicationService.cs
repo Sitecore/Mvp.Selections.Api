@@ -13,7 +13,7 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class ApplicationService : IApplicationService
+    public class ApplicationService : IApplicationService, IApplicantService
     {
         private readonly ILogger<ApplicationService> _logger;
 

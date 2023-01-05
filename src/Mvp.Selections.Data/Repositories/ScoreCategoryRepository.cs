@@ -20,7 +20,8 @@ namespace Mvp.Selections.Data.Repositories
                 .Where(sc => sc.MvpType.Id == mvpTypeId && sc.Selection.Id == selectionId && sc.ParentCategory == null)
                 .Includes(includes)
                 .Include(sc => sc.SubCategories)
-                .ThenInclude(sc => sc.ScoreOptions)
+                .ThenInclude(sc => sc.ScoreOptions.OrderBy(so => so.SortRank))
+                .OrderBy(sc => sc.SortRank)
                 .ToListAsync();
         }
     }
