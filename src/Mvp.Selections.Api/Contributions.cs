@@ -37,45 +37,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/applications/{applicationId:Guid}/contributions")]
             HttpRequest req,
             Guid applicationId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Contribution input = await Serializer.DeserializeAsync<Contribution>(req.Body);
-                    OperationResult<Contribution> addResult = await _contributionService.AddAsync(authResult.User, applicationId, input);
-                    result = addResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(addResult.Result, ContributionsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, addResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)addResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Contribution input = await Serializer.DeserializeAsync<Contribution>(req.Body);
+                OperationResult<Contribution> addResult = await _contributionService.AddAsync(authResult.User, applicationId, input);
+                return ContentResult(addResult, ContributionsContractResolver.Instance);
+            });
         }
 
         [FunctionName("UpdateContribution")]
@@ -88,45 +60,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Update(
+        public Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/contributions/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Contribution input = await Serializer.DeserializeAsync<Contribution>(req.Body);
-                    OperationResult<Contribution> updateResult = await _contributionService.UpdateAsync(authResult.User, id, input);
-                    result = updateResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(updateResult.Result, ContributionsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, updateResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)updateResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Contribution input = await Serializer.DeserializeAsync<Contribution>(req.Body);
+                OperationResult<Contribution> updateResult = await _contributionService.UpdateAsync(authResult.User, id, input);
+                return ContentResult(updateResult, ContributionsContractResolver.Instance);
+            });
         }
 
         [FunctionName("RemoveContribution")]
@@ -139,40 +83,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/applications/{applicationId:Guid}/contributions/{id:Guid}")]
             HttpRequest req,
             Guid applicationId,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<Contribution> removeResult = await _contributionService.RemoveAsync(authResult.User, applicationId, id);
-                    result = removeResult.StatusCode == HttpStatusCode.OK
-                        ? new NoContentResult()
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, removeResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)removeResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<Contribution> removeResult = await _contributionService.RemoveAsync(authResult.User, applicationId, id);
+                return ContentResult(removeResult);
+            });
         }
     }
 }

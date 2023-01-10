@@ -1,13 +1,13 @@
-﻿using Mvp.Selections.Domain.Roles;
+﻿using Mvp.Selections.Domain.Comments;
 
 namespace Mvp.Selections.Data.Repositories.Interfaces
 {
-    public interface IRoleRepository : IBaseRepository<Role, Guid>
+    public interface ICommentRepository : IBaseRepository<Comment, Guid>
     {
         Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
-            where T : Role;
+            where T : Comment;
 
         Task<T?> GetAsync<T>(Guid id)
-            where T : Role;
+            where T : Comment;
     }
 }

@@ -2,6 +2,7 @@
 using Mvp.Selections.Client.Serialization;
 using System.Text.Json.Serialization;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Client.Tests.Serialization
 {

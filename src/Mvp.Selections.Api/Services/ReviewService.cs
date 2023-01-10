@@ -295,7 +295,7 @@ namespace Mvp.Selections.Api.Services
                 if (await _reviewRepository.RemoveAsync(id))
                 {
                     await _reviewRepository.SaveChangesAsync();
-                    result.StatusCode = HttpStatusCode.OK;
+                    result.StatusCode = HttpStatusCode.NoContent;
                 }
             }
             else if (existingReview != null && existingReview.Reviewer.Id != user.Id)
@@ -312,7 +312,7 @@ namespace Mvp.Selections.Api.Services
             }
             else if (existingReview == null)
             {
-                result.StatusCode = HttpStatusCode.OK;
+                result.StatusCode = HttpStatusCode.NoContent;
             }
 
             return result;

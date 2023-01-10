@@ -10,6 +10,8 @@ using Mvp.Selections.Client.Models;
 using Mvp.Selections.Client.Models.Request;
 using Mvp.Selections.Client.Serialization;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Comments;
+using Mvp.Selections.Domain.Roles;
 
 #pragma warning disable SA1124 // Do not use regions - For readability purpose of the many methods
 namespace Mvp.Selections.Client
@@ -551,6 +553,25 @@ namespace Mvp.Selections.Client
         }
 
         #endregion ScoreCards
+
+        #region Comments
+
+        public Task<Response<ApplicationComment>> AddApplicationCommentAsync(Guid applicationId, ApplicationComment comment)
+        {
+            return PostAsync<ApplicationComment>($"/api/v1/applications/{applicationId}/comments", comment);
+        }
+
+        public Task<Response<Comment>> UpdateCommentAsync(Comment comment)
+        {
+            return PatchAsync<Comment>($"/api/v1/comments/{comment.Id}", comment);
+        }
+
+        public Task<Response<bool>> RemoveCommentAsync(Guid commentId)
+        {
+            return DeleteAsync($"/api/v1/comments/{commentId}");
+        }
+
+        #endregion Comments
 
         #region Private
 

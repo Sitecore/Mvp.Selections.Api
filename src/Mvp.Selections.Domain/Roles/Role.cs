@@ -1,4 +1,4 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain.Roles
 {
     public abstract class Role : BaseEntity<Guid>
     {
