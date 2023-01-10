@@ -10,7 +10,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -38,45 +37,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Get(
+        public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{selectionId:Guid}/mvptypes/{mvpTypeId:int}/scorecategories")]
             HttpRequest req,
             Guid selectionId,
             short mvpTypeId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<IList<ScoreCategory>> getResult = await _scoreCategoryService.GetAllAsync(selectionId, mvpTypeId);
-                    result = getResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(getResult.Result, authResult.User.HasRight(Right.Admin) ? ScoreCategoriesAdminContractResolver.Instance : ScoreCategoriesContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, getResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)getResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<IList<ScoreCategory>> getResult = await _scoreCategoryService.GetAllAsync(selectionId, mvpTypeId);
+                return ContentResult(getResult, authResult.User.HasRight(Right.Admin) ? ScoreCategoriesAdminContractResolver.Instance : ScoreCategoriesContractResolver.Instance);
+            });
         }
 
         [FunctionName("AddScoreCategory")]
@@ -90,46 +61,18 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/selections/{selectionId:Guid}/mvptypes/{mvpTypeId:int}/scorecategories")]
             HttpRequest req,
             Guid selectionId,
             short mvpTypeId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ScoreCategory input = await Serializer.DeserializeAsync<ScoreCategory>(req.Body);
-                    OperationResult<ScoreCategory> addResult = await _scoreCategoryService.AddAsync(selectionId, mvpTypeId, input);
-                    result = addResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(addResult.Result, ScoreCategoriesAdminContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, addResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)addResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ScoreCategory input = await Serializer.DeserializeAsync<ScoreCategory>(req.Body);
+                OperationResult<ScoreCategory> addResult = await _scoreCategoryService.AddAsync(selectionId, mvpTypeId, input);
+                return ContentResult(addResult.Result, ScoreCategoriesAdminContractResolver.Instance);
+            });
         }
 
         [FunctionName("RemoveScoreCategory")]
@@ -141,32 +84,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/scorecategories/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    await _scoreCategoryService.RemoveAsync(id);
-                    result = new NoContentResult();
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                await _scoreCategoryService.RemoveAsync(id);
+                return new NoContentResult();
+            });
         }
     }
 }

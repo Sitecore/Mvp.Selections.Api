@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +9,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -38,32 +36,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAll(
+        public Task<IActionResult> GetAll(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/countries")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    IList<Country> countries = await _countryService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(countries, CountriesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                IList<Country> countries = await _countryService.GetAllAsync(lp.Page, lp.PageSize);
+                return ContentResult(countries, CountriesContractResolver.Instance);
+            });
         }
     }
 }
