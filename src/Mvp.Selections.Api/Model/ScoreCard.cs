@@ -4,7 +4,7 @@ namespace Mvp.Selections.Api.Model
 {
     public class ScoreCard
     {
-        public Applicant Applicant { get; set; }
+        public Applicant Applicant { get; set; } = null!;
 
         public int Median { get; set; }
 

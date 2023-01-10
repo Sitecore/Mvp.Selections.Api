@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +9,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -66,7 +64,7 @@ namespace Mvp.Selections.Api
             {
                 ListParameters lp = new (req);
                 IList<Product> products = await _productService.GetAllAsync(lp.Page, lp.PageSize);
-                return ContentResult (products, ProductsContractResolver.Instance);
+                return ContentResult(products, ProductsContractResolver.Instance);
             });
         }
 
