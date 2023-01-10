@@ -37,45 +37,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/users/{userId:Guid}/profilelinks")]
             HttpRequest req,
             Guid userId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ProfileLink input = await Serializer.DeserializeAsync<ProfileLink>(req.Body);
-                    OperationResult<ProfileLink> addResult = await _profileLinkService.AddAsync(authResult.User, userId, input);
-                    result = addResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(addResult.Result, ProfileLinksContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, addResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)addResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ProfileLink input = await Serializer.DeserializeAsync<ProfileLink>(req.Body);
+                OperationResult<ProfileLink> addResult = await _profileLinkService.AddAsync(authResult.User, userId, input);
+                return ContentResult(addResult, ProfileLinksContractResolver.Instance);
+            });
         }
 
         [FunctionName("RemoveProfileLink")]
@@ -88,40 +60,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/users/{userId:Guid}/profilelinks/{id:Guid}")]
             HttpRequest req,
             Guid userId,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<ProfileLink> removeResult = await _profileLinkService.RemoveAsync(authResult.User, userId, id);
-                    result = removeResult.StatusCode == HttpStatusCode.OK
-                        ? new NoContentResult()
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, removeResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)removeResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<ProfileLink> removeResult = await _profileLinkService.RemoveAsync(authResult.User, userId, id);
+                return ContentResult(removeResult);
+            });
         }
     }
 }

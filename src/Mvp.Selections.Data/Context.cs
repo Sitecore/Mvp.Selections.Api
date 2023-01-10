@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Comments;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data
 {
@@ -50,6 +52,8 @@ namespace Mvp.Selections.Data
 
         // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Product> Products => Set<Product>();
+
+        public DbSet<Comment> Comments => Set<Comment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -118,6 +122,8 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<ScoreCategory>()
                 .HasOne(sc => sc.CalculationScore)
                 .WithMany();
+
+            modelBuilder.Entity<ApplicationComment>();
         }
 
         private static IEnumerable<Country> SeedCountries()

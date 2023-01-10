@@ -55,6 +55,7 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IScoreService, ScoreService>();
             builder.Services.AddScoped<IApplicantService, ApplicationService>();
             builder.Services.AddScoped<IScoreCardService, ScoreCardService>();
+            builder.Services.AddScoped<ICommentService, CommentService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -71,6 +72,7 @@ namespace Mvp.Selections.Api
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IScoreCategoryRepository, ScoreCategoryRepository>();
             builder.Services.AddScoped<IScoreRepository, ScoreRepository>();
+            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
             // Database
             FunctionsHostBuilderContext context = builder.GetContext();

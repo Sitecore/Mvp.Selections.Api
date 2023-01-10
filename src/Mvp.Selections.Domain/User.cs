@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Domain
 {

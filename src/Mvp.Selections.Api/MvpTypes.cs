@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -37,32 +35,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAll(
+        public Task<IActionResult> GetAll(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/mvptypes")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    IList<MvpType> mvpTypes = await _mvpTypeService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(mvpTypes), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                IList<MvpType> mvpTypes = await _mvpTypeService.GetAllAsync(lp.Page, lp.PageSize);
+                return ContentResult(mvpTypes);
+            });
         }
 
         [FunctionName("GetMvpType")]
@@ -73,32 +55,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Get(
+        public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/mvptypes/{id:int}")]
             HttpRequest req,
             short id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    MvpType mvpType = await _mvpTypeService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(mvpType), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                MvpType mvpType = await _mvpTypeService.GetAsync(id);
+                return ContentResult(mvpType);
+            });
         }
 
         [FunctionName("AddMvpType")]
@@ -109,32 +75,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/mvptypes")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
-                    MvpType mvpType = await _mvpTypeService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(mvpType), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
+                MvpType mvpType = await _mvpTypeService.AddAsync(input);
+                return ContentResult(mvpType);
+            });
         }
 
         [FunctionName("UpdateMvpType")]
@@ -146,33 +96,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Update(
+        public Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/mvptypes/{id:int}")]
             HttpRequest req,
             short id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
-                    MvpType mvpType = await _mvpTypeService.UpdateAsync(id, input);
-                    result = new ContentResult { Content = Serializer.Serialize(mvpType), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
+                MvpType mvpType = await _mvpTypeService.UpdateAsync(id, input);
+                return ContentResult(mvpType);
+            });
         }
 
         [FunctionName("RemoveMvpType")]
@@ -183,32 +117,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/mvptypes/{id:int}")]
             HttpRequest req,
             short id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    await _mvpTypeService.RemoveAsync(id);
-                    result = new NoContentResult();
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                await _mvpTypeService.RemoveAsync(id);
+                return new NoContentResult();
+            });
         }
     }
 }
