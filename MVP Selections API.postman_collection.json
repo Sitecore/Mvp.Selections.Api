@@ -30,6 +30,31 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "ScoreCards",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}/mvptypes/{{MvpType.Id}}/applicants/scorecards",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"selections",
+								"{{Selection.Id}}",
+								"mvptypes",
+								"{{MvpType.Id}}",
+								"applicants",
+								"scorecards"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -774,10 +799,10 @@
 			]
 		},
 		{
-			"name": "Countries",
+			"name": "Comments",
 			"item": [
 				{
-					"name": "All Countries (default pageSize)",
+					"name": "ApplicationComment",
 					"event": [
 						{
 							"listen": "test",
@@ -786,20 +811,39 @@
 									"pm.test(\"Status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Country lists contains 100 countries (pageSize 100)\", function () {\r",
+									"pm.test(\"Comment created matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(jsonData.length).to.eql(100);\r",
+									"    pm.expect(jsonData.value).to.eql(pm.variables.get(\"Comment.Value\"));\r",
+									"    pm.collectionVariables.set(\"Comment.Id\", jsonData.id);\r",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"Comment.Value\", pm.variables.replaceIn(\"{{$randomLoremParagraph}}\"));"
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"value\": \"{{Comment.Value}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/comments",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -807,25 +851,23 @@
 							"path": [
 								"api",
 								"v1",
-								"countries"
+								"applications",
+								"{{Application.Id}}",
+								"comments"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "All Countries (pageSize 300) Copy",
+					"name": "Comment",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"pm.test(\"Country lists contains 239 countries\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(jsonData.length).to.eql(239);\r",
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -833,10 +875,10 @@
 						}
 					],
 					"request": {
-						"method": "GET",
+						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries?ps=300",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/comments/{{Comment.Id}}",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -844,13 +886,65 @@
 							"path": [
 								"api",
 								"v1",
-								"countries"
-							],
-							"query": [
-								{
-									"key": "ps",
-									"value": "300"
+								"comments",
+								"{{Comment.Id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comment",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"Comment.Value\", pm.variables.replaceIn(\"{{$randomLoremParagraph}}\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Comment updated matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Comment.Id\"));\r",
+									"    pm.expect(jsonData.value).to.eql(pm.variables.get(\"Comment.Value\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"value\": \"{{Comment.Value}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/comments/{{Comment.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"comments",
+								"{{Comment.Id}}"
 							]
 						}
 					},
@@ -1176,6 +1270,91 @@
 								"v1",
 								"contributions",
 								"{{Contribution.Id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Countries",
+			"item": [
+				{
+					"name": "All Countries (default pageSize)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Country lists contains 100 countries (pageSize 100)\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.length).to.eql(100);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Countries (pageSize 300) Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Country lists contains 239 countries\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.length).to.eql(239);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/countries?ps=300",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							],
+							"query": [
+								{
+									"key": "ps",
+									"value": "300"
+								}
 							]
 						}
 					},
@@ -3643,7 +3822,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJraWQiOiJCMERmVVlSY2txM29IN0wzcEdHdjF4UEw4eDN3SGprZ1AyYWg2cU5RU2FrIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVzdWY1M2FDRUpvTHEzbDM1NiIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9va3RhLnNpdGVjb3JlLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYWQ3a2tmcHRkdDlBS002MzU3IiwiaWF0IjoxNjY5ODI5MDMzLCJleHAiOjE2Njk4MzI2MzMsImp0aSI6IklELktrNG9BUkdkWDU1RkZkdGNILVpfV25Ca0FtS19IWTg4U3Y2R2x5MzFLVEEiLCJhbXIiOlsicHdkIl0sImlkcCI6IjBvYWdkaGxuMzRUSXVxZXg4MzU3Iiwibm9uY2UiOiI2MzgwNTQyNTgyNzg3NzY2NDAuTlRKaFlUY3dNemd0TlRrek1pMDBNV0ptTFRnMVpERXRPRFppT1RJeE5tTmhZVE5sWm1Rek1qVXdOR1l0T1dRMFppMDBPVGsyTFRreVpUa3RZMlptWW1VeVpXVmlaamN3IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2Njk4MjkwMzEsImF0X2hhc2giOiJxN2FadXVfdzk1dENUemRYUGVuakNBIn0.h1OF72xi-ci5fqrScUnSAypIHPZ_MDAaFB5yavH40ywsdf4BSDJXsD5s5YcZQxo-6oVF09-zd5aCegfxerTjW1jdl5uBrZ-Mgk9Ee2w8yvZutXO6EIJv9dCeUNJ9Evm2jTdHtIGiTbyP4L17NcUiVsNVYqDWrs59OcFB2uEXBVdcRB6lCdlnZTYp_4nM-eTbKRWy__ZubjrVqI2rYGh8XSQnLRT_ImMOAFZzTAnP5CJtZuf2i1q_nCn2OJ5BUGQo8EylCbVLdbn4WiLiXDiHV5QQYhPLfpnBJO-H7HsW_ZyrJaguDw4H_f8v6autgQJcjhQAvVxLvZEv7puLqwrEWg",
+				"value": "eyJraWQiOiJyRGFzbDVMU2hNUVNxWWRqelM1VVc4U3BNSGI1cGtxTTdNYVNJdHNXSnBVIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjcyODY1Nzk1LCJleHAiOjE2NzI4NjkzOTUsImp0aSI6IklELkEwZm92YnhKZmE3VjUyeHJxSUtuT0tuclFzMmxwT0N1RFo1VVdYbUsxcTgiLCJhbXIiOlsibWZhIiwicHdkIiwib3RwIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2MzgwODQ2MjU3MDY0MzM0MzguT0RGak1XTTVOalF0TVRobFpTMDBZVGt5TFRsa1pUSXROVE0wTTJJd1lXRTJNemt3WlRjeFptUTJOelV0TURJME5pMDBabU0zTFdFMFpqUXRNekJtT1RsbE1tUmpaVEJsIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NzI4NjU3ODQsImF0X2hhc2giOiJMd2RuLXNBSnVCTGRhZmVwN2sxSTBnIiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.bDB6c4V51zas4wvOSuTKYoLObjcdn-9fwK0ioIf9DNdlJSnqiAjR2B23yzQu1O3usWLFwUFAqbJc9D9N__Tszx6kv560USE_T-E-oF6MNtEjvoq0jFlF6VhgUh0NY2_pTcUuZ2OfO8opgRa9lGpqFe5qggH0AzwYp3AIqm9You1tCDZZpKrphNEh-opngGiTF2WKo4jKJkiUSHJKOJmqAVtPmxEVyBNMcE7PiHhritb2TxoF_5sLzSv-TY4ttXFxpgy17B2MKdB79pxm91E4HtpXI2Kh4BoOnCYaUR1UvK6x4ITt4Vw53kl2A7zO5XqomZMViCclsn_8lGm6iiDF9A",
 				"type": "string"
 			}
 		]
@@ -3935,6 +4114,16 @@
 		},
 		{
 			"key": "Score.5.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Comment.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Comment.Value",
 			"value": "",
 			"type": "string"
 		}
