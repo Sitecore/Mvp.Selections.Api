@@ -11,10 +11,6 @@
 
         public MvpType MvpType { get; set; } = null!;
 
-        public User User { get; set; } = null!;
-
-        public Selection Selection { get; set; } = null!;
-
         public Application Application { get; set; } = null!;
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Comments;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data
 {
@@ -10,6 +12,12 @@ namespace Mvp.Selections.Data
         public static readonly Guid DefaultCandidateRoleId = new ("00000000-0000-0000-0000-000000000002");
 
         public static readonly Guid DefaultReviewerRoleId = new ("00000000-0000-0000-0000-000000000003");
+
+        public static readonly Guid DefaultScorerRoleId = new ("00000000-0000-0000-0000-000000000004");
+
+        public static readonly Guid DefaultCommenterRoleId = new ("00000000-0000-0000-0000-000000000005");
+
+        public static readonly Guid DefaultAwarderRoleId = new ("00000000-0000-0000-0000-000000000006");
 
         public Context(DbContextOptions<Context> options)
             : base(options)
@@ -51,6 +59,10 @@ namespace Mvp.Selections.Data
         // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Product> Products => Set<Product>();
 
+        public DbSet<Comment> Comments => Set<Comment>();
+
+        public DbSet<Title> Titles => Set<Title>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             Guid adminUserId = new ("00000000-0000-0000-0000-000000000001");
@@ -74,6 +86,12 @@ namespace Mvp.Selections.Data
                 .HasData(new { Id = DefaultCandidateRoleId, Name = "Candidate", Rights = Right.Apply | Right.Any, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
             modelBuilder.Entity<SystemRole>()
                 .HasData(new { Id = DefaultReviewerRoleId, Name = "Reviewer", Rights = Right.Review | Right.Any, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
+            modelBuilder.Entity<SystemRole>()
+                .HasData(new { Id = DefaultScorerRoleId, Name = "Scorer", Rights = Right.Score | Right.Any, CreatedOn = new DateTime(2023, 1, 1), CreatedBy = "System" });
+            modelBuilder.Entity<SystemRole>()
+                .HasData(new { Id = DefaultCommenterRoleId, Name = "Commenter", Rights = Right.Comment | Right.Any, CreatedOn = new DateTime(2023, 1, 1), CreatedBy = "System" });
+            modelBuilder.Entity<SystemRole>()
+                .HasData(new { Id = DefaultAwarderRoleId, Name = "Awarder", Rights = Right.Award | Right.Any, CreatedOn = new DateTime(2023, 1, 1), CreatedBy = "System" });
 
             modelBuilder.Entity<ReviewCategoryScore>()
                 .HasKey(rcs => new { rcs.ReviewId, rcs.ScoreCategoryId, rcs.ScoreId });
@@ -97,13 +115,8 @@ namespace Mvp.Selections.Data
                 .WithMany()
                 .OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<Title>()
-                .HasOne(t => t.Selection)
-                .WithMany(s => s.Titles)
-                .OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<Title>()
-                .HasOne(t => t.User)
-                .WithMany(u => u.Titles)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasIndex("ApplicationId")
+                .IsUnique();
 
             modelBuilder.Entity<Selection>()
                 .HasAlternateKey(s => s.Year);
@@ -118,6 +131,12 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<ScoreCategory>()
                 .HasOne(sc => sc.CalculationScore)
                 .WithMany();
+
+            modelBuilder.Entity<Comment>()
+                .Navigation(c => c.User)
+                .AutoInclude();
+
+            modelBuilder.Entity<ApplicationComment>();
         }
 
         private static IEnumerable<Country> SeedCountries()
