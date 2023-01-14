@@ -15,5 +15,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
         Task<OperationResult<ScoreCategory>> AddAsync(Guid selectionId, short mvpTypeId, ScoreCategory scoreCategory);
 
         Task RemoveAsync(Guid id);
+
+        Task<OperationResult<ScoreCategory>> UpdateAsync(Guid id, ScoreCategory scoreCategory);
     }
 }

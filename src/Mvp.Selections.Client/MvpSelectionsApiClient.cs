@@ -10,6 +10,8 @@ using Mvp.Selections.Client.Models;
 using Mvp.Selections.Client.Models.Request;
 using Mvp.Selections.Client.Serialization;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Comments;
+using Mvp.Selections.Domain.Roles;
 
 #pragma warning disable SA1124 // Do not use regions - For readability purpose of the many methods
 namespace Mvp.Selections.Client
@@ -486,6 +488,11 @@ namespace Mvp.Selections.Client
             return PostAsync<ScoreCategory>($"/api/v1/selections/{selectionId}/mvptypes/{mvpTypeId}/scorecategories", scoreCategory);
         }
 
+        public Task<Response<ScoreCategory>> UpdateScoreCategoryAsync(ScoreCategory scoreCategory)
+        {
+            return PatchAsync<ScoreCategory>($"/api/v1/scorecategories/{scoreCategory.Id}", scoreCategory);
+        }
+
         public Task<Response<bool>> RemoveScoreCategoryAsync(Guid scoreCategoryId)
         {
             return DeleteAsync($"/api/v1/scorecategories/{scoreCategoryId}");
@@ -551,6 +558,71 @@ namespace Mvp.Selections.Client
         }
 
         #endregion ScoreCards
+
+        #region Comments
+
+        public Task<Response<ApplicationComment>> AddApplicationCommentAsync(Guid applicationId, ApplicationComment comment)
+        {
+            return PostAsync<ApplicationComment>($"/api/v1/applications/{applicationId}/comments", comment);
+        }
+
+        public Task<Response<Comment>> UpdateCommentAsync(Comment comment)
+        {
+            return PatchAsync<Comment>($"/api/v1/comments/{comment.Id}", comment);
+        }
+
+        public Task<Response<bool>> RemoveCommentAsync(Guid commentId)
+        {
+            return DeleteAsync($"/api/v1/comments/{commentId}");
+        }
+
+        #endregion Comments
+
+        #region Titles
+
+        public Task<Response<IList<Title>>> GetTitlesAsync(
+            string? name = null,
+            IList<short>? mvpTypeIds = null,
+            IList<short>? years = null,
+            IList<short>? countryIds = null,
+            int page = 1,
+            short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetTitlesAsync(name, mvpTypeIds, years, countryIds, listParameters);
+        }
+
+        public Task<Response<IList<Title>>> GetTitlesAsync(
+            string? name,
+            IList<short>? mvpTypeIds,
+            IList<short>? years,
+            IList<short>? countryIds,
+            ListParameters listParameters)
+        {
+            string nameQueryString = string.IsNullOrWhiteSpace(name) ? string.Empty : $"&name={name}";
+            string mvpTypeIdsQueryString = (mvpTypeIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, mvpTypeId) => current + $"&mvptypeid={mvpTypeId}");
+            string yearsQueryString = (years ?? Array.Empty<short>()).Aggregate(string.Empty, (current, year) => current + $"&year={year}");
+            string countryIdsQueryString = (countryIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, countryId) => current + $"&countryid={countryId}");
+
+            return GetAsync<IList<Title>>($"/api/v1/titles?{listParameters.ToQueryString()}{nameQueryString}{mvpTypeIdsQueryString}{yearsQueryString}{countryIdsQueryString}");
+        }
+
+        public Task<Response<Title>> AddTitleAsync(Title title)
+        {
+            return PostAsync<Title>("/api/v1/titles", title);
+        }
+
+        public Task<Response<Title>> UpdateTitleAsync(Title title)
+        {
+            return PatchAsync<Title>($"/api/v1/titles/{title.Id}", title);
+        }
+
+        public Task<Response<bool>> RemoveTitleAsync(Guid titleId)
+        {
+            return DeleteAsync($"/api/v1/titles/{titleId}");
+        }
+
+        #endregion Titles
 
         #region Private
 
