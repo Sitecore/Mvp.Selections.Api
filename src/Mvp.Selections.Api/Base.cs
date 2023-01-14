@@ -73,11 +73,11 @@ namespace Mvp.Selections.Api
         {
             IActionResult result = operationResult.StatusCode switch
             {
-                HttpStatusCode.OK => new ContentResult
+                HttpStatusCode.OK or HttpStatusCode.Created => new ContentResult
                 {
                     Content = Serializer.Serialize(operationResult.Result, contractResolver),
                     ContentType = Serializer.ContentType,
-                    StatusCode = (int)HttpStatusCode.OK
+                    StatusCode = (int)operationResult.StatusCode
                 },
                 HttpStatusCode.NoContent => new NoContentResult(),
                 _ => new ContentResult

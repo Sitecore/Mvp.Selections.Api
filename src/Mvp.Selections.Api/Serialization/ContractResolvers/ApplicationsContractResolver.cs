@@ -10,7 +10,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly ApplicationsContractResolver Instance = new ();
 
-        private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Email) };
+        private readonly string[] _userExcludedMembers = { nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Email) };
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
@@ -20,10 +20,6 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = null;
             }
             else if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
-            {
-                result = null;
-            }
-            else if (member.DeclaringType == typeof(Selection) && member.Name == nameof(Selection.Titles))
             {
                 result = null;
             }

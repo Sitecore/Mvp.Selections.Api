@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetScoreCategories")]
-        [OpenApiOperation("GetScoreCategories", "ScoreCategories", "Admin", "Review")]
+        [OpenApiOperation("GetScoreCategories", "ScoreCategories", "Admin", "Review", "Score")]
         [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter("mvpTypeId", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -43,7 +43,7 @@ namespace Mvp.Selections.Api
             Guid selectionId,
             short mvpTypeId)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review, Right.Score }, async authResult =>
             {
                 OperationResult<IList<ScoreCategory>> getResult = await _scoreCategoryService.GetAllAsync(selectionId, mvpTypeId);
                 return ContentResult(getResult, authResult.User.HasRight(Right.Admin) ? ScoreCategoriesAdminContractResolver.Instance : ScoreCategoriesContractResolver.Instance);
@@ -51,7 +51,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("AddScoreCategory")]
-        [OpenApiOperation("AddScoreCategory", "ScoreCategories", "Admin")]
+        [OpenApiOperation("AddScoreCategory", "ScoreCategories", "Admin", "Score")]
         [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter("mvpTypeId", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(ScoreCategory))]
@@ -67,16 +67,39 @@ namespace Mvp.Selections.Api
             Guid selectionId,
             short mvpTypeId)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 ScoreCategory input = await Serializer.DeserializeAsync<ScoreCategory>(req.Body);
                 OperationResult<ScoreCategory> addResult = await _scoreCategoryService.AddAsync(selectionId, mvpTypeId, input);
-                return ContentResult(addResult.Result, ScoreCategoriesAdminContractResolver.Instance);
+                return ContentResult(addResult, ScoreCategoriesAdminContractResolver.Instance);
+            });
+        }
+
+        [FunctionName("UpdateScoreCategory")]
+        [OpenApiOperation("UpdateScoreCategory", "ScoreCategories", "Admin", "Score")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiRequestBody(JsonContentType, typeof(ScoreCategory))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(ScoreCategory))]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> Update(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/scorecategories/{id:Guid}")]
+            HttpRequest req,
+            Guid id)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
+            {
+                ScoreCategory input = await Serializer.DeserializeAsync<ScoreCategory>(req.Body);
+                OperationResult<ScoreCategory> updateResult = await _scoreCategoryService.UpdateAsync(id, input);
+                return ContentResult(updateResult, ScoreCategoriesAdminContractResolver.Instance);
             });
         }
 
         [FunctionName("RemoveScoreCategory")]
-        [OpenApiOperation("RemoveScoreCategory", "ScoreCategories", "Admin")]
+        [OpenApiOperation("RemoveScoreCategory", "ScoreCategories", "Admin", "Score")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
@@ -89,7 +112,7 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 await _scoreCategoryService.RemoveAsync(id);
                 return new NoContentResult();

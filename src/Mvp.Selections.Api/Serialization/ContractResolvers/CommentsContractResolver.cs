@@ -1,29 +1,36 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Comments;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
-    public class RolesContractResolver : CamelCasePropertyNamesContractResolver
+    internal class CommentsContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly RolesContractResolver Instance = new ();
+        public static readonly CommentsContractResolver Instance = new ();
 
         private readonly string[] _userExcludedMembers =
         {
-            nameof(User.Applications),
             nameof(User.Consents),
+            nameof(User.Applications),
             nameof(User.Mentors),
             nameof(User.Reviews),
-            nameof(User.Links),
-            nameof(User.Roles)
+            nameof(User.Email),
+            nameof(User.Roles),
+            nameof(User.Rights),
+            nameof(User.Links)
         };
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty result;
-            if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
+            if (member.DeclaringType == typeof(ApplicationComment) && member.Name == nameof(ApplicationComment.Application))
+            {
+                result = null;
+            }
+            else if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
             {
                 result = null;
             }

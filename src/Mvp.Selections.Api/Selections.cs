@@ -10,7 +10,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -100,7 +99,7 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
                 Selection input = await Serializer.DeserializeAsync<Selection>(req.Body);
-                Selection selection = await _selectionService.AddSelectionAsync(input);
+                Selection selection = await _selectionService.AddAsync(input);
                 return ContentResult(selection);
             });
         }
@@ -122,7 +121,7 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
                 Selection input = await Serializer.DeserializeAsync<Selection>(req.Body);
-                Selection selection = await _selectionService.UpdateSelectionAsync(id, input);
+                Selection selection = await _selectionService.UpdateAsync(id, input);
                 return ContentResult(selection);
             });
         }
@@ -142,7 +141,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                await _selectionService.RemoveSelectionAsync(id);
+                await _selectionService.RemoveAsync(id);
                 return new NoContentResult();
             });
         }

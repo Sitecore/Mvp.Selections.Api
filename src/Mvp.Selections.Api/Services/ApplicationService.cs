@@ -186,7 +186,7 @@ namespace Mvp.Selections.Api.Services
             {
                 newApplication = _applicationRepository.Add(newApplication);
                 await _applicationRepository.SaveChangesAsync();
-                result.StatusCode = HttpStatusCode.OK;
+                result.StatusCode = HttpStatusCode.Created;
                 result.Result = newApplication;
             }
 

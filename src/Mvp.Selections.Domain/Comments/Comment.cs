@@ -8,5 +8,7 @@
         }
 
         public string Value { get; set; } = string.Empty;
+
+        public User User { get; set; } = null!;
     }
 }

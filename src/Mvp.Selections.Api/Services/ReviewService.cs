@@ -182,7 +182,7 @@ namespace Mvp.Selections.Api.Services
                         newReview = _reviewRepository.Add(newReview);
                         await _reviewRepository.SaveChangesAsync();
                         result.Result = newReview;
-                        result.StatusCode = HttpStatusCode.OK;
+                        result.StatusCode = HttpStatusCode.Created;
                     }
                 }
                 else

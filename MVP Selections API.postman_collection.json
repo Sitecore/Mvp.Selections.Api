@@ -468,8 +468,8 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
 									"});\r",
 									"pm.test(\"Application created matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
@@ -808,8 +808,8 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
 									"});\r",
 									"pm.test(\"Comment created matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
@@ -945,6 +945,28 @@
 								"v1",
 								"comments",
 								"{{Comment.Id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All ApplicationComments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/comments",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"applications",
+								"{{Application.Id}}",
+								"comments"
 							]
 						}
 					},
@@ -2845,6 +2867,36 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "ScoreCategory",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{$randomIngverb}}\",\r\n  \"weight\": 3,\r\n  \"sortRank\": 10,\r\n  \"scoreOptions\": [\r\n    {\r\n      \"id\": \"{{Score.Content.Id}}\"\r\n    },\r\n    {\r\n      \"id\": \"{{Score.Engagement.Id}}\"\r\n    },\r\n    {\r\n      \"id\": \"{{Score.Speaking.Id}}\"\r\n    },\r\n    {\r\n      \"id\": \"{{Score.Feedback.Id}}\"\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/scorecategories/{{ScoreCategory.Content.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"scorecategories",
+								"{{ScoreCategory.Content.Id}}"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -3317,6 +3369,163 @@
 								"v1",
 								"selections",
 								"{{Selection.Id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Titles",
+			"item": [
+				{
+					"name": "All Titles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/titles",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"titles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Title",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"Title created matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.mvpType.id).to.eql(pm.variables.get(\"MvpType.Id\"));\r",
+									"    pm.expect(jsonData.application.id).to.eql(pm.variables.get(\"Application.Id\"));\r",
+									"    pm.collectionVariables.set(\"Title.Id\", jsonData.id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"Title.Warning\", pm.variables.replaceIn(\"{{$randomPhrase}}\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"warning\": \"{{Title.Warning}}\",\r\n    \"mvpType\": {\r\n        \"id\": \"{{MvpType.Id}}\"\r\n    },\r\n    \"application\": {\r\n        \"id\": \"{{Application.Id}}\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/titles",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"titles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Title",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"Title.Warning\", pm.variables.replaceIn(\"{{$randomPhrase}}\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"warning\": \"{{Title.Warning}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/titles/{{Title.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"titles",
+								"{{Title.Id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Title",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/titles/{{Title.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"titles",
+								"{{Title.Id}}"
 							]
 						}
 					},
@@ -4124,6 +4333,16 @@
 		},
 		{
 			"key": "Comment.Value",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Title.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Title.Warning",
 			"value": "",
 			"type": "string"
 		}

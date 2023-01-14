@@ -10,7 +10,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -30,7 +29,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("GetScore")]
-        [OpenApiOperation("GetScore", "Scores", "Admin")]
+        [OpenApiOperation("GetScore", "Scores", "Admin", "Score")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Score))]
@@ -42,15 +41,15 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 Score score = await _scoreService.GetAsync(id);
-                return ContentResult(score, ScoreContractResolver.Instance);
+                return ContentResult(score, ScoresContractResolver.Instance);
             });
         }
 
         [FunctionName("GetAllScores")]
-        [OpenApiOperation("GetAllScores", "Scores", "Admin")]
+        [OpenApiOperation("GetAllScores", "Scores", "Admin", "Score")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(Guid), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -62,16 +61,16 @@ namespace Mvp.Selections.Api
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/scores")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 ListParameters lp = new (req);
                 IList<Score> scores = await _scoreService.GetAllAsync(lp.Page, lp.PageSize);
-                return ContentResult(scores, ScoreContractResolver.Instance);
+                return ContentResult(scores, ScoresContractResolver.Instance);
             });
         }
 
         [FunctionName("AddScore")]
-        [OpenApiOperation("AddScore", "Scores", "Admin")]
+        [OpenApiOperation("AddScore", "Scores", "Admin", "Score")]
         [OpenApiRequestBody(JsonContentType, typeof(Score))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Score))]
@@ -82,16 +81,16 @@ namespace Mvp.Selections.Api
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/scores")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 Score input = await Serializer.DeserializeAsync<Score>(req.Body);
                 Score score = await _scoreService.AddAsync(input);
-                return ContentResult(score, ScoreContractResolver.Instance);
+                return ContentResult(score, ScoresContractResolver.Instance);
             });
         }
 
         [FunctionName("UpdateScore")]
-        [OpenApiOperation("UpdateScore", "Scores", "Admin")]
+        [OpenApiOperation("UpdateScore", "Scores", "Admin", "Score")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Score))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -104,16 +103,16 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 Score input = await Serializer.DeserializeAsync<Score>(req.Body);
                 OperationResult<Score> updateResult = await _scoreService.UpdateAsync(id, input);
-                return ContentResult(updateResult, ScoreContractResolver.Instance);
+                return ContentResult(updateResult, ScoresContractResolver.Instance);
             });
         }
 
         [FunctionName("RemoveScore")]
-        [OpenApiOperation("RemoveScore", "Scores", "Admin")]
+        [OpenApiOperation("RemoveScore", "Scores", "Admin", "Score")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
@@ -125,7 +124,7 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async _ =>
             {
                 await _scoreService.RemoveAsync(id);
                 return new NoContentResult();

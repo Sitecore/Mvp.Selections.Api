@@ -36,8 +36,6 @@ namespace Mvp.Selections.Domain
 
         public ICollection<Role> Roles { get; init; } = new List<Role>();
 
-        public ICollection<Title> Titles { get; init; } = new List<Title>();
-
         [NotMapped]
         public Right Rights => _rights ?? RecalculateRights();
 

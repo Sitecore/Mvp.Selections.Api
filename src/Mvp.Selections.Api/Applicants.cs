@@ -51,12 +51,12 @@ namespace Mvp.Selections.Api
             {
                 ListParameters lp = new (req);
                 IList<Applicant> applicants = await _applicantService.GetApplicantsAsync(authResult.User, selectionId, lp.Page, lp.PageSize);
-                return ContentResult(applicants, ApplicantContractResolver.Instance);
+                return ContentResult(applicants, ApplicantsContractResolver.Instance);
             });
         }
 
         [FunctionName("GetApplicantScoreCards")]
-        [OpenApiOperation("GetApplicantScoreCards", "Applicants", "Admin")]
+        [OpenApiOperation("GetApplicantScoreCards", "Applicants", "Admin", "Score")]
         [OpenApiParameter("selectionId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiParameter("mvpTypeId", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -70,10 +70,10 @@ namespace Mvp.Selections.Api
             Guid selectionId,
             short mvpTypeId)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Score }, async authResult =>
             {
                 OperationResult<IList<ScoreCard>> getResult = await _scoreCardService.GetScoreCardsAsync(authResult.User, selectionId, mvpTypeId);
-                return ContentResult(getResult, ApplicantContractResolver.Instance);
+                return ContentResult(getResult, ApplicantsContractResolver.Instance);
             });
         }
     }
