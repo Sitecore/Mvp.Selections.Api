@@ -4,7 +4,8 @@
     <id>Mvp.Selections.Client</id>
     <version>4.1.0</version>
     <releaseNotes>
-      + Titles (Get, GetAll, Add, Update, Remove)
+      + Titles (GetAll, Add, Update, Remove)
+      + ScoreCategories (Update)
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>
