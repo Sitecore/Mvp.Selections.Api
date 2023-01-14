@@ -10,7 +10,7 @@ namespace Mvp.Selections.Api.Configuration
     {
         public OpenApiInfo Info { get; set; } = new ()
         {
-            Version = "4.1.0",
+            Version = "4.2.0",
             Title = "Sitecore MVP Selections API",
             Description = "Supporting API for the Sitecore MVP Selection process.",
             Contact = new OpenApiContact
