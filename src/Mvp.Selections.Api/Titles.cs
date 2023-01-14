@@ -75,7 +75,7 @@ namespace Mvp.Selections.Api
         }
 
         [FunctionName("UpdateTitle")]
-        [OpenApiOperation("AddTitle", "Titles", "Admin", "Award")]
+        [OpenApiOperation("UpdateTitle", "Titles", "Admin", "Award")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Title))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
