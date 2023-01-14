@@ -39,32 +39,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Get(
+        public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/regions/{id:int}")]
             HttpRequest req,
             int id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Region region = await _regionService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(region, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Region region = await _regionService.GetAsync(id);
+                return ContentResult(region, RegionsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllRegions")]
@@ -76,32 +60,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAll(
+        public Task<IActionResult> GetAll(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/regions")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    IList<Region> regions = await _regionService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(regions, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                IList<Region> regions = await _regionService.GetAllAsync(lp.Page, lp.PageSize);
+                return ContentResult(regions, RegionsContractResolver.Instance);
+            });
         }
 
         [FunctionName("AddRegion")]
@@ -112,32 +80,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/regions")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Region input = await Serializer.DeserializeAsync<Region>(req.Body);
-                    Region region = await _regionService.AddAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(region, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Region input = await Serializer.DeserializeAsync<Region>(req.Body);
+                Region region = await _regionService.AddAsync(input);
+                return ContentResult(region, RegionsContractResolver.Instance);
+            });
         }
 
         [FunctionName("UpdateRegion")]
@@ -149,33 +101,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Update(
+        public Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/regions/{id:int}")]
             HttpRequest req,
             int id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Region input = await Serializer.DeserializeAsync<Region>(req.Body);
-                    Region region = await _regionService.UpdateAsync(id, input);
-                    result = new ContentResult { Content = Serializer.Serialize(region, RegionsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Region input = await Serializer.DeserializeAsync<Region>(req.Body);
+                Region region = await _regionService.UpdateAsync(id, input);
+                return ContentResult(region, RegionsContractResolver.Instance);
+            });
         }
 
         [FunctionName("AssignCountryToRegion")]
@@ -188,43 +124,31 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> AssignCountryToRegion(
+        public Task<IActionResult> AssignCountryToRegion(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/regions/{id:int}/countries")]
             HttpRequest req,
             int id)
         {
-            IActionResult result;
-            try
+            // TODO [IVA] Refactor to use OperationResult
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
+                IActionResult result;
+                AssignCountryToRegionRequestBody body = await Serializer.DeserializeAsync<AssignCountryToRegionRequestBody>(req.Body);
+                if (body != null && await _regionService.AssignCountryAsync(id, body.CountryId))
                 {
-                    AssignCountryToRegionRequestBody body = await Serializer.DeserializeAsync<AssignCountryToRegionRequestBody>(req.Body);
-                    if (body != null && await _regionService.AssignCountryAsync(id, body.CountryId))
-                    {
-                        result = new NoContentResult();
-                    }
-                    else if (body == null)
-                    {
-                        result = new BadRequestErrorMessageResult("Missing request body.");
-                    }
-                    else
-                    {
-                        result = new BadRequestErrorMessageResult($"Unable to assign Country '{body.CountryId}' to Region '{id}'. Either region or country may not exist.");
-                    }
+                    result = new NoContentResult();
+                }
+                else if (body == null)
+                {
+                    result = new BadRequestErrorMessageResult("Missing request body.");
                 }
                 else
                 {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                    result = new BadRequestErrorMessageResult($"Unable to assign Country '{body.CountryId}' to Region '{id}'. Either region or country may not exist.");
                 }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
 
-            return result;
+                return result;
+            });
         }
 
         [FunctionName("RemoveCountryFromRegion")]
@@ -237,39 +161,27 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> RemoveCountryFromRegion(
+        public Task<IActionResult> RemoveCountryFromRegion(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/regions/{id:int}/countries/{countryId:int}")]
             HttpRequest req,
             int id,
             short countryId)
         {
-            IActionResult result;
-            try
+            // TODO [IVA] Refactor to use OperationResult
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
+                IActionResult result;
+                if (await _regionService.RemoveCountryAsync(id, countryId))
                 {
-                    if (await _regionService.RemoveCountryAsync(id, countryId))
-                    {
-                        result = new NoContentResult();
-                    }
-                    else
-                    {
-                        result = new BadRequestErrorMessageResult($"Unable to remove Country '{countryId}' from Region '{id}'. Either region or country may not exist.");
-                    }
+                    result = new NoContentResult();
                 }
                 else
                 {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                    result = new BadRequestErrorMessageResult($"Unable to remove Country '{countryId}' from Region '{id}'. Either region or country may not exist.");
                 }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
 
-            return result;
+                return result;
+            });
         }
 
         [FunctionName("RemoveRegion")]
@@ -280,32 +192,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/regions/{id:int}")]
             HttpRequest req,
             int id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    await _regionService.RemoveAsync(id);
-                    result = new NoContentResult();
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                await _regionService.RemoveAsync(id);
+                return new NoContentResult();
+            });
         }
     }
 }

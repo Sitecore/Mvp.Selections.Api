@@ -75,7 +75,7 @@ namespace Mvp.Selections.Api.Services
                 {
                     newContribution = _contributionRepository.Add(newContribution);
                     await _contributionRepository.SaveChangesAsync();
-                    result.StatusCode = HttpStatusCode.OK;
+                    result.StatusCode = HttpStatusCode.Created;
                     result.Result = newContribution;
                 }
             }

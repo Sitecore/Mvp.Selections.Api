@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
@@ -13,30 +14,42 @@ namespace Mvp.Selections.Api.Extensions
             string key,
             T defaultValue = default)
         {
-            T result;
+            T result = queryCollection.TryGetValue(key, out StringValues values)
+                ? ConvertOrDefault(values.FirstOrDefault(), defaultValue)
+                : defaultValue;
+
+            return result;
+        }
+
+        public static IList<T> GetValuesOrEmpty<T>(this IQueryCollection queryCollection, string key)
+        {
+            List<T> result = new ();
             if (queryCollection.TryGetValue(key, out StringValues values))
             {
-                string resultValue = values.FirstOrDefault();
-                if (resultValue != null)
-                {
-                    Type t = typeof(T);
-                    if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    {
-                        t = Nullable.GetUnderlyingType(t) ?? t;
-                    }
+                result.AddRange(values.Select(value => ConvertOrDefault<T>(value)));
+            }
 
-                    if (t.IsAssignableTo(typeof(Enum)) && Enum.TryParse(t, resultValue, out object enumResult))
-                    {
-                        result = (T)enumResult;
-                    }
-                    else
-                    {
-                        result = (T)Convert.ChangeType(resultValue, t);
-                    }
+            return result;
+        }
+
+        private static T ConvertOrDefault<T>(string value, T defaultValue = default)
+        {
+            T result;
+            if (value != null)
+            {
+                Type t = typeof(T);
+                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    t = Nullable.GetUnderlyingType(t) ?? t;
+                }
+
+                if (t.IsAssignableTo(typeof(Enum)) && Enum.TryParse(t, value, out object enumResult))
+                {
+                    result = (T)enumResult;
                 }
                 else
                 {
-                    result = defaultValue;
+                    result = (T)Convert.ChangeType(value, t);
                 }
             }
             else

@@ -41,7 +41,7 @@ namespace Mvp.Selections.Api.Services
                     };
                     result.Result = _profileLinkRepository.Add(newProfileLink);
                     await _profileLinkRepository.SaveChangesAsync();
-                    result.StatusCode = HttpStatusCode.OK;
+                    result.StatusCode = HttpStatusCode.Created;
                 }
                 else
                 {
@@ -71,7 +71,7 @@ namespace Mvp.Selections.Api.Services
                     await _profileLinkRepository.SaveChangesAsync();
                 }
 
-                result.StatusCode = HttpStatusCode.OK;
+                result.StatusCode = HttpStatusCode.NoContent;
             }
             else
             {

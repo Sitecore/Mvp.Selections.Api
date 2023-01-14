@@ -13,10 +13,10 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100);
 
-        Task<Selection> AddSelectionAsync(Selection selection);
+        Task<Selection> AddAsync(Selection selection);
 
-        Task RemoveSelectionAsync(Guid id);
+        Task RemoveAsync(Guid id);
 
-        Task<Selection> UpdateSelectionAsync(Guid id, Selection selection);
+        Task<Selection> UpdateAsync(Guid id, Selection selection);
     }
 }
