@@ -29,6 +29,25 @@ namespace Mvp.Selections.Api
             _titleService = titleService;
         }
 
+        [FunctionName("GetTitle")]
+        [OpenApiOperation("GetTitle", "Titles", "Any")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Title))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> Get(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/titles/{id:Guid}")]
+            HttpRequest req,
+            Guid id)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async _ =>
+            {
+                Title title = await _titleService.GetAsync(id);
+                return ContentResult(title, TitlesContractResolver.Instance);
+            });
+        }
+
         [FunctionName("GetAllTitles")]
         [OpenApiOperation("GetAllTitles", "Titles", "Any")]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
@@ -36,7 +55,6 @@ namespace Mvp.Selections.Api
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Title>))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public Task<IActionResult> GetAll(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/titles")]
@@ -79,7 +97,7 @@ namespace Mvp.Selections.Api
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiRequestBody(JsonContentType, typeof(Title))]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Selection>))]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Title))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
@@ -100,7 +118,7 @@ namespace Mvp.Selections.Api
         [OpenApiOperation("RemoveTitle", "Titles", "Admin", "Award")]
         [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Selection>))]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]

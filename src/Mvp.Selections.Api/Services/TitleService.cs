@@ -117,5 +117,10 @@ namespace Mvp.Selections.Api.Services
                 await _titleRepository.SaveChangesAsync();
             }
         }
+
+        public Task<Title> GetAsync(Guid id)
+        {
+            return _titleRepository.GetAsync(id, _standardIncludes);
+        }
     }
 }

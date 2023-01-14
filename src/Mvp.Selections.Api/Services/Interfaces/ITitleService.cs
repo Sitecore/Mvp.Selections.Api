@@ -15,5 +15,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
         Task<OperationResult<Title>> UpdateAsync(Guid id, Title title);
 
         Task RemoveAsync(Guid id);
+
+        Task<Title> GetAsync(Guid id);
     }
 }
