@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Domain
 {
@@ -34,8 +35,6 @@ namespace Mvp.Selections.Domain
         public ICollection<Review> Reviews { get; init; } = new List<Review>();
 
         public ICollection<Role> Roles { get; init; } = new List<Role>();
-
-        public ICollection<Title> Titles { get; init; } = new List<Title>();
 
         [NotMapped]
         public Right Rights => _rights ?? RecalculateRights();

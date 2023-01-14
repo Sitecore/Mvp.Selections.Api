@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -10,7 +11,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly UsersContractResolver Instance = new ();
 
-        private readonly string[] _userExcludedMembers = { nameof(User.Titles), nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
+        private readonly string[] _userExcludedMembers = { nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {

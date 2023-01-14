@@ -21,8 +21,6 @@
 
         public DateTime ReviewsEnd { get; set; }
 
-        public ICollection<Title> Titles { get; init; } = new List<Title>();
-
         public bool AreApplicationsOpen()
         {
             return ApplicationsActive ?? (ApplicationsStart < DateTime.UtcNow && ApplicationsEnd > DateTime.UtcNow);
