@@ -561,6 +561,11 @@ namespace Mvp.Selections.Client
 
         #region Comments
 
+        public Task<Response<IList<ApplicationComment>>> GetApplicationCommentsAsync(Guid applicationId)
+        {
+            return GetAsync<IList<ApplicationComment>>($"/api/v1/applications/{applicationId}/comments");
+        }
+
         public Task<Response<ApplicationComment>> AddApplicationCommentAsync(Guid applicationId, ApplicationComment comment)
         {
             return PostAsync<ApplicationComment>($"/api/v1/applications/{applicationId}/comments", comment);
