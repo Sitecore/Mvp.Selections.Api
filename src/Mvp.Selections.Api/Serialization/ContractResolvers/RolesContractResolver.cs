@@ -16,7 +16,6 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
             nameof(User.Consents),
             nameof(User.Mentors),
             nameof(User.Reviews),
-            nameof(User.Titles),
             nameof(User.Links),
             nameof(User.Roles)
         };

@@ -44,7 +44,7 @@ namespace Mvp.Selections.Api.Serialization
             string result = JsonConvert.SerializeObject(data, _options.JsonSerializerSettings);
 #if DEBUG
             timer.Stop();
-            _logger.LogDebug($"Serialized '{data.GetType().AssemblyQualifiedName}' in {timer.ElapsedMilliseconds}ms.");
+            _logger.LogDebug($"Serialized '{data?.GetType().AssemblyQualifiedName}' in {timer.ElapsedMilliseconds}ms.");
 #endif
 
             return result;

@@ -81,10 +81,9 @@ namespace Mvp.Selections.Api.Services
 
                     if (result.Messages.Count == 0)
                     {
-                        newConsent = _consentRepository.Add(newConsent);
+                        result.Result = _consentRepository.Add(newConsent);
                         await _consentRepository.SaveChangesAsync();
-                        result.StatusCode = HttpStatusCode.OK;
-                        result.Result = newConsent;
+                        result.StatusCode = HttpStatusCode.Created;
                     }
                 }
             }

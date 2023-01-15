@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api.Services.Interfaces
 {

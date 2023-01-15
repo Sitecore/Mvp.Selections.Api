@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data.Repositories.Interfaces
 {

@@ -18,6 +18,7 @@ using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api
 {
@@ -40,32 +41,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllSystem(
+        public Task<IActionResult> GetAllSystem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/system")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.TokenUser != null)
-                {
-                    ListParameters lp = new (req);
-                    IList<SystemRole> systemRoles = await _roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(systemRoles, RolesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                IList<SystemRole> systemRoles = await _roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
+                return ContentResult(systemRoles, RolesContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetSystemRole")]
@@ -76,32 +61,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetSystem(
+        public Task<IActionResult> GetSystem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/system/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    SystemRole role = await _roleService.GetAsync<SystemRole>(id);
-                    result = new ContentResult { Content = Serializer.Serialize(role, RolesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                SystemRole role = await _roleService.GetAsync<SystemRole>(id);
+                return ContentResult(role, RolesContractResolver.Instance);
+            });
         }
 
         [FunctionName("AddSystemRole")]
@@ -112,32 +81,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> AddSystem(
+        public Task<IActionResult> AddSystem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/system")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    SystemRole input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
-                    Role role = await _roleService.AddSystemRoleAsync(input);
-                    result = new ContentResult { Content = Serializer.Serialize(role, RolesContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                SystemRole input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
+                Role role = await _roleService.AddSystemRoleAsync(input);
+                return ContentResult(role, RolesContractResolver.Instance);
+            });
         }
 
         [FunctionName("AssignUserToRole")]
@@ -149,43 +102,31 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> AssignUserToRole(
+        public Task<IActionResult> AssignUserToRole(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/{id:Guid}/users")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            // TODO [IVA] Refactor to use OperationResult
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
+                IActionResult result;
+                AssignUserToRoleRequestBody body = await Serializer.DeserializeAsync<AssignUserToRoleRequestBody>(req.Body);
+                if (body != null && await _roleService.AssignUserAsync(id, body.UserId))
                 {
-                    AssignUserToRoleRequestBody body = await Serializer.DeserializeAsync<AssignUserToRoleRequestBody>(req.Body);
-                    if (body != null && await _roleService.AssignUserAsync(id, body.UserId))
-                    {
-                        result = new NoContentResult();
-                    }
-                    else if (body == null)
-                    {
-                        result = new BadRequestErrorMessageResult("Missing request body.");
-                    }
-                    else
-                    {
-                        result = new BadRequestErrorMessageResult($"Unable to assign User '{body.UserId}' to Role '{id}'. Either user or role may not exist.");
-                    }
+                    result = new NoContentResult();
+                }
+                else if (body == null)
+                {
+                    result = new BadRequestErrorMessageResult("Missing request body.");
                 }
                 else
                 {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                    result = new BadRequestErrorMessageResult($"Unable to assign User '{body.UserId}' to Role '{id}'. Either user or role may not exist.");
                 }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
 
-            return result;
+                return result;
+            });
         }
 
         [FunctionName("RemoveUserFromRole")]
@@ -198,39 +139,27 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> RemoveUserFromRole(
+        public Task<IActionResult> RemoveUserFromRole(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/roles/{id:Guid}/users/{userId:Guid}")]
             HttpRequest req,
             Guid id,
             Guid userId)
         {
-            IActionResult result;
-            try
+            // TODO [IVA] Refactor to use OperationResult
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
+                IActionResult result;
+                if (await _roleService.RemoveUserAsync(id, userId))
                 {
-                    if (await _roleService.RemoveUserAsync(id, userId))
-                    {
-                        result = new NoContentResult();
-                    }
-                    else
-                    {
-                        result = new BadRequestErrorMessageResult($"Unable to remove User '{userId}' from Role '{id}'. Either user or role may not exist.");
-                    }
+                    result = new NoContentResult();
                 }
                 else
                 {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
+                    result = new BadRequestErrorMessageResult($"Unable to remove User '{userId}' from Role '{id}'. Either user or role may not exist.");
                 }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
 
-            return result;
+                return result;
+            });
         }
 
         [FunctionName("RemoveRole")]
@@ -241,32 +170,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/roles/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    await _roleService.RemoveRoleAsync(id);
-                    result = new NoContentResult();
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                await _roleService.RemoveRoleAsync(id);
+                return new NoContentResult();
+            });
         }
     }
 }
