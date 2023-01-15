@@ -88,7 +88,8 @@ namespace Mvp.Selections.Data.Repositories
             }
 
             return query
-                .OrderBy(a => a.Applicant.Name)
+                .OrderByDescending(a => a.Selection.Year)
+                .ThenBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
