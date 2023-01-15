@@ -93,6 +93,45 @@ namespace Mvp.Selections.Data.Migrations
                     b.ToTable("Applications");
                 });
 
+            modelBuilder.Entity("Mvp.Selections.Domain.Comments.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Comment");
+                });
+
             modelBuilder.Entity("Mvp.Selections.Domain.Consent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2075,7 +2114,7 @@ namespace Mvp.Selections.Data.Migrations
                     b.ToTable("ReviewCategoryScore");
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.Role", b =>
+            modelBuilder.Entity("Mvp.Selections.Domain.Roles.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -2269,26 +2308,17 @@ namespace Mvp.Selections.Data.Migrations
                     b.Property<short>("MvpTypeId")
                         .HasColumnType("smallint");
 
-                    b.Property<Guid>("SelectionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Warning")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationId");
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
 
                     b.HasIndex("MvpTypeId");
 
-                    b.HasIndex("SelectionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Title");
+                    b.ToTable("Titles");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.User", b =>
@@ -2395,9 +2425,21 @@ namespace Mvp.Selections.Data.Migrations
                     b.ToTable("ScoreScoreCategory");
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.SelectionRole", b =>
+            modelBuilder.Entity("Mvp.Selections.Domain.Comments.ApplicationComment", b =>
                 {
-                    b.HasBaseType("Mvp.Selections.Domain.Role");
+                    b.HasBaseType("Mvp.Selections.Domain.Comments.Comment");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasDiscriminator().HasValue("ApplicationComment");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.Roles.SelectionRole", b =>
+                {
+                    b.HasBaseType("Mvp.Selections.Domain.Roles.Role");
 
                     b.Property<Guid?>("ApplicationId")
                         .HasColumnType("uniqueidentifier");
@@ -2427,9 +2469,9 @@ namespace Mvp.Selections.Data.Migrations
                     b.HasDiscriminator().HasValue("SelectionRole");
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.SystemRole", b =>
+            modelBuilder.Entity("Mvp.Selections.Domain.Roles.SystemRole", b =>
                 {
-                    b.HasBaseType("Mvp.Selections.Domain.Role");
+                    b.HasBaseType("Mvp.Selections.Domain.Roles.Role");
 
                     b.Property<int>("Rights")
                         .HasColumnType("int");
@@ -2460,6 +2502,30 @@ namespace Mvp.Selections.Data.Migrations
                             CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Reviewer",
                             Rights = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000004"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Scorer",
+                            Rights = 8
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000005"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Commenter",
+                            Rights = 16
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000006"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2023, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Awarder",
+                            Rights = 32
                         });
                 });
 
@@ -2511,6 +2577,17 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("MvpType");
 
                     b.Navigation("Selection");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.Comments.Comment", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Consent", b =>
@@ -2646,25 +2723,9 @@ namespace Mvp.Selections.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("Mvp.Selections.Domain.Selection", "Selection")
-                        .WithMany("Titles")
-                        .HasForeignKey("SelectionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Mvp.Selections.Domain.User", "User")
-                        .WithMany("Titles")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Application");
 
                     b.Navigation("MvpType");
-
-                    b.Navigation("Selection");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.User", b =>
@@ -2682,7 +2743,7 @@ namespace Mvp.Selections.Data.Migrations
 
             modelBuilder.Entity("RoleUser", b =>
                 {
-                    b.HasOne("Mvp.Selections.Domain.Role", null)
+                    b.HasOne("Mvp.Selections.Domain.Roles.Role", null)
                         .WithMany()
                         .HasForeignKey("RolesId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2710,7 +2771,18 @@ namespace Mvp.Selections.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.SelectionRole", b =>
+            modelBuilder.Entity("Mvp.Selections.Domain.Comments.ApplicationComment", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.Application", "Application")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.Roles.SelectionRole", b =>
                 {
                     b.HasOne("Mvp.Selections.Domain.Application", "Application")
                         .WithMany()
@@ -2770,11 +2842,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("SubCategories");
                 });
 
-            modelBuilder.Entity("Mvp.Selections.Domain.Selection", b =>
-                {
-                    b.Navigation("Titles");
-                });
-
             modelBuilder.Entity("Mvp.Selections.Domain.User", b =>
                 {
                     b.Navigation("Applications");
@@ -2786,8 +2853,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("Mentors");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("Titles");
                 });
 #pragma warning restore 612, 618
         }

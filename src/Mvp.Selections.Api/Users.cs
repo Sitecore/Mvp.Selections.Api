@@ -35,31 +35,15 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetCurrent(
+        public Task<IActionResult> GetCurrent(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/current")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    User user = await _userService.GetAsync(authResult.User.Id);
-                    result = new ContentResult { Content = Serializer.Serialize(user, UsersContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                User user = await _userService.GetAsync(authResult.User.Id);
+                return ContentResult(user, UsersContractResolver.Instance);
+            });
         }
 
         [FunctionName("UpdateCurrentUser")]
@@ -69,44 +53,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> UpdateCurrent(
+        public Task<IActionResult> UpdateCurrent(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/users/current")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    User input = await Serializer.DeserializeAsync<User>(req.Body);
-                    OperationResult<User> updateResult = await _userService.UpdateAsync(authResult.User.Id, input);
-                    result = updateResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(updateResult.Result, UsersContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, updateResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)updateResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                User input = await Serializer.DeserializeAsync<User>(req.Body);
+                OperationResult<User> updateResult = await _userService.UpdateAsync(authResult.User.Id, input);
+                return ContentResult(updateResult, UsersContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetUser")]
@@ -117,32 +73,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Get(
+        public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    User user = await _userService.GetAsync(id);
-                    result = new ContentResult { Content = Serializer.Serialize(user, UsersContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                User user = await _userService.GetAsync(id);
+                return ContentResult(user, UsersContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllUsers")]
@@ -154,32 +94,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAll(
+        public Task<IActionResult> GetAll(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.TokenUser != null)
-                {
-                    ListParameters lp = new (req);
-                    IList<User> users = await _userService.GetAllAsync(lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(users, UsersContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                IList<User> users = await _userService.GetAllAsync(lp.Page, lp.PageSize);
+                return ContentResult(users, UsersContractResolver.Instance);
+            });
         }
 
         [FunctionName("UpdateUser")]
@@ -192,45 +116,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Update(
+        public Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/users/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    User input = await Serializer.DeserializeAsync<User>(req.Body);
-                    OperationResult<User> updateResult = await _userService.UpdateAsync(id, input);
-                    result = updateResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(updateResult.Result, UsersContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, updateResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)updateResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                User input = await Serializer.DeserializeAsync<User>(req.Body);
+                OperationResult<User> updateResult = await _userService.UpdateAsync(id, input);
+                return ContentResult(updateResult, UsersContractResolver.Instance);
+            });
         }
     }
 }
