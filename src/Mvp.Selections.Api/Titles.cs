@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Extensions;
+using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -41,10 +42,10 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async authResult =>
             {
                 Title title = await _titleService.GetAsync(id);
-                return ContentResult(title, TitlesContractResolver.Instance);
+                return ContentResult(title, authResult.User.HasRight(Right.Admin) ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
             });
         }
 
@@ -60,7 +61,7 @@ namespace Mvp.Selections.Api
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/titles")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async authResult =>
             {
                 ListParameters lp = new (req);
                 string name = req.Query.GetFirstValueOrDefault<string>("name");
@@ -68,7 +69,7 @@ namespace Mvp.Selections.Api
                 IList<short> years = req.Query.GetValuesOrEmpty<short>("year");
                 IList<short> countryIds = req.Query.GetValuesOrEmpty<short>("countryId");
                 IList<Title> titles = await _titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, lp.Page, lp.PageSize);
-                return ContentResult(titles, TitlesContractResolver.Instance);
+                return ContentResult(titles, authResult.User.HasRight(Right.Admin) ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
             });
         }
 

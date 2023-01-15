@@ -6,9 +6,9 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
-    public class TitlesContractResolver : CamelCasePropertyNamesContractResolver
+    public class TitlesAdminContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly TitlesContractResolver Instance = new ();
+        public static readonly TitlesAdminContractResolver Instance = new ();
 
         private readonly string[] _userExcludedMembers = { nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Email), nameof(User.Roles), nameof(User.Rights) };
 
@@ -34,10 +34,6 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = null;
             }
             else if (member.DeclaringType == typeof(Country) && _countryExcludedMembers.Contains(member.Name))
-            {
-                result = null;
-            }
-            else if (member.DeclaringType == typeof(Title) && member.Name == nameof(Title.Warning))
             {
                 result = null;
             }
