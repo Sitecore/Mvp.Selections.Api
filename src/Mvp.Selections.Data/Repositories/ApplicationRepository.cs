@@ -5,6 +5,7 @@ using Mvp.Selections.Data.Extensions;
 using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data.Repositories
 {
@@ -87,7 +88,8 @@ namespace Mvp.Selections.Data.Repositories
             }
 
             return query
-                .OrderBy(a => a.Applicant.Name)
+                .OrderByDescending(a => a.Selection.Year)
+                .ThenBy(a => a.Applicant.Name)
                 .ThenBy(a => a.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)

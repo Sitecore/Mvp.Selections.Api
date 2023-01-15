@@ -10,6 +10,8 @@ using Mvp.Selections.Client.Models;
 using Mvp.Selections.Client.Models.Request;
 using Mvp.Selections.Client.Serialization;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Comments;
+using Mvp.Selections.Domain.Roles;
 
 #pragma warning disable SA1124 // Do not use regions - For readability purpose of the many methods
 namespace Mvp.Selections.Client
@@ -45,9 +47,9 @@ namespace Mvp.Selections.Client
 
         #region Users
 
-        public Task<Response<User>> GetUserAsync(Guid id)
+        public Task<Response<User>> GetUserAsync(Guid userId)
         {
-            return GetAsync<User>($"/api/v1/users/{id}");
+            return GetAsync<User>($"/api/v1/users/{userId}");
         }
 
         public Task<Response<User>> GetCurrentUserAsync()
@@ -80,9 +82,9 @@ namespace Mvp.Selections.Client
 
         #region Regions
 
-        public Task<Response<Region>> GetRegionAsync(int id)
+        public Task<Response<Region>> GetRegionAsync(int regionId)
         {
-            return GetAsync<Region>($"/api/v1/regions/{id}");
+            return GetAsync<Region>($"/api/v1/regions/{regionId}");
         }
 
         public Task<Response<IList<Region>>> GetRegionsAsync(int page = 1, short pageSize = 100)
@@ -106,9 +108,9 @@ namespace Mvp.Selections.Client
             return PatchAsync<Region>($"/api/v1/regions/{region.Id}", region);
         }
 
-        public Task<Response<bool>> RemoveRegionAsync(int id)
+        public Task<Response<bool>> RemoveRegionAsync(int regionId)
         {
-            return DeleteAsync($"/api/v1/regions/{id}");
+            return DeleteAsync($"/api/v1/regions/{regionId}");
         }
 
         public Task<Response<object>> AssignCountryToRegionAsync(int regionId, short countryId)
@@ -126,9 +128,9 @@ namespace Mvp.Selections.Client
 
         #region Roles
 
-        public Task<Response<SystemRole>> GetSystemRoleAsync(Guid id)
+        public Task<Response<SystemRole>> GetSystemRoleAsync(Guid systemRoleId)
         {
-            return GetAsync<SystemRole>($"/api/v1/roles/system/{id}");
+            return GetAsync<SystemRole>($"/api/v1/roles/system/{systemRoleId}");
         }
 
         public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(int page = 1, short pageSize = 100)
@@ -147,9 +149,9 @@ namespace Mvp.Selections.Client
             return PostAsync<SystemRole>("/api/v1/roles/system", systemRole);
         }
 
-        public Task<Response<bool>> RemoveRoleAsync(Guid id)
+        public Task<Response<bool>> RemoveRoleAsync(Guid roleId)
         {
-            return DeleteAsync($"/api/v1/roles/{id}");
+            return DeleteAsync($"/api/v1/roles/{roleId}");
         }
 
         public Task<Response<object>> AssignUserToRoleAsync(Guid roleId, Guid userId)
@@ -182,9 +184,9 @@ namespace Mvp.Selections.Client
 
         #region Selections
 
-        public Task<Response<Selection>> GetSelectionAsync(Guid id)
+        public Task<Response<Selection>> GetSelectionAsync(Guid selectionId)
         {
-            return GetAsync<Selection>($"/api/v1/selections/{id}");
+            return GetAsync<Selection>($"/api/v1/selections/{selectionId}");
         }
 
         public Task<Response<IList<Selection>>> GetSelectionsAsync(int page = 1, short pageSize = 100)
@@ -208,9 +210,9 @@ namespace Mvp.Selections.Client
             return PatchAsync<Selection>($"/api/v1/selections/{selection.Id}", selection);
         }
 
-        public Task<Response<bool>> RemoveSelectionAsync(Guid id)
+        public Task<Response<bool>> RemoveSelectionAsync(Guid selectionId)
         {
-            return DeleteAsync($"/api/v1/selections/{id}");
+            return DeleteAsync($"/api/v1/selections/{selectionId}");
         }
 
         public Task<Response<Selection>> GetCurrentSelectionAsync()
@@ -290,9 +292,9 @@ namespace Mvp.Selections.Client
             return GetAsync<IList<Application>>($"/api/v1/users/{userId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
         }
 
-        public Task<Response<Application>> GetApplicationAsync(Guid id)
+        public Task<Response<Application>> GetApplicationAsync(Guid applicationId)
         {
-            return GetAsync<Application>($"/api/v1/applications/{id}");
+            return GetAsync<Application>($"/api/v1/applications/{applicationId}");
         }
 
         public Task<Response<Application>> AddApplicationAsync(Guid selectionId, Application application)
@@ -305,18 +307,18 @@ namespace Mvp.Selections.Client
             return PatchAsync<Application>($"/api/v1/applications/{application.Id}", application);
         }
 
-        public Task<Response<bool>> RemoveApplicationAsync(Guid id)
+        public Task<Response<bool>> RemoveApplicationAsync(Guid applicationId)
         {
-            return DeleteAsync($"/api/v1/applications/{id}");
+            return DeleteAsync($"/api/v1/applications/{applicationId}");
         }
 
         #endregion Applications
 
         #region MvpTypes
 
-        public Task<Response<MvpType>> GetMvpTypeAsync(short id)
+        public Task<Response<MvpType>> GetMvpTypeAsync(short mvpTypeId)
         {
-            return GetAsync<MvpType>($"/api/v1/mvptypes/{id}");
+            return GetAsync<MvpType>($"/api/v1/mvptypes/{mvpTypeId}");
         }
 
         public Task<Response<IList<MvpType>>> GetMvpTypesAsync(int page = 1, short pageSize = 100)
@@ -340,18 +342,18 @@ namespace Mvp.Selections.Client
             return PatchAsync<MvpType>($"/api/v1/mvptypes/{mvpType.Id}", mvpType);
         }
 
-        public Task<Response<bool>> RemoveMvpTypeAsync(short id)
+        public Task<Response<bool>> RemoveMvpTypeAsync(short mvpTypeId)
         {
-            return DeleteAsync($"/api/v1/mvptypes/{id}");
+            return DeleteAsync($"/api/v1/mvptypes/{mvpTypeId}");
         }
 
         #endregion MvpTypes
 
         #region Products
 
-        public Task<Response<Product>> GetProductAsync(short id)
+        public Task<Response<Product>> GetProductAsync(short productId)
         {
-            return GetAsync<Product>($"/api/v1/products/{id}");
+            return GetAsync<Product>($"/api/v1/products/{productId}");
         }
 
         public Task<Response<IList<Product>>> GetProductsAsync(int page = 1, short pageSize = 100)
@@ -375,9 +377,9 @@ namespace Mvp.Selections.Client
             return PatchAsync<Product>($"/api/v1/products/{product.Id}", product);
         }
 
-        public Task<Response<bool>> RemoveProductAsync(short id)
+        public Task<Response<bool>> RemoveProductAsync(short productId)
         {
-            return DeleteAsync($"/api/v1/products/{id}");
+            return DeleteAsync($"/api/v1/products/{productId}");
         }
 
         #endregion Products
@@ -486,6 +488,11 @@ namespace Mvp.Selections.Client
             return PostAsync<ScoreCategory>($"/api/v1/selections/{selectionId}/mvptypes/{mvpTypeId}/scorecategories", scoreCategory);
         }
 
+        public Task<Response<ScoreCategory>> UpdateScoreCategoryAsync(ScoreCategory scoreCategory)
+        {
+            return PatchAsync<ScoreCategory>($"/api/v1/scorecategories/{scoreCategory.Id}", scoreCategory);
+        }
+
         public Task<Response<bool>> RemoveScoreCategoryAsync(Guid scoreCategoryId)
         {
             return DeleteAsync($"/api/v1/scorecategories/{scoreCategoryId}");
@@ -495,9 +502,9 @@ namespace Mvp.Selections.Client
 
         #region Scores
 
-        public Task<Response<Score>> GetScoreAsync(int id)
+        public Task<Response<Score>> GetScoreAsync(int scoreId)
         {
-            return GetAsync<Score>($"/api/v1/scores/{id}");
+            return GetAsync<Score>($"/api/v1/scores/{scoreId}");
         }
 
         public Task<Response<IList<Score>>> GetScoresAsync(int page = 1, short pageSize = 100)
@@ -521,9 +528,9 @@ namespace Mvp.Selections.Client
             return PatchAsync<Score>($"/api/v1/scores/{score.Id}", score);
         }
 
-        public Task<Response<bool>> RemoveScoreAsync(int id)
+        public Task<Response<bool>> RemoveScoreAsync(int scoreId)
         {
-            return DeleteAsync($"/api/v1/scores/{id}");
+            return DeleteAsync($"/api/v1/scores/{scoreId}");
         }
 
         #endregion Scores
@@ -551,6 +558,81 @@ namespace Mvp.Selections.Client
         }
 
         #endregion ScoreCards
+
+        #region Comments
+
+        public Task<Response<IList<ApplicationComment>>> GetApplicationCommentsAsync(Guid applicationId)
+        {
+            return GetAsync<IList<ApplicationComment>>($"/api/v1/applications/{applicationId}/comments");
+        }
+
+        public Task<Response<ApplicationComment>> AddApplicationCommentAsync(Guid applicationId, ApplicationComment comment)
+        {
+            return PostAsync<ApplicationComment>($"/api/v1/applications/{applicationId}/comments", comment);
+        }
+
+        public Task<Response<Comment>> UpdateCommentAsync(Comment comment)
+        {
+            return PatchAsync<Comment>($"/api/v1/comments/{comment.Id}", comment);
+        }
+
+        public Task<Response<bool>> RemoveCommentAsync(Guid commentId)
+        {
+            return DeleteAsync($"/api/v1/comments/{commentId}");
+        }
+
+        #endregion Comments
+
+        #region Titles
+
+        public Task<Response<Title>> GetTitleAsync(Guid titleId)
+        {
+            return GetAsync<Title>($"/api/v1/titles/{titleId}");
+        }
+
+        public Task<Response<IList<Title>>> GetTitlesAsync(
+            string? name = null,
+            IList<short>? mvpTypeIds = null,
+            IList<short>? years = null,
+            IList<short>? countryIds = null,
+            int page = 1,
+            short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetTitlesAsync(name, mvpTypeIds, years, countryIds, listParameters);
+        }
+
+        public Task<Response<IList<Title>>> GetTitlesAsync(
+            string? name,
+            IList<short>? mvpTypeIds,
+            IList<short>? years,
+            IList<short>? countryIds,
+            ListParameters listParameters)
+        {
+            string nameQueryString = string.IsNullOrWhiteSpace(name) ? string.Empty : $"&name={name}";
+            string mvpTypeIdsQueryString = (mvpTypeIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, mvpTypeId) => current + $"&mvptypeid={mvpTypeId}");
+            string yearsQueryString = (years ?? Array.Empty<short>()).Aggregate(string.Empty, (current, year) => current + $"&year={year}");
+            string countryIdsQueryString = (countryIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, countryId) => current + $"&countryid={countryId}");
+
+            return GetAsync<IList<Title>>($"/api/v1/titles?{listParameters.ToQueryString()}{nameQueryString}{mvpTypeIdsQueryString}{yearsQueryString}{countryIdsQueryString}");
+        }
+
+        public Task<Response<Title>> AddTitleAsync(Title title)
+        {
+            return PostAsync<Title>("/api/v1/titles", title);
+        }
+
+        public Task<Response<Title>> UpdateTitleAsync(Title title)
+        {
+            return PatchAsync<Title>($"/api/v1/titles/{title.Id}", title);
+        }
+
+        public Task<Response<bool>> RemoveTitleAsync(Guid titleId)
+        {
+            return DeleteAsync($"/api/v1/titles/{titleId}");
+        }
+
+        #endregion Titles
 
         #region Private
 

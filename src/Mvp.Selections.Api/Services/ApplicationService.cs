@@ -10,6 +10,7 @@ using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api.Services
 {
@@ -185,7 +186,7 @@ namespace Mvp.Selections.Api.Services
             {
                 newApplication = _applicationRepository.Add(newApplication);
                 await _applicationRepository.SaveChangesAsync();
-                result.StatusCode = HttpStatusCode.OK;
+                result.StatusCode = HttpStatusCode.Created;
                 result.Result = newApplication;
             }
 
@@ -331,7 +332,7 @@ namespace Mvp.Selections.Api.Services
                 if (await _applicationRepository.RemoveAsync(id))
                 {
                     await _applicationRepository.SaveChangesAsync();
-                    result.StatusCode = HttpStatusCode.OK;
+                    result.StatusCode = HttpStatusCode.NoContent;
                 }
                 else
                 {
