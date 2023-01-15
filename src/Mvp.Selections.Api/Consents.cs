@@ -10,7 +10,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -37,32 +36,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllForUser(
+        public Task<IActionResult> GetAllForUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/{userId:Guid}/consents")]
             HttpRequest req,
             Guid userId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    IList<Consent> consents = await _consentService.GetAllForUserAsync(authResult.User, userId);
-                    result = new ContentResult { Content = Serializer.Serialize(consents, ConsentsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                IList<Consent> consents = await _consentService.GetAllForUserAsync(authResult.User, userId);
+                return ContentResult(consents, ConsentsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllConsentsForCurrentUser")]
@@ -72,31 +55,15 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllForCurrentUser(
+        public Task<IActionResult> GetAllForCurrentUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/current/consents")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    IList<Consent> consents = await _consentService.GetAllForUserAsync(authResult.User, authResult.User.Id);
-                    result = new ContentResult { Content = Serializer.Serialize(consents, ConsentsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                IList<Consent> consents = await _consentService.GetAllForUserAsync(authResult.User, authResult.User.Id);
+                return ContentResult(consents, ConsentsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GiveConsentForUser")]
@@ -108,45 +75,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GiveForUser(
+        public Task<IActionResult> GiveForUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/users/{userId:Guid}/consents")]
             HttpRequest req,
             Guid userId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Consent input = await Serializer.DeserializeAsync<Consent>(req.Body);
-                    OperationResult<Consent> giveResult = await _consentService.GiveAsync(authResult.User, userId, input);
-                    result = giveResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(giveResult.Result, ConsentsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, giveResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)giveResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Consent input = await Serializer.DeserializeAsync<Consent>(req.Body);
+                OperationResult<Consent> giveResult = await _consentService.GiveAsync(authResult.User, userId, input);
+                return ContentResult(giveResult, ConsentsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GiveConsentForCurrentUser")]
@@ -157,44 +96,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GiveForCurrentUser(
+        public Task<IActionResult> GiveForCurrentUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/users/current/consents")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Any);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Consent input = await Serializer.DeserializeAsync<Consent>(req.Body);
-                    OperationResult<Consent> giveResult = await _consentService.GiveAsync(authResult.User, authResult.User.Id, input);
-                    result = giveResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(giveResult.Result, ConsentsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, giveResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)giveResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Consent input = await Serializer.DeserializeAsync<Consent>(req.Body);
+                OperationResult<Consent> giveResult = await _consentService.GiveAsync(authResult.User, authResult.User.Id, input);
+                return ContentResult(giveResult, ConsentsContractResolver.Instance);
+            });
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Mvp.Selections.Api.Services
             return _selectionRepository.GetAllAsync(page, pageSize);
         }
 
-        public async Task<Selection> AddSelectionAsync(Selection selection)
+        public async Task<Selection> AddAsync(Selection selection)
         {
             Selection result = new (Guid.Empty)
             {
@@ -50,13 +50,13 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task RemoveSelectionAsync(Guid id)
+        public async Task RemoveAsync(Guid id)
         {
             await _selectionRepository.RemoveAsync(id);
             await _selectionRepository.SaveChangesAsync();
         }
 
-        public async Task<Selection> UpdateSelectionAsync(Guid id, Selection selection)
+        public async Task<Selection> UpdateAsync(Guid id, Selection selection)
         {
             Selection result = await GetAsync(id);
             if (selection.Year > 0)

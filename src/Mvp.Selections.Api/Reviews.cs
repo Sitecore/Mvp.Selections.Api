@@ -37,44 +37,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Get(
+        public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/reviews/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<Review> getResult = await _reviewService.GetAsync(authResult.User, id);
-                    result = getResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(getResult.Result, ReviewsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, getResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)getResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<Review> getResult = await _reviewService.GetAsync(authResult.User, id);
+                return ContentResult(getResult, ReviewsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllReviewsForApplication")]
@@ -87,45 +59,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllForApplication(
+        public Task<IActionResult> GetAllForApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications/{applicationId:Guid}/reviews")]
             HttpRequest req,
             Guid applicationId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    OperationResult<IList<Review>> getResult = await _reviewService.GetAllAsync(authResult.User, applicationId, lp.Page, lp.PageSize);
-                    result = getResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(getResult.Result, ReviewsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, getResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)getResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                OperationResult<IList<Review>> getResult = await _reviewService.GetAllAsync(authResult.User, applicationId, lp.Page, lp.PageSize);
+                return ContentResult(getResult, ReviewsContractResolver.Instance);
+            });
         }
 
         [FunctionName("AddReview")]
@@ -138,45 +82,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/applications/{applicationId:Guid}/reviews")]
             HttpRequest req,
             Guid applicationId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Review input = await Serializer.DeserializeAsync<Review>(req.Body);
-                    OperationResult<Review> addResult = await _reviewService.AddAsync(authResult.User, applicationId, input);
-                    result = addResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(addResult.Result, ReviewsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, addResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)addResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Review input = await Serializer.DeserializeAsync<Review>(req.Body);
+                OperationResult<Review> addResult = await _reviewService.AddAsync(authResult.User, applicationId, input);
+                return ContentResult(addResult, ReviewsContractResolver.Instance);
+            });
         }
 
         [FunctionName("UpdateReview")]
@@ -189,45 +105,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Update(
+        public Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/reviews/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Review input = await Serializer.DeserializeAsync<Review>(req.Body);
-                    OperationResult<Review> updateResult = await _reviewService.UpdateAsync(authResult.User, id, input);
-                    result = updateResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(updateResult.Result, ReviewsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, updateResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)updateResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Review input = await Serializer.DeserializeAsync<Review>(req.Body);
+                OperationResult<Review> updateResult = await _reviewService.UpdateAsync(authResult.User, id, input);
+                return ContentResult(updateResult, ReviewsContractResolver.Instance);
+            });
         }
 
         [FunctionName("RemoveReview")]
@@ -239,39 +127,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/reviews/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<Review> removeResult = await _reviewService.RemoveAsync(authResult.User, id);
-                    result = removeResult.StatusCode == HttpStatusCode.OK
-                        ? new NoContentResult()
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, removeResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)removeResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<Review> removeResult = await _reviewService.RemoveAsync(authResult.User, id);
+                return ContentResult(removeResult);
+            });
         }
     }
 }

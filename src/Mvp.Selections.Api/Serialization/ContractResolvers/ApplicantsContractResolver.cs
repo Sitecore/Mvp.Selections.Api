@@ -5,14 +5,18 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
-    public class ScoreContractResolver : CamelCasePropertyNamesContractResolver
+    public class ApplicantsContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly ScoreContractResolver Instance = new ();
+        public static readonly ApplicantsContractResolver Instance = new ();
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty result;
-            if (member.DeclaringType == typeof(Score) && member.Name == nameof(Score.ScoreCategories))
+            if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
+            {
+                result = null;
+            }
+            else if (member.DeclaringType == typeof(Country) && member.Name == nameof(Country.Users))
             {
                 result = null;
             }

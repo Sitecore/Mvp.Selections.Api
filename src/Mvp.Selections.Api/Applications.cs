@@ -11,7 +11,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Extensions;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -38,44 +37,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Get(
+        public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<Application> getResult = await _applicationService.GetAsync(authResult.User, id);
-                    result = getResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(getResult.Result, ApplicationsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, getResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)getResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<Application> getResult = await _applicationService.GetAsync(authResult.User, id);
+                return ContentResult(getResult, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllApplications")]
@@ -88,33 +59,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAll(
+        public Task<IActionResult> GetAll(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications")]
             HttpRequest req)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, null, null, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, null, null, status, lp.Page, lp.PageSize);
+                return ContentResult(applications, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllApplicationsForSelection")]
@@ -128,34 +83,18 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllForSelection(
+        public Task<IActionResult> GetAllForSelection(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{selectionId:Guid}/applications")]
             HttpRequest req,
             Guid selectionId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, null, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, null, status, lp.Page, lp.PageSize);
+                return ContentResult(applications, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllApplicationsForCountry")]
@@ -170,35 +109,19 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllForCountry(
+        public Task<IActionResult> GetAllForCountry(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{selectionId:Guid}/countries/{countryId:int}/applications")]
             HttpRequest req,
             Guid selectionId,
             short countryId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, countryId, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, countryId, status, lp.Page, lp.PageSize);
+                return ContentResult(applications, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("GetAllApplicationsForUser")]
@@ -212,34 +135,18 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> GetAllForUser(
+        public Task<IActionResult> GetAllForUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users/{userId:Guid}/applications")]
             HttpRequest req,
             Guid userId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply, Right.Review);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    ListParameters lp = new (req);
-                    ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                    IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, null, null, status, lp.Page, lp.PageSize);
-                    result = new ContentResult { Content = Serializer.Serialize(applications, ApplicationsContractResolver.Instance), ContentType = Serializer.ContentType, StatusCode = (int)HttpStatusCode.OK };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                ListParameters lp = new (req);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, null, null, status, lp.Page, lp.PageSize);
+                return ContentResult(applications, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("AddApplication")]
@@ -252,45 +159,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Add(
+        public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/selections/{selectionId:Guid}/applications")]
             HttpRequest req,
             Guid selectionId)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Application input = await Serializer.DeserializeAsync<Application>(req.Body);
-                    OperationResult<Application> addResult = await _applicationService.AddAsync(authResult.User, selectionId, input);
-                    result = addResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(addResult.Result, ApplicationsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, addResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)addResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Application input = await Serializer.DeserializeAsync<Application>(req.Body);
+                OperationResult<Application> addResult = await _applicationService.AddAsync(authResult.User, selectionId, input);
+                return ContentResult(addResult, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("UpdateApplication")]
@@ -303,45 +182,17 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Update(
+        public Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/applications/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin, Right.Apply);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    Application input = await Serializer.DeserializeAsync<Application>(req.Body);
-                    OperationResult<Application> updateResult = await _applicationService.UpdateAsync(authResult.User, id, input);
-                    result = updateResult.StatusCode == HttpStatusCode.OK
-                        ? new ContentResult
-                        {
-                            Content = Serializer.Serialize(updateResult.Result, ApplicationsContractResolver.Instance),
-                            ContentType = Serializer.ContentType,
-                            StatusCode = (int)HttpStatusCode.OK
-                        }
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, updateResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)updateResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                Application input = await Serializer.DeserializeAsync<Application>(req.Body);
+                OperationResult<Application> updateResult = await _applicationService.UpdateAsync(authResult.User, id, input);
+                return ContentResult(updateResult, ApplicationsContractResolver.Instance);
+            });
         }
 
         [FunctionName("RemoveApplication")]
@@ -353,39 +204,16 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
-        public async Task<IActionResult> Remove(
+        public Task<IActionResult> Remove(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/applications/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            IActionResult result;
-            try
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
             {
-                AuthResult authResult = await AuthService.ValidateAsync(req, Right.Admin);
-                if (authResult.StatusCode == HttpStatusCode.OK)
-                {
-                    OperationResult<Application> removeResult = await _applicationService.RemoveAsync(authResult.User, id);
-                    result = removeResult.StatusCode == HttpStatusCode.OK
-                        ? new NoContentResult()
-                        : new ContentResult
-                        {
-                            Content = string.Join(Environment.NewLine, removeResult.Messages),
-                            ContentType = PlainTextContentType,
-                            StatusCode = (int)removeResult.StatusCode
-                        };
-                }
-                else
-                {
-                    result = new ContentResult { Content = authResult.Message, ContentType = PlainTextContentType, StatusCode = (int)authResult.StatusCode };
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
-            }
-
-            return result;
+                OperationResult<Application> removeResult = await _applicationService.RemoveAsync(authResult.User, id);
+                return ContentResult(removeResult);
+            });
         }
     }
 }

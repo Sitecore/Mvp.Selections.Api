@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data.Repositories
 {
