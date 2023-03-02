@@ -174,8 +174,8 @@ namespace Mvp.Selections.Api.Services
                 _logger.LogInformation(message);
             }
 
-            IList<Application> existingApplications = await GetAllAsync(user, newApplication.Applicant.Id, selectionId);
-            if (existingApplications.Any(a => a.Selection.Id == selectionId))
+            IList<Application> existingApplications = await _applicationRepository.GetAllForUserReadOnlyAsync(user.Id, selectionId);
+            if (existingApplications.Any())
             {
                 string message = $"Can not submit multiple applications to Selection '{selectionId}'.";
                 result.Messages.Add(message);
