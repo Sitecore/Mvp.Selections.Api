@@ -104,6 +104,9 @@ namespace Mvp.Selections.Data
                 .HasOne(a => a.Applicant)
                 .WithMany(u => u.Applications)
                 .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Application>()
+                .HasIndex("ApplicantId", "SelectionId")
+                .IsUnique();
 
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Reviewer)
