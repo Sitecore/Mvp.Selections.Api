@@ -7,11 +7,6 @@
       "connectionId": "AzureWebJobsStorage",
       "dynamicId": null
     },
-    "apis1": {
-      "apiEndpoint": "https://mvp-selections-api-management.azure-api.net/api",
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/Mvp-Selections-Api-Management/apis/Mvp-Selections-Api",
-      "type": "apis.azure"
-    },
     "appInsights1": {
       "secretStore": "AzureAppSettings",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/MVP-Selections-API-Insights",
