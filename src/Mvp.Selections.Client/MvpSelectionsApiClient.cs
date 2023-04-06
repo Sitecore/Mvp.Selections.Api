@@ -62,15 +62,38 @@ namespace Mvp.Selections.Client
             return PatchAsync<User>("/api/v1/users/current", user);
         }
 
-        public Task<Response<IList<User>>> GetUsersAsync(int page = 1, short pageSize = 100)
+        public Task<Response<IList<User>>> GetUsersAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
-            return GetUsersAsync(listParameters);
+            return GetUsersAsync(name, email, countryId, listParameters);
         }
 
-        public Task<Response<IList<User>>> GetUsersAsync(ListParameters listParameters)
+        public Task<Response<IList<User>>> GetUsersAsync(string? name, string? email, short? countryId, ListParameters listParameters)
         {
-            return GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}");
+            string nameQueryString = string.Empty;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                nameQueryString = $"&name={name}";
+            }
+
+            string emailQueryString = string.Empty;
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                emailQueryString = $"&email={email}";
+            }
+
+            string countryIdQueryString = string.Empty;
+            if (countryId.HasValue)
+            {
+                countryIdQueryString = $"&countryId={countryId}";
+            }
+
+            return GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}{nameQueryString}{emailQueryString}{countryIdQueryString}");
+        }
+
+        public Task<Response<User>> AddUserAsync(User user)
+        {
+            return PostAsync<User>("/api/v1/users", user);
         }
 
         public Task<Response<User>> UpdateUserAsync(User user)

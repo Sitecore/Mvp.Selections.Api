@@ -83,7 +83,7 @@ namespace Mvp.Selections.Api
             {
                 MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
                 MvpType mvpType = await _mvpTypeService.AddAsync(input);
-                return ContentResult(mvpType);
+                return ContentResult(mvpType, statusCode: HttpStatusCode.Created);
             });
         }
 

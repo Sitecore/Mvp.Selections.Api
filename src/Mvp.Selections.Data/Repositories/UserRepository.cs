@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Extensions;
 using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -14,15 +15,24 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
+        public async Task<IList<User>> GetAllAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
+        {
+            return await GetAllQuery(name, email, countryId, page, pageSize, includes).ToListAsync();
+        }
+
+        public async Task<IList<User>> GetAllReadOnlyAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
+        {
+            return await GetAllQuery(name, email, countryId, page, pageSize, includes).AsNoTracking().ToListAsync();
+        }
+
         public async Task<User?> GetAsync(string identifier, params Expression<Func<User, object>>[] includes)
         {
-            IQueryable<User> query = Context.Users;
-            foreach (Expression<Func<User, object>> include in includes)
-            {
-                query = query.Include(include);
-            }
+            return await GetByIdentifierQuery(identifier, includes).SingleOrDefaultAsync();
+        }
 
-            return await query.SingleOrDefaultAsync(u => u.Identifier == identifier);
+        public async Task<User?> GetReadOnlyAsync(string identifier, params Expression<Func<User, object>>[] includes)
+        {
+            return await GetByIdentifierQuery(identifier, includes).AsNoTracking().SingleOrDefaultAsync();
         }
 
         public Task<User?> GetForAuthAsync(string identifier)
@@ -37,6 +47,41 @@ namespace Mvp.Selections.Data.Repositories
         public bool DoesUserExist(string identifier)
         {
             return Context.Users.Any(u => u.Identifier == identifier);
+        }
+
+        private IQueryable<User> GetByIdentifierQuery(string identifier, params Expression<Func<User, object>>[] includes)
+        {
+            return Context.Users
+                .Where(u => u.Identifier == identifier)
+                .Includes(includes);
+        }
+
+        private IQueryable<User> GetAllQuery(string? name, string? email, short? countryId, int page, short pageSize, params Expression<Func<User, object>>[] includes)
+        {
+            page--;
+            IQueryable<User> query = Context.Users;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(u => u.Name.Contains(name));
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                query = query.Where(u => u.Email.Equals(email));
+            }
+
+            if (countryId.HasValue)
+            {
+                query = query.Where(u => u.Country!.Id == countryId.Value);
+            }
+
+            return query
+                .OrderBy(u => u.Name)
+                .ThenBy(u => u.CreatedOn)
+                .ThenBy(u => u.Id)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Includes(includes);
         }
     }
 }
