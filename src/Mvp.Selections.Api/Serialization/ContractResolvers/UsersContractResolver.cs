@@ -28,6 +28,10 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
             {
                 result = null;
             }
+            else if (member.DeclaringType == typeof(Country) && member.Name == nameof(Country.Users))
+            {
+                result = null;
+            }
             else
             {
                 result = base.CreateProperty(member, memberSerialization);

@@ -39,9 +39,47 @@ namespace Mvp.Selections.Api.Services
             return _userRepository.GetAsync(id, _standardIncludes);
         }
 
-        public Task<IList<User>> GetAllAsync(int page = 1, short pageSize = 100)
+        public Task<IList<User>> GetAllAsync(string name = null, string email = null, short? countryId = null, int page = 1, short pageSize = 100)
         {
-            return _userRepository.GetAllAsync(page, pageSize, _standardIncludes);
+            return _userRepository.GetAllAsync(name, email, countryId, page, pageSize, _standardIncludes);
+        }
+
+        public async Task<OperationResult<User>> AddAsync(User user)
+        {
+            OperationResult<User> result = new ();
+            User newUser = new (Guid.Empty)
+            {
+                Name = user.Name,
+                Email = user.Email,
+                Identifier = user.Identifier,
+                ImageType = user.ImageType
+            };
+
+            newUser.ImageUri = GetImageUri(newUser);
+
+            if (user.Country != null)
+            {
+                Country country = await _countryRepository.GetAsync(user.Country.Id);
+                if (country != null)
+                {
+                    newUser.Country = country;
+                }
+                else
+                {
+                    string message = $"Country '{user.Country?.Id}' not found.";
+                    _logger.LogInformation(message);
+                    result.Messages.Add(message);
+                }
+            }
+
+            if (result.Messages.Count == 0)
+            {
+                result.Result = _userRepository.Add(newUser);
+                await _userRepository.SaveChangesAsync();
+                result.StatusCode = HttpStatusCode.Created;
+            }
+
+            return result;
         }
 
         public async Task<OperationResult<User>> UpdateAsync(Guid id, User user)
