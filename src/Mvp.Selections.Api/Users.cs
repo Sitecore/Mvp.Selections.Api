@@ -10,7 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
+using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -78,7 +78,7 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
                 User user = await _userService.GetAsync(id);
                 return ContentResult(user, UsersContractResolver.Instance);
@@ -98,11 +98,35 @@ namespace Mvp.Selections.Api
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/users")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
                 ListParameters lp = new (req);
-                IList<User> users = await _userService.GetAllAsync(lp.Page, lp.PageSize);
+                string name = req.Query.GetFirstValueOrDefault<string>("name");
+                string email = req.Query.GetFirstValueOrDefault<string>("email");
+                short? countryId = req.Query.GetFirstValueOrDefault<short?>("countryId");
+                IList<User> users = await _userService.GetAllAsync(name, email, countryId, lp.Page, lp.PageSize);
                 return ContentResult(users, UsersContractResolver.Instance);
+            });
+        }
+
+        [FunctionName("AddUser")]
+        [OpenApiOperation("AddUser", "Users", "Admin")]
+        [OpenApiRequestBody(JsonContentType, typeof(User))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.Created, JsonContentType, typeof(User))]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> Add(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/users")]
+            HttpRequest req)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            {
+                User input = await Serializer.DeserializeAsync<User>(req.Body);
+                OperationResult<User> addResult = await _userService.AddAsync(input);
+                return ContentResult(addResult, UsersContractResolver.Instance);
             });
         }
 
@@ -121,7 +145,7 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
                 User input = await Serializer.DeserializeAsync<User>(req.Body);
                 OperationResult<User> updateResult = await _userService.UpdateAsync(id, input);

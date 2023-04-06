@@ -58,13 +58,13 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        protected IActionResult ContentResult(object content, IContractResolver contractResolver = null)
+        protected IActionResult ContentResult(object content, IContractResolver contractResolver = null, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             return new ContentResult
             {
                 Content = Serializer.Serialize(content, contractResolver),
                 ContentType = Serializer.ContentType,
-                StatusCode = (int)HttpStatusCode.OK
+                StatusCode = (int)statusCode
             };
         }
 

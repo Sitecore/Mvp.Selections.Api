@@ -79,7 +79,7 @@ namespace Mvp.Selections.Api.Services
             };
 
             Selection selection = await _selectionService.GetAsync(selectionId);
-            if (selection != null && selection.AreApplicationsOpen())
+            if (selection != null && (selection.AreApplicationsOpen() || user.HasRight(Right.Admin)))
             {
                 newApplication.Selection = selection;
             }
@@ -174,7 +174,7 @@ namespace Mvp.Selections.Api.Services
                 _logger.LogInformation(message);
             }
 
-            IList<Application> existingApplications = await _applicationRepository.GetAllForUserReadOnlyAsync(user.Id, selectionId);
+            IList<Application> existingApplications = await _applicationRepository.GetAllForUserReadOnlyAsync(newApplication.Applicant.Id, selectionId);
             if (existingApplications.Any())
             {
                 string message = $"Can not submit multiple applications to Selection '{selectionId}'.";

@@ -100,7 +100,7 @@ namespace Mvp.Selections.Api
             {
                 Selection input = await Serializer.DeserializeAsync<Selection>(req.Body);
                 Selection selection = await _selectionService.AddAsync(input);
-                return ContentResult(selection);
+                return ContentResult(selection, statusCode: HttpStatusCode.Created);
             });
         }
 
