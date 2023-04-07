@@ -8,5 +8,7 @@
         }
 
         public string Name { get; set; } = string.Empty;
+
+        public ICollection<Selection> Selections { get; init; } = new List<Selection>();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -12,6 +13,11 @@ namespace Mvp.Selections.Api.Services
     {
         private readonly ISelectionRepository _selectionRepository;
 
+        private readonly Expression<Func<Selection, object>>[] _standardIncludes =
+        {
+            s => s.MvpTypes
+        };
+
         public SelectionService(ISelectionRepository selectionRepository)
         {
             _selectionRepository = selectionRepository;
@@ -19,18 +25,18 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Selection> GetCurrentAsync()
         {
-            IList<Selection> activeSelections = await _selectionRepository.GetAllActiveAsync();
+            IList<Selection> activeSelections = await _selectionRepository.GetAllActiveAsync(_standardIncludes);
             return activeSelections.FirstOrDefault();
         }
 
         public Task<Selection> GetAsync(Guid id)
         {
-            return _selectionRepository.GetAsync(id);
+            return _selectionRepository.GetAsync(id, _standardIncludes);
         }
 
         public Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _selectionRepository.GetAllAsync(page, pageSize);
+            return _selectionRepository.GetAllAsync(page, pageSize, _standardIncludes);
         }
 
         public async Task<Selection> AddAsync(Selection selection)

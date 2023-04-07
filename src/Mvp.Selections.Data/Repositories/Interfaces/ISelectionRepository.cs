@@ -1,19 +1,20 @@
-﻿using Mvp.Selections.Domain;
+﻿using System.Linq.Expressions;
+using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories.Interfaces
 {
     public interface ISelectionRepository : IBaseRepository<Selection, Guid>
     {
-        Task<IList<Selection>> GetAllActiveAsync();
+        Task<IList<Selection>> GetAllActiveAsync(params Expression<Func<Selection, object>>[] includes);
 
-        Task<IList<Selection>> GetAllActiveAsync(DateTime dateTime);
+        Task<IList<Selection>> GetAllActiveAsync(DateTime dateTime, params Expression<Func<Selection, object>>[] includes);
 
-        Task<IList<Selection>> GetActiveForApplicationAsync();
+        Task<IList<Selection>> GetActiveForApplicationAsync(params Expression<Func<Selection, object>>[] includes);
 
-        Task<IList<Selection>> GetActiveForApplicationAsync(DateTime dateTime);
+        Task<IList<Selection>> GetActiveForApplicationAsync(DateTime dateTime, params Expression<Func<Selection, object>>[] includes);
 
-        Task<IList<Selection>> GetActiveForReviewAsync();
+        Task<IList<Selection>> GetActiveForReviewAsync(params Expression<Func<Selection, object>>[] includes);
 
-        Task<IList<Selection>> GetActiveForReviewAsync(DateTime dateTime);
+        Task<IList<Selection>> GetActiveForReviewAsync(DateTime dateTime, params Expression<Func<Selection, object>>[] includes);
     }
 }
