@@ -21,6 +21,8 @@
 
         public DateTime ReviewsEnd { get; set; }
 
+        public ICollection<MvpType> MvpTypes { get; init; } = new List<MvpType>();
+
         public bool AreApplicationsOpen()
         {
             return ApplicationsActive ?? (ApplicationsStart < DateTime.UtcNow && ApplicationsEnd > DateTime.UtcNow);

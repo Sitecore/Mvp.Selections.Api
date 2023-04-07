@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Extensions;
 using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -12,12 +14,12 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public Task<IList<Selection>> GetAllActiveAsync()
+        public Task<IList<Selection>> GetAllActiveAsync(params Expression<Func<Selection, object>>[] includes)
         {
-            return GetAllActiveAsync(DateTime.UtcNow);
+            return GetAllActiveAsync(DateTime.UtcNow, includes);
         }
 
-        public async Task<IList<Selection>> GetAllActiveAsync(DateTime dateTime)
+        public async Task<IList<Selection>> GetAllActiveAsync(DateTime dateTime, params Expression<Func<Selection, object>>[] includes)
         {
             return await Context.Selections
                 .Where(s =>
@@ -26,36 +28,39 @@ namespace Mvp.Selections.Data.Repositories
                     (s.ReviewsActive.HasValue && s.ReviewsActive.Value) ||
                     (!s.ReviewsActive.HasValue && s.ReviewsStart <= dateTime && s.ReviewsEnd > dateTime))
                 .OrderByDescending(s => s.Year)
+                .Includes(includes)
                 .ToListAsync();
         }
 
-        public Task<IList<Selection>> GetActiveForApplicationAsync()
+        public Task<IList<Selection>> GetActiveForApplicationAsync(params Expression<Func<Selection, object>>[] includes)
         {
-            return GetActiveForApplicationAsync(DateTime.UtcNow);
+            return GetActiveForApplicationAsync(DateTime.UtcNow, includes);
         }
 
-        public async Task<IList<Selection>> GetActiveForApplicationAsync(DateTime dateTime)
+        public async Task<IList<Selection>> GetActiveForApplicationAsync(DateTime dateTime, params Expression<Func<Selection, object>>[] includes)
         {
             return await Context.Selections
                 .Where(s =>
                     (s.ApplicationsActive.HasValue && s.ApplicationsActive.Value) ||
                     (!s.ApplicationsActive.HasValue && s.ApplicationsStart <= dateTime && s.ApplicationsEnd > dateTime))
                 .OrderByDescending(s => s.Year)
+                .Includes(includes)
                 .ToListAsync();
         }
 
-        public Task<IList<Selection>> GetActiveForReviewAsync()
+        public Task<IList<Selection>> GetActiveForReviewAsync(params Expression<Func<Selection, object>>[] includes)
         {
-            return GetActiveForReviewAsync(DateTime.UtcNow);
+            return GetActiveForReviewAsync(DateTime.UtcNow, includes);
         }
 
-        public async Task<IList<Selection>> GetActiveForReviewAsync(DateTime dateTime)
+        public async Task<IList<Selection>> GetActiveForReviewAsync(DateTime dateTime, params Expression<Func<Selection, object>>[] includes)
         {
             return await Context.Selections
                 .Where(s =>
                     (s.ReviewsActive.HasValue && s.ReviewsActive.Value) ||
                     (!s.ReviewsActive.HasValue && s.ReviewsStart <= dateTime && s.ReviewsEnd > dateTime))
                 .OrderByDescending(s => s.Year)
+                .Includes(includes)
                 .ToListAsync();
         }
     }

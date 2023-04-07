@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
@@ -43,7 +44,7 @@ namespace Mvp.Selections.Api
             {
                 ListParameters lp = new (req);
                 IList<MvpType> mvpTypes = await _mvpTypeService.GetAllAsync(lp.Page, lp.PageSize);
-                return ContentResult(mvpTypes);
+                return ContentResult(mvpTypes, MvpTypesContractResolver.Instance);
             });
         }
 
@@ -63,7 +64,7 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async _ =>
             {
                 MvpType mvpType = await _mvpTypeService.GetAsync(id);
-                return ContentResult(mvpType);
+                return ContentResult(mvpType, MvpTypesContractResolver.Instance);
             });
         }
 
@@ -83,7 +84,7 @@ namespace Mvp.Selections.Api
             {
                 MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
                 MvpType mvpType = await _mvpTypeService.AddAsync(input);
-                return ContentResult(mvpType, statusCode: HttpStatusCode.Created);
+                return ContentResult(mvpType, MvpTypesContractResolver.Instance, statusCode: HttpStatusCode.Created);
             });
         }
 
@@ -105,7 +106,7 @@ namespace Mvp.Selections.Api
             {
                 MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
                 MvpType mvpType = await _mvpTypeService.UpdateAsync(id, input);
-                return ContentResult(mvpType);
+                return ContentResult(mvpType, MvpTypesContractResolver.Instance);
             });
         }
 
