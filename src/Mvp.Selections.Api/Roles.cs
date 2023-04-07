@@ -11,7 +11,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
@@ -89,7 +88,7 @@ namespace Mvp.Selections.Api
             {
                 SystemRole input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
                 Role role = await _roleService.AddSystemRoleAsync(input);
-                return ContentResult(role, RolesContractResolver.Instance);
+                return ContentResult(role, RolesContractResolver.Instance, HttpStatusCode.Created);
             });
         }
 
