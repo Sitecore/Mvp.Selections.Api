@@ -88,7 +88,7 @@ namespace Mvp.Selections.Api
             {
                 Region input = await Serializer.DeserializeAsync<Region>(req.Body);
                 Region region = await _regionService.AddAsync(input);
-                return ContentResult(region, RegionsContractResolver.Instance);
+                return ContentResult(region, RegionsContractResolver.Instance, HttpStatusCode.Created);
             });
         }
 

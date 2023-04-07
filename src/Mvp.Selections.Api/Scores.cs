@@ -85,7 +85,7 @@ namespace Mvp.Selections.Api
             {
                 Score input = await Serializer.DeserializeAsync<Score>(req.Body);
                 Score score = await _scoreService.AddAsync(input);
-                return ContentResult(score, ScoresContractResolver.Instance);
+                return ContentResult(score, ScoresContractResolver.Instance, HttpStatusCode.Created);
             });
         }
 
