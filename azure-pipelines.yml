@@ -3,7 +3,7 @@
 # Add steps that publish symbols, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
 
-name: 4.4.1$(Rev:.r)
+name: 4.4.2$(Rev:.r)
 
 trigger:
 - main

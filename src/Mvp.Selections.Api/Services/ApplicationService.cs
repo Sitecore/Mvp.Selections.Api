@@ -174,12 +174,15 @@ namespace Mvp.Selections.Api.Services
                 _logger.LogInformation(message);
             }
 
-            IList<Application> existingApplications = await _applicationRepository.GetAllForUserReadOnlyAsync(newApplication.Applicant.Id, selectionId);
-            if (existingApplications.Any())
+            if (newApplication.Applicant != null)
             {
-                string message = $"Can not submit multiple applications to Selection '{selectionId}'.";
-                result.Messages.Add(message);
-                _logger.LogInformation(message);
+                IList<Application> existingApplications = await _applicationRepository.GetAllForUserReadOnlyAsync(newApplication.Applicant.Id, selectionId);
+                if (existingApplications.Any())
+                {
+                    string message = $"Can not submit multiple applications to Selection '{selectionId}'.";
+                    result.Messages.Add(message);
+                    _logger.LogInformation(message);
+                }
             }
 
             if (result.Messages.Count == 0)
@@ -481,8 +484,8 @@ namespace Mvp.Selections.Api.Services
             else if (user.HasRight(Right.Review))
             {
                 result = isReadOnly ?
-                    await _applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
-                    await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+                    await _applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
             }
             else if (user.HasRight(Right.Apply))
             {
