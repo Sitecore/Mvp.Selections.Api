@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -23,6 +25,11 @@ namespace Mvp.Selections.Api.Services
         private readonly IApplicationService _applicationService;
 
         private readonly IProductService _productService;
+
+        private readonly Expression<Func<Contribution, object>>[] _standardIncludes =
+        {
+            c => c.Application.Applicant
+        };
 
         public ContributionService(IOptions<MvpSelectionsOptions> options, ILogger<ContributionService> logger, IContributionRepository contributionRepository, IApplicationService applicationService, IProductService productService)
         {
@@ -203,6 +210,105 @@ namespace Mvp.Selections.Api.Services
                 string message = $"The Contribution '{id}' was not found.";
                 _logger.LogInformation(message);
                 result.Messages.Add(message);
+            }
+
+            return result;
+        }
+
+        public async Task<OperationResult<Contribution>> GetAsync(User user, Guid id)
+        {
+            OperationResult<Contribution> result = new ();
+            Contribution contribution = await _contributionRepository.GetReadOnlyAsync(id, _standardIncludes);
+            if (CanSeeContribution(user, contribution))
+            {
+                result.Result = contribution;
+                result.StatusCode = HttpStatusCode.OK;
+            }
+            else
+            {
+                result.StatusCode = HttpStatusCode.Forbidden;
+                _logger.LogWarning($"User '{user.Id}' tried to access Contribution '{id}' to which there is no access.");
+            }
+
+            return result;
+        }
+
+        public async Task<OperationResult<Contribution>> GetPublicAsync(Guid id)
+        {
+            OperationResult<Contribution> result = new ();
+            Contribution contribution = await _contributionRepository.GetReadOnlyAsync(id, _standardIncludes);
+            if (contribution is { IsPublic: true })
+            {
+                result.Result = contribution;
+                result.StatusCode = HttpStatusCode.OK;
+            }
+            else
+            {
+                result.StatusCode = HttpStatusCode.NotFound;
+            }
+
+            return result;
+        }
+
+        public Task<IList<Contribution>> GetAllAsync(User user = null, Guid? userId = null, int? year = null, bool? isPublic = null, int page = 1, short pageSize = 100)
+        {
+            return GetAllInternalAsync(user, userId, year, isPublic, page, pageSize, _standardIncludes, true);
+        }
+
+        private static bool CanSeeContribution(User user, Contribution contribution)
+        {
+            bool result = false;
+            if (contribution == null)
+            {
+                // Anyone can see an empty response
+                result = true;
+            }
+            else if (contribution.Application.Applicant.Id == user.Id)
+            {
+                // A user may look at their contributions
+                result = true;
+            }
+            else if (user.HasRight(Right.Admin))
+            {
+                // Admins can see all contributions
+                result = true;
+            }
+            else if (contribution.IsPublic)
+            {
+                // Anyone is allowed to look at public contributions
+                result = true;
+            }
+
+            return result;
+        }
+
+        private async Task<IList<Contribution>> GetAllInternalAsync(User user, Guid? userId, int? year, bool? isPublic, int page, short pageSize, Expression<Func<Contribution, object>>[] includes, bool isReadOnly)
+        {
+            IList<Contribution> result;
+            if (user?.HasRight(Right.Admin) ?? false)
+            {
+                // Admin can list any contributions
+                result = isReadOnly
+                    ? await _contributionRepository.GetAllReadOnlyAsync(userId, year, isPublic, page, pageSize, _standardIncludes)
+                    : await _contributionRepository.GetAllAsync(userId, year, isPublic, page, pageSize, _standardIncludes);
+            }
+            else if (userId.HasValue && user?.Id == userId)
+            {
+                // User can list their own contributions
+                result = isReadOnly
+                    ? await _contributionRepository.GetAllReadOnlyAsync(user.Id, year, isPublic, page, pageSize, _standardIncludes)
+                    : await _contributionRepository.GetAllAsync(user.Id, year, isPublic, page, pageSize, _standardIncludes);
+            }
+            else if (isPublic is true)
+            {
+                // Public contributions can be listed by anyone
+                result = isReadOnly
+                    ? await _contributionRepository.GetAllReadOnlyAsync(userId, year, true, page, pageSize, _standardIncludes)
+                    : await _contributionRepository.GetAllAsync(userId, year, true, page, pageSize, _standardIncludes);
+            }
+            else
+            {
+                result = new List<Contribution>(0);
             }
 
             return result;

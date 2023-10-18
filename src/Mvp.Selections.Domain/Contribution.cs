@@ -15,6 +15,8 @@
 
         public DateTime Date { get; set; }
 
+        public bool IsPublic { get; set; }
+
         public ContributionType Type { get; set; }
 
         public Application Application { get; set; } = null!;
