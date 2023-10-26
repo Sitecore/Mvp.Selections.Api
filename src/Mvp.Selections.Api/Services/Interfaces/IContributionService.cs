@@ -18,6 +18,6 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<OperationResult<Contribution>> GetPublicAsync(Guid id);
 
-        Task<IList<Contribution>> GetAllAsync(User user, Guid? userId, int? year, bool? isPublic, int page, short pageSize);
+        Task<IList<Contribution>> GetAllAsync(User user, Guid? userId, int? selectionYear, bool? isPublic, int page, short pageSize);
     }
 }

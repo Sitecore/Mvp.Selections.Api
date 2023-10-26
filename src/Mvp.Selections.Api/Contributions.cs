@@ -21,7 +21,7 @@ namespace Mvp.Selections.Api
 {
     public class Contributions : Base<Contributions>
     {
-        private const string YearQueryStringKey = "year";
+        private const string SelectionYearQueryStringKey = "selectionyear";
 
         private readonly IContributionService _contributionService;
 
@@ -37,6 +37,7 @@ namespace Mvp.Selections.Api
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Contribution))]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.NotFound, PlainTextContentType, typeof(string))]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/contributions/{id:Guid}")]
@@ -61,7 +62,7 @@ namespace Mvp.Selections.Api
         [FunctionName("GetAllContributionsForUser")]
         [OpenApiOperation("GetAllContributionsForUser", "Contributions", "Any")]
         [OpenApiParameter("userId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiParameter(YearQueryStringKey, In = ParameterLocation.Query, Type = typeof(int))]
+        [OpenApiParameter(SelectionYearQueryStringKey, In = ParameterLocation.Query, Type = typeof(int))]
         [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
         [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
@@ -78,14 +79,14 @@ namespace Mvp.Selections.Api
                 async authResult =>
                 {
                     ListParameters lp = new (req);
-                    int? year = req.Query.GetFirstValueOrDefault<int?>(YearQueryStringKey);
+                    int? year = req.Query.GetFirstValueOrDefault<int?>(SelectionYearQueryStringKey);
                     IList<Contribution> contributions = await _contributionService.GetAllAsync(authResult.User, userId, year, null, lp.Page, lp.PageSize);
                     return ContentResult(contributions, ContributionsContractResolver.Instance);
                 },
                 async _ =>
                 {
                     ListParameters lp = new (req);
-                    int? year = req.Query.GetFirstValueOrDefault<int?>(YearQueryStringKey);
+                    int? year = req.Query.GetFirstValueOrDefault<int?>(SelectionYearQueryStringKey);
                     IList<Contribution> contributions = await _contributionService.GetAllAsync(null, userId, year, true, lp.Page, lp.PageSize);
                     return ContentResult(contributions, ContributionsContractResolver.Instance);
                 });

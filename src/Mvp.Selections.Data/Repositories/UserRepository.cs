@@ -44,6 +44,21 @@ namespace Mvp.Selections.Data.Repositories
                 .SingleOrDefaultAsync(u => u.Identifier == identifier);
         }
 
+        public Task<User?> GetForMvpProfileReadOnlyAsync(Guid id)
+        {
+            return Context.Users
+                .Include(u => u.Country!.Region)
+                .Include(u => u.Links)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Title)
+                .ThenInclude(t => t!.MvpType)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Contributions)
+                .ThenInclude(c => c.RelatedProducts)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Id == id);
+        }
+
         public bool DoesUserExist(string identifier)
         {
             return Context.Users.Any(u => u.Identifier == identifier);

@@ -34,7 +34,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("RelatedProductsId");
 
-                    b.ToTable("ContributionProduct");
+                    b.ToTable("ContributionProduct", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Application", b =>
@@ -91,7 +91,7 @@ namespace Mvp.Selections.Data.Migrations
                     b.HasIndex("ApplicantId", "SelectionId")
                         .IsUnique();
 
-                    b.ToTable("Applications");
+                    b.ToTable("Applications", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Comments.Comment", b =>
@@ -128,7 +128,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Comment");
                 });
@@ -165,7 +165,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Consents");
+                    b.ToTable("Consents", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Contribution", b =>
@@ -214,7 +214,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("ApplicationId");
 
-                    b.ToTable("Contributions");
+                    b.ToTable("Contributions", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Country", b =>
@@ -249,7 +249,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("RegionId");
 
-                    b.ToTable("Countries");
+                    b.ToTable("Countries", (string)null);
 
                     b.HasData(
                         new
@@ -1954,7 +1954,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MvpType");
+                    b.ToTable("MvpType", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Product", b =>
@@ -1984,7 +1984,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ProfileLink", b =>
@@ -2024,7 +2024,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProfileLinks");
+                    b.ToTable("ProfileLinks", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Region", b =>
@@ -2054,7 +2054,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Regions");
+                    b.ToTable("Regions", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Review", b =>
@@ -2095,7 +2095,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ReviewCategoryScore", b =>
@@ -2115,7 +2115,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("ScoreId");
 
-                    b.ToTable("ReviewCategoryScore");
+                    b.ToTable("ReviewCategoryScore", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Roles.Role", b =>
@@ -2147,7 +2147,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Role");
                 });
@@ -2183,7 +2183,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Scores");
+                    b.ToTable("Scores", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ScoreCategory", b =>
@@ -2237,7 +2237,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("SelectionId");
 
-                    b.ToTable("ScoreCategories");
+                    b.ToTable("ScoreCategories", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Selection", b =>
@@ -2284,7 +2284,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasAlternateKey("Year");
 
-                    b.ToTable("Selections");
+                    b.ToTable("Selections", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Title", b =>
@@ -2322,7 +2322,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("MvpTypeId");
 
-                    b.ToTable("Titles");
+                    b.ToTable("Titles", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.User", b =>
@@ -2377,7 +2377,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
@@ -2405,7 +2405,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("SelectionsId");
 
-                    b.ToTable("MvpTypeSelection");
+                    b.ToTable("MvpTypeSelection", (string)null);
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -2420,7 +2420,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("RoleUser");
+                    b.ToTable("RoleUser", (string)null);
 
                     b.HasData(
                         new
@@ -2442,7 +2442,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("ScoreOptionsId");
 
-                    b.ToTable("ScoreScoreCategory");
+                    b.ToTable("ScoreScoreCategory", (string)null);
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Comments.ApplicationComment", b =>

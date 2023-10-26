@@ -61,7 +61,8 @@ namespace Mvp.Selections.Api.Services
                     Description = contribution.Description,
                     Name = contribution.Name,
                     Uri = contribution.Uri,
-                    Application = application
+                    Application = application,
+                    IsPublic = contribution.IsPublic
                 };
                 foreach (Product product in contribution.RelatedProducts)
                 {
@@ -179,6 +180,7 @@ namespace Mvp.Selections.Api.Services
                 }
 
                 existingContribution.Type = contribution.Type;
+                existingContribution.IsPublic = contribution.IsPublic;
 
                 foreach (Product product in contribution.RelatedProducts)
                 {
@@ -250,9 +252,9 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public Task<IList<Contribution>> GetAllAsync(User user = null, Guid? userId = null, int? year = null, bool? isPublic = null, int page = 1, short pageSize = 100)
+        public Task<IList<Contribution>> GetAllAsync(User user = null, Guid? userId = null, int? selectionYear = null, bool? isPublic = null, int page = 1, short pageSize = 100)
         {
-            return GetAllInternalAsync(user, userId, year, isPublic, page, pageSize, _standardIncludes, true);
+            return GetAllInternalAsync(user, userId, selectionYear, isPublic, page, pageSize, _standardIncludes, true);
         }
 
         private static bool CanSeeContribution(User user, Contribution contribution)
@@ -282,29 +284,29 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private async Task<IList<Contribution>> GetAllInternalAsync(User user, Guid? userId, int? year, bool? isPublic, int page, short pageSize, Expression<Func<Contribution, object>>[] includes, bool isReadOnly)
+        private async Task<IList<Contribution>> GetAllInternalAsync(User user, Guid? userId, int? selectionYear, bool? isPublic, int page, short pageSize, Expression<Func<Contribution, object>>[] includes, bool isReadOnly)
         {
             IList<Contribution> result;
             if (user?.HasRight(Right.Admin) ?? false)
             {
                 // Admin can list any contributions
                 result = isReadOnly
-                    ? await _contributionRepository.GetAllReadOnlyAsync(userId, year, isPublic, page, pageSize, _standardIncludes)
-                    : await _contributionRepository.GetAllAsync(userId, year, isPublic, page, pageSize, _standardIncludes);
+                    ? await _contributionRepository.GetAllReadOnlyAsync(userId, selectionYear, isPublic, page, pageSize, includes ?? _standardIncludes)
+                    : await _contributionRepository.GetAllAsync(userId, selectionYear, isPublic, page, pageSize, includes ?? _standardIncludes);
             }
             else if (userId.HasValue && user?.Id == userId)
             {
                 // User can list their own contributions
                 result = isReadOnly
-                    ? await _contributionRepository.GetAllReadOnlyAsync(user.Id, year, isPublic, page, pageSize, _standardIncludes)
-                    : await _contributionRepository.GetAllAsync(user.Id, year, isPublic, page, pageSize, _standardIncludes);
+                    ? await _contributionRepository.GetAllReadOnlyAsync(user.Id, selectionYear, isPublic, page, pageSize, includes ?? _standardIncludes)
+                    : await _contributionRepository.GetAllAsync(user.Id, selectionYear, isPublic, page, pageSize, includes ?? _standardIncludes);
             }
             else if (isPublic is true)
             {
                 // Public contributions can be listed by anyone
                 result = isReadOnly
-                    ? await _contributionRepository.GetAllReadOnlyAsync(userId, year, true, page, pageSize, _standardIncludes)
-                    : await _contributionRepository.GetAllAsync(userId, year, true, page, pageSize, _standardIncludes);
+                    ? await _contributionRepository.GetAllReadOnlyAsync(userId, selectionYear, true, page, pageSize, includes ?? _standardIncludes)
+                    : await _contributionRepository.GetAllAsync(userId, selectionYear, true, page, pageSize, includes ?? _standardIncludes);
             }
             else
             {

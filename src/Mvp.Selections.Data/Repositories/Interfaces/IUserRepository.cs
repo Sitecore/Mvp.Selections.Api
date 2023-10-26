@@ -15,6 +15,8 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
 
         Task<User?> GetForAuthAsync(string identifier);
 
+        Task<User?> GetForMvpProfileReadOnlyAsync(Guid id);
+
         bool DoesUserExist(string identifier);
     }
 }

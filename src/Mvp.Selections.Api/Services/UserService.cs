@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Extensions;
+using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -12,7 +14,7 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class UserService : IUserService
+    public class UserService : IUserService, IMvpProfileService
     {
         private readonly ILogger<UserService> _logger;
 
@@ -127,6 +129,33 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
+        public async Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id)
+        {
+            OperationResult<MvpProfile> result = new ();
+            User user = await _userRepository.GetForMvpProfileReadOnlyAsync(id);
+            if (user?.Applications.All(a => a.Title == null) ?? true)
+            {
+                result.StatusCode = HttpStatusCode.NotFound;
+            }
+            else
+            {
+                MvpProfile profile = new ()
+                {
+                    Name = user.Name,
+                    Country = user.Country,
+                    ImageUri = user.ImageUri,
+                    ProfileLinks = user.Links,
+                    Titles = user.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList(),
+                    PublicContributions = user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date).ToList()
+                };
+
+                result.Result = profile;
+                result.StatusCode = HttpStatusCode.OK;
+            }
+
+            return result;
+        }
+
         private static Uri GetGravatarUri(string email)
         {
             Uri result = null;
@@ -145,14 +174,14 @@ namespace Mvp.Selections.Api.Services
             switch (user.ImageType)
             {
                 case ImageType.Community:
-                    // TODO [ILs] No idea how to retrieve this
+                    // TODO [IVA] No idea how to retrieve this
                     result = null;
                     break;
                 case ImageType.Gravatar:
                     result = GetGravatarUri(user.Email);
                     break;
                 case ImageType.Twitter:
-                    // TODO [ILs] Find a way to load profile image from Twitter
+                    // TODO [IVA] Find a way to load profile image from Twitter
                     result = new Uri("https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
                     break;
                 case ImageType.Anonymous:

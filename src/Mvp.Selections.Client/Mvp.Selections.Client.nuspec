@@ -2,9 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Mvp.Selections.Client</id>
-    <version>4.4.0</version>
+    <version>4.5.0</version>
     <releaseNotes>
-      + Selection now has assigned MVP Types
+      + Contribution Get and GetAllForUser
+      + MvpProfile Get
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>
