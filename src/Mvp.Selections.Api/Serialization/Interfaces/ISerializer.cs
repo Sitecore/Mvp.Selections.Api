@@ -10,6 +10,8 @@ namespace Mvp.Selections.Api.Serialization.Interfaces
 
         Task<T> DeserializeAsync<T>(Stream stream);
 
+        Task<DeserializationResult<T>> DeserializeAsync<T>(Stream stream, bool extractPropertyKeys);
+
         string Serialize(object data, IContractResolver contractResolver = null);
     }
 }

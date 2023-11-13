@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Configuration;
+using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -29,6 +32,24 @@ namespace Mvp.Selections.Api.Serialization
             using StreamReader reader = new (stream);
             string streamContent = await reader.ReadToEndAsync();
             return JsonConvert.DeserializeObject<T>(streamContent, _options.JsonSerializerSettings);
+        }
+
+        public async Task<DeserializationResult<T>> DeserializeAsync<T>(Stream stream, bool extractPropertyKeys)
+        {
+            DeserializationResult<T> result = new ();
+            using StreamReader reader = new (stream);
+            string streamContent = await reader.ReadToEndAsync();
+            if (extractPropertyKeys)
+            {
+                using JsonDocument document = JsonDocument.Parse(streamContent);
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    result.PropertyKeys.AddRange(document.RootElement.EnumerateObject().Select(property => property.Name));
+                }
+            }
+
+            result.Object = JsonConvert.DeserializeObject<T>(streamContent, _options.JsonSerializerSettings);
+            return result;
         }
 
         public string Serialize(object data, IContractResolver contractResolver = null)
