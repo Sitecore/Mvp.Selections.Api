@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Client.Configuration;
+using Mvp.Selections.Client.Extensions;
 using Mvp.Selections.Client.Interfaces;
 using Mvp.Selections.Client.Models;
 using Mvp.Selections.Client.Models.Request;
@@ -70,25 +71,8 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<User>>> GetUsersAsync(string? name, string? email, short? countryId, ListParameters listParameters)
         {
-            string nameQueryString = string.Empty;
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                nameQueryString = $"&name={name}";
-            }
-
-            string emailQueryString = string.Empty;
-            if (!string.IsNullOrWhiteSpace(email))
-            {
-                emailQueryString = $"&email={email}";
-            }
-
-            string countryIdQueryString = string.Empty;
-            if (countryId.HasValue)
-            {
-                countryIdQueryString = $"&countryId={countryId}";
-            }
-
-            return GetAsync<IList<User>>($"/api/v1/users?{listParameters.ToQueryString()}{nameQueryString}{emailQueryString}{countryIdQueryString}");
+            return GetAsync<IList<User>>(
+                $"/api/v1/users{listParameters.ToQueryString(true)}{name.ToQueryString("name")}{email.ToQueryString("email")}{countryId.ToQueryString("countryId")}");
         }
 
         public Task<Response<User>> AddUserAsync(User user)
@@ -118,7 +102,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Region>>> GetRegionsAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<Region>>($"/api/v1/regions?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Region>>($"/api/v1/regions{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<Region>> AddRegionAsync(Region region)
@@ -164,7 +148,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<SystemRole>>($"/api/v1/roles/system?{listParameters.ToQueryString()}");
+            return GetAsync<IList<SystemRole>>($"/api/v1/roles/system{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<SystemRole>> AddSystemRoleAsync(SystemRole systemRole)
@@ -200,7 +184,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Country>>> GetCountriesAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<Country>>($"/api/v1/countries?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Country>>($"/api/v1/countries{listParameters.ToQueryString(true)}");
         }
 
         #endregion Countries
@@ -220,7 +204,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Selection>>> GetSelectionsAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<Selection>>($"/api/v1/selections?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Selection>>($"/api/v1/selections{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<Selection>> AddSelectionAsync(Selection selection)
@@ -247,21 +231,28 @@ namespace Mvp.Selections.Client
 
         #region Applications
 
+        [Obsolete("Use the override with additional parameters")]
         public Task<Response<IList<Application>>> GetApplicationsAsync(ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
             ListParameters listParameters = new () { Page = page, PageSize = pageSize };
             return GetApplicationsAsync(status, listParameters);
         }
 
+        [Obsolete("Use the override with additional parameters")]
         public Task<Response<IList<Application>>> GetApplicationsAsync(ApplicationStatus? status, ListParameters listParameters)
         {
-            string statusQueryString = string.Empty;
-            if (status != null)
-            {
-                statusQueryString = $"&status={status}";
-            }
+            return GetAsync<IList<Application>>($"/api/v1/applications{listParameters.ToQueryString(true)}{status.ToQueryString("status")}");
+        }
 
-            return GetAsync<IList<Application>>($"/api/v1/applications?{listParameters.ToQueryString()}{statusQueryString}");
+        public Task<Response<IList<Application>>> GetApplicationsAsync(Guid? userId = null, string? applicantName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetApplicationsAsync(userId, applicantName, selectionId, countryId, status, listParameters);
+        }
+
+        public Task<Response<IList<Application>>> GetApplicationsAsync(Guid? userId, string? applicantName, Guid? selectionId, short? countryId, ApplicationStatus? status, ListParameters listParameters)
+        {
+            return GetAsync<IList<Application>>($"/api/v1/applications{listParameters.ToQueryString(true)}{userId.ToQueryString("userId")}{applicantName.ToQueryString("applicantName")}{selectionId.ToQueryString("selectionId")}{countryId.ToQueryString("countryId")}{status.ToQueryString("status")}");
         }
 
         public Task<Response<IList<Application>>> GetApplicationsForSelectionAsync(Guid selectionId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
@@ -272,13 +263,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Application>>> GetApplicationsForSelectionAsync(Guid selectionId, ApplicationStatus? status, ListParameters listParameters)
         {
-            string statusQueryString = string.Empty;
-            if (status != null)
-            {
-                statusQueryString = $"&status={status}";
-            }
-
-            return GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
+            return GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/applications{listParameters.ToQueryString(true)}{status.ToQueryString("status")}");
         }
 
         public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(Guid selectionId, short countryId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
@@ -289,13 +274,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(Guid selectionId, short countryId, ApplicationStatus? status, ListParameters listParameters)
         {
-            string statusQueryString = string.Empty;
-            if (status != null)
-            {
-                statusQueryString = $"&status={status}";
-            }
-
-            return GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/countries/{countryId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
+            return GetAsync<IList<Application>>($"/api/v1/selections/{selectionId}/countries/{countryId}/applications{listParameters.ToQueryString(true)}{status.ToQueryString("status")}");
         }
 
         public Task<Response<IList<Application>>> GetApplicationsForUserAsync(Guid userId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
@@ -306,13 +285,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Application>>> GetApplicationsForUserAsync(Guid userId, ApplicationStatus? status, ListParameters listParameters)
         {
-            string statusQueryString = string.Empty;
-            if (status != null)
-            {
-                statusQueryString = $"&status={status}";
-            }
-
-            return GetAsync<IList<Application>>($"/api/v1/users/{userId}/applications?{listParameters.ToQueryString()}{statusQueryString}");
+            return GetAsync<IList<Application>>($"/api/v1/users/{userId}/applications{listParameters.ToQueryString(true)}{status.ToQueryString("status")}");
         }
 
         public Task<Response<Application>> GetApplicationAsync(Guid applicationId)
@@ -352,7 +325,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<MvpType>>> GetMvpTypesAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<MvpType>>($"/api/v1/mvptypes?{listParameters.ToQueryString()}");
+            return GetAsync<IList<MvpType>>($"/api/v1/mvptypes{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<MvpType>> AddMvpTypeAsync(MvpType mvpType)
@@ -387,7 +360,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Product>>> GetProductsAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<Product>>($"/api/v1/products?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Product>>($"/api/v1/products{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<Product>> AddProductAsync(Product product)
@@ -479,7 +452,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Review>>> GetReviewsAsync(Guid applicationId, ListParameters listParameters)
         {
-            return GetAsync<IList<Review>>($"/api/v1/applications/{applicationId}/reviews?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Review>>($"/api/v1/applications/{applicationId}/reviews{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<Review>> AddReviewAsync(Guid applicationId, Review review)
@@ -538,7 +511,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Score>>> GetScoresAsync(ListParameters listParameters)
         {
-            return GetAsync<IList<Score>>($"/api/v1/scores?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Score>>($"/api/v1/scores{listParameters.ToQueryString(true)}");
         }
 
         public Task<Response<Score>> AddScoreAsync(Score score)
@@ -568,7 +541,7 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Applicant>>> GetApplicantsAsync(Guid selectionId, ListParameters listParameters)
         {
-            return GetAsync<IList<Applicant>>($"/api/v1/selections/{selectionId}/applicants?{listParameters.ToQueryString()}");
+            return GetAsync<IList<Applicant>>($"/api/v1/selections/{selectionId}/applicants{listParameters.ToQueryString(true)}");
         }
 
         #endregion Applicants
@@ -637,7 +610,7 @@ namespace Mvp.Selections.Client
             string yearsQueryString = (years ?? Array.Empty<short>()).Aggregate(string.Empty, (current, year) => current + $"&year={year}");
             string countryIdsQueryString = (countryIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, countryId) => current + $"&countryid={countryId}");
 
-            return GetAsync<IList<Title>>($"/api/v1/titles?{listParameters.ToQueryString()}{nameQueryString}{mvpTypeIdsQueryString}{yearsQueryString}{countryIdsQueryString}");
+            return GetAsync<IList<Title>>($"/api/v1/titles{listParameters.ToQueryString(true)}{nameQueryString}{mvpTypeIdsQueryString}{yearsQueryString}{countryIdsQueryString}");
         }
 
         public Task<Response<Title>> AddTitleAsync(Title title)
