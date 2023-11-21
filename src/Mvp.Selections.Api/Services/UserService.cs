@@ -5,9 +5,13 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Clients;
+using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Model.Search;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -29,11 +33,17 @@ namespace Mvp.Selections.Api.Services
             u => u.Roles
         };
 
-        public UserService(ILogger<UserService> logger, IUserRepository userRepository, ICountryRepository countryRepository)
+        private readonly SearchIngestionClient _searchIngestionClient;
+
+        private readonly SearchIngestionClientOptions _searchIngestionClientOptions;
+
+        public UserService(ILogger<UserService> logger, IUserRepository userRepository, ICountryRepository countryRepository, SearchIngestionClient searchIngestionClient, IOptions<SearchIngestionClientOptions> searchIngestionClientOptions)
         {
             _logger = logger;
             _userRepository = userRepository;
             _countryRepository = countryRepository;
+            _searchIngestionClient = searchIngestionClient;
+            _searchIngestionClientOptions = searchIngestionClientOptions.Value;
         }
 
         public Task<User> GetAsync(Guid id)
@@ -151,6 +161,109 @@ namespace Mvp.Selections.Api.Services
 
                 result.Result = profile;
                 result.StatusCode = HttpStatusCode.OK;
+            }
+
+            return result;
+        }
+
+        public async Task<OperationResult<object>> IndexAsync()
+        {
+            OperationResult<object> result = new ();
+            int count = 0;
+            int page = 1;
+            IList<User> users;
+            Dictionary<Task, string> runningTasks = new ();
+            do
+            {
+                users = await _userRepository.GetWithTitleReadOnlyAsync(null, null, page, 1000, u => u.Country);
+                count += users.Count;
+                foreach (User user in users)
+                {
+                    Document document = new ()
+                    {
+                        Id = user.Id.ToString(),
+                        Fields = new
+                        {
+                            type = _searchIngestionClientOptions.MvpContentType,
+                            image_url = user.ImageUri?.ToString() ?? _searchIngestionClientOptions.MvpDefaultImage,
+                            name = user.Name,
+                            url = string.Format(_searchIngestionClientOptions.MvpUrlFormat, user.Id),
+                            country = user.Country?.Name,
+                            mvp_titles = user.Applications.Where(a => a.Title != null).Select(a => new { year = a.Selection.Year, type = a.Title.MvpType.Name }),
+                            mvp_type_collection = user.Applications.Where(a => a.Title != null).Select(a => a.Title.MvpType.Name),
+                            mvp_year_collection = user.Applications.Where(a => a.Title != null).Select(a => a.Selection.Year),
+                            mvp_year_type_collection = user.Applications.Where(a => a.Title != null).Select(a => $"{a.Selection.Year}_{a.Title.MvpType.Name}")
+                        }
+                    };
+                    Task<Response<bool>> updateDocumentTask = _searchIngestionClient.UpdateDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, document);
+                    runningTasks.Add(updateDocumentTask, document.Id);
+                }
+
+                while (runningTasks.Count > 0)
+                {
+                    Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
+                    Response<bool> response = await doneTask;
+                    if (!response.Result)
+                    {
+                        result.Messages.Add($"Failed to update {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
+                    }
+
+                    runningTasks.Remove(doneTask);
+                }
+
+                page++;
+                runningTasks.Clear();
+            }
+            while (users.Count > 0);
+
+            if (result.Messages.Count == 0)
+            {
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = new { records = count };
+            }
+
+            return result;
+        }
+
+        public async Task<OperationResult<object>> ClearIndexAsync()
+        {
+            OperationResult<object> result = new ();
+            int count = 0;
+            int page = 1;
+            IList<User> users;
+            Dictionary<Task, string> runningTasks = new ();
+            do
+            {
+                users = await _userRepository.GetWithTitleReadOnlyAsync(null, null, page, 1000);
+                count += users.Count;
+                foreach (User user in users)
+                {
+                    string id = user.Id.ToString();
+                    Task<Response<bool>> deleteDocumentTask = _searchIngestionClient.DeleteDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, id);
+                    runningTasks.Add(deleteDocumentTask, id);
+                }
+
+                while (runningTasks.Count > 0)
+                {
+                    Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
+                    Response<bool> response = await doneTask;
+                    if (!response.Result)
+                    {
+                        result.Messages.Add($"Failed to delete {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
+                    }
+
+                    runningTasks.Remove(doneTask);
+                }
+
+                page++;
+                runningTasks.Clear();
+            }
+            while (users.Count > 0);
+
+            if (result.Messages.Count == 0)
+            {
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = new { records = count };
             }
 
             return result;

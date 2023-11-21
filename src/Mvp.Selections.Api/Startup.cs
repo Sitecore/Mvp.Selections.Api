@@ -31,6 +31,8 @@ namespace Mvp.Selections.Api
                 configuration.GetSection(MvpSelectionsOptions.MvpSelections).Bind(options));
             builder.Services.AddOptions<JsonOptions>().Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(JsonOptions.Json).Bind(options));
+            builder.Services.AddOptions<SearchIngestionClientOptions>().Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(SearchIngestionClientOptions.SearchIngestionClient).Bind(options));
 
             // Helpers
             builder.Services.AddScoped<ISerializer, JsonSerializer>();
@@ -86,6 +88,7 @@ namespace Mvp.Selections.Api
 
             // HttpClients
             builder.Services.AddHttpClient<OktaClient>();
+            builder.Services.AddHttpClient<SearchIngestionClient>();
         }
     }
 }

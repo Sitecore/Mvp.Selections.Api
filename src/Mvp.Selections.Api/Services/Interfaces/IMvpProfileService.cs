@@ -8,5 +8,9 @@ namespace Mvp.Selections.Api.Services.Interfaces
     public interface IMvpProfileService
     {
         Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id);
+
+        Task<OperationResult<object>> IndexAsync();
+
+        Task<OperationResult<object>> ClearIndexAsync();
     }
 }
