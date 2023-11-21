@@ -10,9 +10,10 @@
 
         public short PageSize { get; set; } = 100;
 
-        public string ToQueryString()
+        public string ToQueryString(bool isFirst = false)
         {
-            return $"{PageQueryStringKey}={Page}&{PageSizeQueryStringKey}={PageSize}";
+            string start = isFirst ? "?" : "&";
+            return $"{start}{PageQueryStringKey}={Page}&{PageSizeQueryStringKey}={PageSize}";
         }
     }
 }

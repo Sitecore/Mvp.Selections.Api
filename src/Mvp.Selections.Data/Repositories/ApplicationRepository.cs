@@ -16,24 +16,24 @@ namespace Mvp.Selections.Data.Repositories
         {
         }
 
-        public async Task<IList<Application>> GetAllAsync(Guid? userId = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
+        public async Task<IList<Application>> GetAllAsync(Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
         {
-            return await GetAllQuery(userId, selectionId, countryId, status, page, pageSize, includes).ToListAsync();
+            return await GetAllQuery(userId, userName, selectionId, countryId, status, page, pageSize, includes).ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllReadOnlyAsync(Guid? userId = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
+        public async Task<IList<Application>> GetAllReadOnlyAsync(Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
         {
-            return await GetAllQuery(userId, selectionId, countryId, status, page, pageSize, includes).AsNoTracking().ToListAsync();
+            return await GetAllQuery(userId, userName, selectionId, countryId, status, page, pageSize, includes).AsNoTracking().ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForReviewAsync(IEnumerable<SelectionRole> selectionRoles, Guid? userId = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
+        public async Task<IList<Application>> GetAllForReviewAsync(IEnumerable<SelectionRole> selectionRoles, Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
         {
-            return await GetAllForReviewQuery(selectionRoles, userId, selectionId, countryId, status, page, pageSize, includes).ToListAsync();
+            return await GetAllForReviewQuery(selectionRoles, userId, userName, selectionId, countryId, status, page, pageSize, includes).ToListAsync();
         }
 
-        public async Task<IList<Application>> GetAllForReviewReadOnlyAsync(IEnumerable<SelectionRole> selectionRoles, Guid? userId = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
+        public async Task<IList<Application>> GetAllForReviewReadOnlyAsync(IEnumerable<SelectionRole> selectionRoles, Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
         {
-            return await GetAllForReviewQuery(selectionRoles, userId, selectionId, countryId, status, page, pageSize, includes).AsNoTracking().ToListAsync();
+            return await GetAllForReviewQuery(selectionRoles, userId, userName, selectionId, countryId, status, page, pageSize, includes).AsNoTracking().ToListAsync();
         }
 
         public async Task<IList<Application>> GetAllForUserAsync(Guid userId, Guid? selectionId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
@@ -68,7 +68,7 @@ namespace Mvp.Selections.Data.Repositories
             return result;
         }
 
-        private IQueryable<Application> GetAllQuery(Guid? userId, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[] includes)
+        private IQueryable<Application> GetAllQuery(Guid? userId, string? userName, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[] includes)
         {
             page--;
             IQueryable<Application> query = Context.Applications;
@@ -92,6 +92,11 @@ namespace Mvp.Selections.Data.Repositories
                 query = query.Where(a => a.Applicant.Id == userId);
             }
 
+            if (userName != null)
+            {
+                query = query.Where(a => a.Applicant.Name.Contains(userName));
+            }
+
             return query
                 .OrderByDescending(a => a.Selection.Year)
                 .ThenBy(a => a.Applicant.Name)
@@ -101,7 +106,7 @@ namespace Mvp.Selections.Data.Repositories
                 .Includes(includes);
         }
 
-        private IQueryable<Application> GetAllForReviewQuery(IEnumerable<SelectionRole> selectionRoles, Guid? userId, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, IEnumerable<Expression<Func<Application, object>>> includes)
+        private IQueryable<Application> GetAllForReviewQuery(IEnumerable<SelectionRole> selectionRoles, Guid? userId, string? userName, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, IEnumerable<Expression<Func<Application, object>>> includes)
         {
             ExpressionStarter<Application> predicate = BuildForReviewPredicate(selectionRoles, userId);
             page--;
@@ -124,6 +129,11 @@ namespace Mvp.Selections.Data.Repositories
             if (userId != null)
             {
                 query = query.Where(a => a.Applicant.Id == userId);
+            }
+
+            if (userName != null)
+            {
+                query = query.Where(a => a.Applicant.Name.Contains(userName));
             }
 
             return query

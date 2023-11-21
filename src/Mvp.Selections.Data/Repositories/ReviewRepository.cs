@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Mvp.Selections.Data.Extensions;
 using Mvp.Selections.Data.Interfaces;
@@ -25,6 +26,23 @@ namespace Mvp.Selections.Data.Repositories
                 .Take(pageSize)
                 .Includes(includes)
                 .ToListAsync();
+        }
+
+        public async Task<bool> RemoveReviewScoreCategoriesAsync(Guid reviewId)
+        {
+            bool result = false;
+            List<ReviewCategoryScore> entities = await Context.ReviewCategoryScores.Where(rcs => rcs.ReviewId == reviewId).ToListAsync();
+            if (entities.Count > 0)
+            {
+                foreach (ReviewCategoryScore entity in entities)
+                {
+                    Context.ReviewCategoryScores.Remove(entity);
+                }
+
+                result = true;
+            }
+
+            return result;
         }
     }
 }

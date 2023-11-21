@@ -35,7 +35,7 @@ namespace Mvp.Selections.Api.Extensions
         private static T ConvertOrDefault<T>(string value, T defaultValue = default)
         {
             T result;
-            if (value != null)
+            if (!string.IsNullOrEmpty(value))
             {
                 Type t = typeof(T);
                 if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -46,6 +46,10 @@ namespace Mvp.Selections.Api.Extensions
                 if (t.IsAssignableTo(typeof(Enum)) && Enum.TryParse(t, value, out object enumResult))
                 {
                     result = (T)enumResult;
+                }
+                else if (t == typeof(Guid) && Guid.TryParse(value, out Guid guidResult))
+                {
+                    result = (T)Convert.ChangeType(guidResult, t);
                 }
                 else
                 {
