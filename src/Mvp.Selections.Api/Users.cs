@@ -152,5 +152,22 @@ namespace Mvp.Selections.Api
                 return ContentResult(updateResult, UsersContractResolver.Instance);
             });
         }
+
+        [FunctionName("GetAllUsersForApplicationReview")]
+        [OpenApiOperation("GetAllUsersForApplicationReview", "Users", "Admin")]
+        [OpenApiParameter("applicationId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<User>))]
+        public Task<IActionResult> GetAllForApplicationReview(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications/{applicationId:Guid}/reviewUsers")]
+            HttpRequest req,
+            Guid applicationId)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            {
+                OperationResult<IList<User>> users = await _userService.GetAllForApplicationReviewAsync(applicationId);
+                return ContentResult(users, UsersContractResolver.Instance);
+            });
+        }
     }
 }

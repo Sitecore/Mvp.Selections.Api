@@ -62,9 +62,9 @@ namespace Mvp.Selections.Api.Services
             return GetInternalAsync(user, id, _standardIncludes, isReadOnly);
         }
 
-        public Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
+        public Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, string userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            return GetAllInternalAsync(user, userId, selectionId, countryId, status, page, pageSize, _standardIncludes, true);
+            return GetAllInternalAsync(user, userId, userName, selectionId, countryId, status, page, pageSize, _standardIncludes, true);
         }
 
         public async Task<OperationResult<Application>> AddAsync(User user, Guid selectionId, Application application)
@@ -373,7 +373,7 @@ namespace Mvp.Selections.Api.Services
                 app => app.MvpType,
                 app => app.Reviews.Where(r => r.Reviewer.Id == user.Id && r.Status == ReviewStatus.Finished)
             };
-            IList<Application> applications = await GetAllInternalAsync(user, null, selectionId, null, ApplicationStatus.Submitted, page, pageSize, includes, true);
+            IList<Application> applications = await GetAllInternalAsync(user, null, null, selectionId, null, ApplicationStatus.Submitted, page, pageSize, includes, true);
             return applications
                 .Where(a => a.Applicant.Id != user.Id || user.HasRight(Right.Admin))
                 .Select(a =>
@@ -472,20 +472,20 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private async Task<IList<Application>> GetAllInternalAsync(User user, Guid? userId, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[] includes, bool isReadOnly)
+        private async Task<IList<Application>> GetAllInternalAsync(User user, Guid? userId, string userName, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[] includes, bool isReadOnly)
         {
             IList<Application> result;
             if (user.HasRight(Right.Admin))
             {
                 result = isReadOnly ?
-                    await _applicationRepository.GetAllReadOnlyAsync(userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
-                    await _applicationRepository.GetAllAsync(userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+                    await _applicationRepository.GetAllReadOnlyAsync(userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await _applicationRepository.GetAllAsync(userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
             }
             else if (user.HasRight(Right.Review))
             {
                 result = isReadOnly ?
-                    await _applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
-                    await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), userId, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+                    await _applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
             }
             else if (user.HasRight(Right.Apply))
             {

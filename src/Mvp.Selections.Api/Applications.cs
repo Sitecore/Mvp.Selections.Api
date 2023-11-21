@@ -21,6 +21,16 @@ namespace Mvp.Selections.Api
 {
     public class Applications : Base<Applications>
     {
+        private const string UserIdQueryStringKey = "userId";
+
+        private const string ApplicantNameQueryStringKey = "applicantName";
+
+        private const string SelectionIdQueryStringKey = "selectionId";
+
+        private const string CountryIdQueryStringKey = "countryId";
+
+        private const string StatusQueryStringKey = "status";
+
         private readonly IApplicationService _applicationService;
 
         public Applications(ILogger<Applications> logger, ISerializer serializer, IAuthService authService, IApplicationService applicationService)
@@ -66,8 +76,12 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async authResult =>
             {
                 ListParameters lp = new (req);
-                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, null, null, status, lp.Page, lp.PageSize);
+                Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
+                string userName = req.Query.GetFirstValueOrDefault<string>(ApplicantNameQueryStringKey);
+                Guid? selectionId = req.Query.GetFirstValueOrDefault<Guid?>(SelectionIdQueryStringKey);
+                short? countryId = req.Query.GetFirstValueOrDefault<short?>(CountryIdQueryStringKey);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>(StatusQueryStringKey);
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, userName, selectionId, countryId, status, lp.Page, lp.PageSize);
                 return ContentResult(applications, ApplicationsContractResolver.Instance);
             });
         }
@@ -91,8 +105,11 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async authResult =>
             {
                 ListParameters lp = new (req);
-                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, null, status, lp.Page, lp.PageSize);
+                Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
+                string userName = req.Query.GetFirstValueOrDefault<string>(ApplicantNameQueryStringKey);
+                short? countryId = req.Query.GetFirstValueOrDefault<short?>(CountryIdQueryStringKey);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>(StatusQueryStringKey);
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, userName, selectionId, countryId, status, lp.Page, lp.PageSize);
                 return ContentResult(applications, ApplicationsContractResolver.Instance);
             });
         }
@@ -118,8 +135,10 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Review }, async authResult =>
             {
                 ListParameters lp = new (req);
-                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, null, selectionId, countryId, status, lp.Page, lp.PageSize);
+                Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
+                string userName = req.Query.GetFirstValueOrDefault<string>(ApplicantNameQueryStringKey);
+                ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>(StatusQueryStringKey);
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, userName, selectionId, countryId, status, lp.Page, lp.PageSize);
                 return ContentResult(applications, ApplicationsContractResolver.Instance);
             });
         }
@@ -144,7 +163,7 @@ namespace Mvp.Selections.Api
             {
                 ListParameters lp = new (req);
                 ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
-                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, null, null, status, lp.Page, lp.PageSize);
+                IList<Application> applications = await _applicationService.GetAllAsync(authResult.User, userId, null, null, null, status, lp.Page, lp.PageSize);
                 return ContentResult(applications, ApplicationsContractResolver.Instance);
             });
         }

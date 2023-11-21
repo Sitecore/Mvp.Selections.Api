@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
@@ -23,6 +24,16 @@ namespace Mvp.Selections.Api
 {
     public class Roles : Base<Roles>
     {
+        private const string ApplicationIdQueryStringKey = "applicationId";
+
+        private const string CountryIdQueryStringKey = "countryId";
+
+        private const string MvpTypeIdQueryStringKey = "mvpTypeId";
+
+        private const string RegionIdQueryStringKey = "regionId";
+
+        private const string SelectionIdQueryStringKey = "selectionId";
+
         private readonly IRoleService _roleService;
 
         public Roles(ILogger<Roles> logger, ISerializer serializer, IAuthService authService, IRoleService roleService)
@@ -106,25 +117,11 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             Guid id)
         {
-            // TODO [IVA] Refactor to use OperationResult
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                IActionResult result;
                 AssignUserToRoleRequestBody body = await Serializer.DeserializeAsync<AssignUserToRoleRequestBody>(req.Body);
-                if (body != null && await _roleService.AssignUserAsync(id, body.UserId))
-                {
-                    result = new NoContentResult();
-                }
-                else if (body == null)
-                {
-                    result = new BadRequestErrorMessageResult("Missing request body.");
-                }
-                else
-                {
-                    result = new BadRequestErrorMessageResult($"Unable to assign User '{body.UserId}' to Role '{id}'. Either user or role may not exist.");
-                }
-
-                return result;
+                OperationResult<AssignUserToRoleRequestBody> result = await _roleService.AssignUserAsync(id, body);
+                return ContentResult(result);
             });
         }
 
@@ -178,6 +175,72 @@ namespace Mvp.Selections.Api
             {
                 await _roleService.RemoveRoleAsync(id);
                 return new NoContentResult();
+            });
+        }
+
+        [FunctionName("GetAllSelectionRoles")]
+        [OpenApiOperation("GetAllSelectionRoles", "Roles", "Admin")]
+        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
+        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<SelectionRole>))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> GetAllSelection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/selection")]
+            HttpRequest req)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            {
+                ListParameters lp = new (req);
+                Guid? applicationId = req.Query.GetFirstValueOrDefault<Guid?>(ApplicationIdQueryStringKey);
+                short? countryId = req.Query.GetFirstValueOrDefault<short?>(CountryIdQueryStringKey);
+                short? mvpTypeId = req.Query.GetFirstValueOrDefault<short?>(MvpTypeIdQueryStringKey);
+                int? regionId = req.Query.GetFirstValueOrDefault<short?>(RegionIdQueryStringKey);
+                Guid? selectionId = req.Query.GetFirstValueOrDefault<Guid?>(SelectionIdQueryStringKey);
+                IList<SelectionRole> selectionRoles = await _roleService.GetAllSelectionRolesAsync(applicationId, countryId, mvpTypeId, regionId, selectionId, lp.Page, lp.PageSize);
+                return ContentResult(selectionRoles, RolesContractResolver.Instance);
+            });
+        }
+
+        [FunctionName("GetSelectionRole")]
+        [OpenApiOperation("GetSelectionRole", "Roles", "Admin")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SelectionRole))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> GetSelection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/selection/{id:Guid}")]
+            HttpRequest req,
+            Guid id)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            {
+                SelectionRole role = await _roleService.GetAsync<SelectionRole>(id);
+                return ContentResult(role, RolesContractResolver.Instance);
+            });
+        }
+
+        [FunctionName("AddSelectionRole")]
+        [OpenApiOperation("AddSelectionRole", "Roles", "Admin")]
+        [OpenApiRequestBody(JsonContentType, typeof(SelectionRole))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SelectionRole))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> AddSelection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/selection")]
+            HttpRequest req)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            {
+                SelectionRole input = await Serializer.DeserializeAsync<SelectionRole>(req.Body);
+                Role role = await _roleService.AddSelectionRoleAsync(input);
+                return ContentResult(role, RolesContractResolver.Instance, HttpStatusCode.Created);
             });
         }
     }

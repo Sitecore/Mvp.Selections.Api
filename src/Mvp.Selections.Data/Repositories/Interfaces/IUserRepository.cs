@@ -16,5 +16,7 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
         Task<User?> GetForAuthAsync(string identifier);
 
         bool DoesUserExist(string identifier);
+
+        Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes);
     }
 }
