@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Model.Regions;
+using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -50,24 +53,38 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task<bool> AssignCountryAsync(int regionId, short countryId)
+        public async Task<OperationResult<AssignCountryToRegionRequestBody>> AssignCountryAsync(int regionId, AssignCountryToRegionRequestBody body)
         {
-            bool result = false;
-            Region region = await _regionRepository.GetAsync(regionId);
-            Country country = await _countryRepository.GetAsync(countryId);
-            if (region != null && country != null)
+            OperationResult<AssignCountryToRegionRequestBody> result = new ();
+            if (body != null)
             {
-                country.Region = region;
-                await _regionRepository.SaveChangesAsync();
-                result = true;
-            }
-            else if (region == null)
-            {
-                _logger.LogWarning($"Attempted to assign Country '{countryId}' to Region '{regionId}' but Region did not exist.");
+                Region region = await _regionRepository.GetAsync(regionId);
+                Country country = await _countryRepository.GetAsync(body.CountryId);
+                if (region != null && country != null)
+                {
+                    country.Region = region;
+                    await _regionRepository.SaveChangesAsync();
+                    result.StatusCode = HttpStatusCode.Created;
+                    result.Result = body;
+                }
+                else if (region == null)
+                {
+                    string message = $"Attempted to assign Country '{body.CountryId}' to Region '{regionId}' but Region did not exist.";
+                    result.Messages.Add(message);
+                    _logger.LogWarning(message);
+                }
+                else
+                {
+                    string message = $"Attempted to assign Country '{body.CountryId}' to Region '{regionId}' but Country did not exist.";
+                    result.Messages.Add(message);
+                    _logger.LogWarning(message);
+                }
             }
             else
             {
-                _logger.LogWarning($"Attempted to assign Country '{countryId}' to Region '{regionId}' but Country did not exist.");
+                string message = $"Could not assign new Country to Region '{regionId}'. Missing Country Id.";
+                result.Messages.Add(message);
+                _logger.LogWarning(message);
             }
 
             return result;

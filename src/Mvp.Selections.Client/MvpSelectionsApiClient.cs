@@ -85,6 +85,11 @@ namespace Mvp.Selections.Client
             return PatchAsync<User>($"/api/v1/users/{user.Id}", user);
         }
 
+        public Task<Response<IList<User>>> GetUsersForApplicationReview(Guid applicationId)
+        {
+            return GetAsync<IList<User>>($"/api/v1/applications/{applicationId}/reviewUsers");
+        }
+
         #endregion Users
 
         #region Regions
@@ -120,10 +125,10 @@ namespace Mvp.Selections.Client
             return DeleteAsync($"/api/v1/regions/{regionId}");
         }
 
-        public Task<Response<object>> AssignCountryToRegionAsync(int regionId, short countryId)
+        public Task<Response<AssignCountryToRegion>> AssignCountryToRegionAsync(int regionId, short countryId)
         {
             AssignCountryToRegion content = new () { CountryId = countryId };
-            return PostAsync<object>($"/api/v1/regions/{regionId}/countries", content);
+            return PostAsync<AssignCountryToRegion>($"/api/v1/regions/{regionId}/countries", content);
         }
 
         public Task<Response<bool>> RemoveCountryFromRegionAsync(int regionId, short countryId)
@@ -161,15 +166,49 @@ namespace Mvp.Selections.Client
             return DeleteAsync($"/api/v1/roles/{roleId}");
         }
 
-        public Task<Response<object>> AssignUserToRoleAsync(Guid roleId, Guid userId)
+        public Task<Response<AssignUserToRole>> AssignUserToRoleAsync(Guid roleId, Guid userId)
         {
             AssignUserToRole content = new () { UserId = userId };
-            return PostAsync<object>($"/api/v1/roles/{roleId}/users", content);
+            return PostAsync<AssignUserToRole>($"/api/v1/roles/{roleId}/users", content);
         }
 
         public Task<Response<bool>> RemoveUserFromRoleAsync(Guid roleId, Guid userId)
         {
             return DeleteAsync($"/api/v1/roles/{roleId}/users/{userId}");
+        }
+
+        public Task<Response<SelectionRole>> GetSelectionRoleAsync(Guid selectionRoleId)
+        {
+            return GetAsync<SelectionRole>($"/api/v1/roles/selection/{selectionRoleId}");
+        }
+
+        public Task<Response<IList<SelectionRole>>> GetSelectionRolesAsync(
+            Guid? applicationId = null,
+            short? countryId = null,
+            short? mvpTypeId = null,
+            int? regionId = null,
+            Guid? selectionId = null,
+            int page = 1,
+            short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetSelectionRolesAsync(applicationId, countryId, mvpTypeId, regionId, selectionId, listParameters);
+        }
+
+        public Task<Response<IList<SelectionRole>>> GetSelectionRolesAsync(
+            Guid? applicationId,
+            short? countryId,
+            short? mvpTypeId,
+            int? regionId,
+            Guid? selectionId,
+            ListParameters listParameters)
+        {
+            return GetAsync<IList<SelectionRole>>($"/api/v1/roles/selection{listParameters.ToQueryString(true)}{applicationId.ToQueryString("applicationId")}{countryId.ToQueryString("countryId")}{mvpTypeId.ToQueryString("mvpTypeId")}{regionId.ToQueryString("regionId")}{selectionId.ToQueryString("selectionId")}");
+        }
+
+        public Task<Response<SelectionRole>> AddSelectionRoleAsync(SelectionRole selectionRole)
+        {
+            return PostAsync<SelectionRole>("/api/v1/roles/selection", selectionRole);
         }
 
         #endregion Roles
