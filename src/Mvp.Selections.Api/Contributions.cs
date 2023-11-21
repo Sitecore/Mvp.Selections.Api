@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -131,8 +132,8 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
             {
-                Contribution input = await Serializer.DeserializeAsync<Contribution>(req.Body);
-                OperationResult<Contribution> updateResult = await _contributionService.UpdateAsync(authResult.User, id, input);
+                DeserializationResult<Contribution> deserializationResult = await Serializer.DeserializeAsync<Contribution>(req.Body, true);
+                OperationResult<Contribution> updateResult = await _contributionService.UpdateAsync(authResult.User, id, deserializationResult.Object, deserializationResult.PropertyKeys);
                 return ContentResult(updateResult, ContributionsContractResolver.Instance);
             });
         }

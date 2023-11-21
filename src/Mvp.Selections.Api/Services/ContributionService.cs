@@ -90,8 +90,8 @@ namespace Mvp.Selections.Api.Services
             else if (
                 applicationResult.StatusCode == HttpStatusCode.OK
                 && applicationResult.Result != null
-                && contribution.Date <= applicationResult.Result.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
-                && contribution.Date >= applicationResult.Result.Selection.ApplicationsEnd)
+                && (contribution.Date <= applicationResult.Result.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
+                || contribution.Date >= applicationResult.Result.Selection.ApplicationsEnd))
             {
                 string message = $"The Contribution's Date '{contribution.Date}' isn't in the valid time frame for the current Selection.";
                 result.Messages.Add(message);
@@ -153,43 +153,51 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task<OperationResult<Contribution>> UpdateAsync(User user, Guid id, Contribution contribution)
+        public async Task<OperationResult<Contribution>> UpdateAsync(User user, Guid id, Contribution contribution, IList<string> propertyKeys)
         {
             OperationResult<Contribution> result = new ();
             Contribution existingContribution = await _contributionRepository.GetAsync(id);
             if (existingContribution != null)
             {
-                if (!string.IsNullOrWhiteSpace(contribution.Name))
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Name), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     existingContribution.Name = contribution.Name;
                 }
 
-                if (!string.IsNullOrWhiteSpace(contribution.Description))
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Description), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     existingContribution.Description = contribution.Description;
                 }
 
-                if (contribution.Date > DateTime.MinValue)
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Date), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     existingContribution.Date = contribution.Date;
                 }
 
-                if (contribution.Uri != null && !string.IsNullOrWhiteSpace(contribution.Uri.OriginalString))
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Uri), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     existingContribution.Uri = contribution.Uri;
                 }
 
-                existingContribution.Type = contribution.Type;
-                existingContribution.IsPublic = contribution.IsPublic;
-
-                foreach (Product product in contribution.RelatedProducts)
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Type), StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    if (existingContribution.RelatedProducts.All(p => p.Id != product.Id))
+                    existingContribution.Type = contribution.Type;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.IsPublic), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingContribution.IsPublic = contribution.IsPublic;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.RelatedProducts), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingContribution.RelatedProducts.Clear();
+                    foreach (Product product in contribution.RelatedProducts)
                     {
-                        Product additionalProduct = await _productService.GetAsync(product.Id);
-                        if (additionalProduct != null)
+                        Product relatedProduct = await _productService.GetAsync(product.Id);
+                        if (relatedProduct != null)
                         {
-                            existingContribution.RelatedProducts.Add(additionalProduct);
+                            existingContribution.RelatedProducts.Add(relatedProduct);
                         }
                         else
                         {

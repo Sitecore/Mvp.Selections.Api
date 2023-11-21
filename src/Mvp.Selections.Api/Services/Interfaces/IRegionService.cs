@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Mvp.Selections.Api.Model.Regions;
+using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services.Interfaces
@@ -12,7 +14,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<Region> AddAsync(Region region);
 
-        Task<bool> AssignCountryAsync(int regionId, short countryId);
+        Task<OperationResult<AssignCountryToRegionRequestBody>> AssignCountryAsync(int regionId, AssignCountryToRegionRequestBody body);
 
         Task RemoveAsync(int id);
 

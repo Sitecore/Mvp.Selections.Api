@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -11,7 +10,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Api.Model.Regions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
@@ -129,25 +127,11 @@ namespace Mvp.Selections.Api
             HttpRequest req,
             int id)
         {
-            // TODO [IVA] Refactor to use OperationResult
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                IActionResult result;
                 AssignCountryToRegionRequestBody body = await Serializer.DeserializeAsync<AssignCountryToRegionRequestBody>(req.Body);
-                if (body != null && await _regionService.AssignCountryAsync(id, body.CountryId))
-                {
-                    result = new NoContentResult();
-                }
-                else if (body == null)
-                {
-                    result = new BadRequestErrorMessageResult("Missing request body.");
-                }
-                else
-                {
-                    result = new BadRequestErrorMessageResult($"Unable to assign Country '{body.CountryId}' to Region '{id}'. Either region or country may not exist.");
-                }
-
-                return result;
+                OperationResult<AssignCountryToRegionRequestBody> result = await _regionService.AssignCountryAsync(id, body);
+                return ContentResult(result);
             });
         }
 

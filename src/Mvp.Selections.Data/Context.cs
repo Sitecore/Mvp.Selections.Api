@@ -46,6 +46,8 @@ namespace Mvp.Selections.Data
 
         public DbSet<Review> Reviews => Set<Review>();
 
+        public DbSet<ReviewCategoryScore> ReviewCategoryScores => Set<ReviewCategoryScore>();
+
         // ReSharper disable once UnusedMember.Global - Used Generically
         public DbSet<Region> Regions => Set<Region>();
 

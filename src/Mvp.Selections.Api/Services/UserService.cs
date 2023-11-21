@@ -15,6 +15,7 @@ using Mvp.Selections.Api.Model.Search;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
+using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api.Services
 {
@@ -25,6 +26,10 @@ namespace Mvp.Selections.Api.Services
         private readonly IUserRepository _userRepository;
 
         private readonly ICountryRepository _countryRepository;
+
+        private readonly IApplicationRepository _applicationRepository;
+
+        private readonly IRoleRepository _roleRepository;
 
         private readonly Expression<Func<User, object>>[] _standardIncludes =
         {
@@ -37,11 +42,13 @@ namespace Mvp.Selections.Api.Services
 
         private readonly SearchIngestionClientOptions _searchIngestionClientOptions;
 
-        public UserService(ILogger<UserService> logger, IUserRepository userRepository, ICountryRepository countryRepository, SearchIngestionClient searchIngestionClient, IOptions<SearchIngestionClientOptions> searchIngestionClientOptions)
+        public UserService(ILogger<UserService> logger, IUserRepository userRepository, ICountryRepository countryRepository, IApplicationRepository applicationRepository, IRoleRepository roleRepository, SearchIngestionClient searchIngestionClient, IOptions<SearchIngestionClientOptions> searchIngestionClientOptions)
         {
             _logger = logger;
             _userRepository = userRepository;
             _countryRepository = countryRepository;
+            _applicationRepository = applicationRepository;
+            _roleRepository = roleRepository;
             _searchIngestionClient = searchIngestionClient;
             _searchIngestionClientOptions = searchIngestionClientOptions.Value;
         }
@@ -134,6 +141,31 @@ namespace Mvp.Selections.Api.Services
                 await _userRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.OK;
                 result.Result = existingUser;
+            }
+
+            return result;
+        }
+
+        public async Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId)
+        {
+            OperationResult<IList<User>> result = new ();
+            Application application = await _applicationRepository.GetAsync(applicationId, a => a.Country.Region, a => a.MvpType, a => a.Selection);
+            if (application != null)
+            {
+                IList<SelectionRole> selectionRoles = await _roleRepository.GetAllSelectionRolesForApplicationReadOnlyAsync(
+                    application.Country.Id,
+                    application.MvpType.Id,
+                    application.Country.Region?.Id,
+                    application.Selection.Id,
+                    applicationId);
+                result.Result = await _userRepository.GetAllForRolesReadOnlyAsync(selectionRoles.Select(sr => sr.Id), u => u.Roles);
+                result.StatusCode = HttpStatusCode.OK;
+            }
+            else
+            {
+                string message = $"Could not find Application '{applicationId}'.";
+                result.Messages.Add(message);
+                result.StatusCode = HttpStatusCode.NotFound;
             }
 
             return result;

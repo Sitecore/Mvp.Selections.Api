@@ -94,6 +94,15 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes)
+        {
+            return await Context.Users
+                .Where(u => u.Roles.Any(r => roleIds.Contains(r.Id)))
+                .Includes(includes)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         private IQueryable<User> GetByIdentifierQuery(string identifier, params Expression<Func<User, object>>[] includes)
         {
             return Context.Users
