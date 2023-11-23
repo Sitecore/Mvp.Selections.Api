@@ -10,6 +10,7 @@
         SocialMedia,
         BugReport,
         Feedback,
-        Reference
+        Reference,
+        Community
     }
 }
