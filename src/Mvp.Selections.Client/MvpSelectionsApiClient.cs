@@ -482,6 +482,11 @@ namespace Mvp.Selections.Client
             return DeleteAsync($"/api/v1/applications/{applicationId}/contributions/{contributionId}");
         }
 
+        public Task<Response<Contribution>> TogglePublicContributionAsync(Guid contributionId)
+        {
+            return PostAsync<Contribution>($"/api/v1/contributions/{contributionId}/togglePublic", null);
+        }
+
         #endregion Contributions
 
         #region ProfileLinks
@@ -725,10 +730,10 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<T>> PostAsync<T>(string requestUri, object content)
+        private async Task<Response<T>> PostAsync<T>(string requestUri, object? content)
         {
             Response<T> result = new ();
-            JsonContent jsonContent = JsonContent.Create(content, null, _JsonSerializerOptions);
+            JsonContent? jsonContent = content != null ? JsonContent.Create(content, null, _JsonSerializerOptions) : null;
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Post,

@@ -341,7 +341,7 @@ namespace Mvp.Selections.Data
                 new (186) { Name = "Sao Tome and Principe", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (187) { Name = "Saudi Arabia", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (188) { Name = "Senegal", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
-                new (189) { Name = "Serbia and Montenegro", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
+                new (189) { Name = "Serbia", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (190) { Name = "Seychelles", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (191) { Name = "Sierra Leone", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (192) { Name = "Singapore", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
@@ -391,7 +391,8 @@ namespace Mvp.Selections.Data
                 new (236) { Name = "Western Sahara", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (237) { Name = "Yemen", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
                 new (238) { Name = "Zambia", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
-                new (239) { Name = "Zimbabwe", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" }
+                new (239) { Name = "Zimbabwe", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" },
+                new (240) { Name = "Montenegro", CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" }
             };
         }
     }

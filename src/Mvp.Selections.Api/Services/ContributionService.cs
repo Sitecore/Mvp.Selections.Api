@@ -156,8 +156,10 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<Contribution>> UpdateAsync(User user, Guid id, Contribution contribution, IList<string> propertyKeys)
         {
             OperationResult<Contribution> result = new ();
-            Contribution existingContribution = await _contributionRepository.GetAsync(id);
-            if (existingContribution != null)
+            Contribution existingContribution = await _contributionRepository.GetAsync(id, c => c.Application.Selection, c => c.Application.Applicant);
+            if (existingContribution != null
+                && (existingContribution.Application.Selection.AreApplicationsOpen() || user.HasRight(Right.Admin))
+                && CanSeeContribution(user, existingContribution, true))
             {
                 if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Name), StringComparison.InvariantCultureIgnoreCase)))
                 {
@@ -169,9 +171,19 @@ namespace Mvp.Selections.Api.Services
                     existingContribution.Description = contribution.Description;
                 }
 
-                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Date), StringComparison.InvariantCultureIgnoreCase)))
+                if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Date), StringComparison.InvariantCultureIgnoreCase))
+                    && (contribution.Date >= existingContribution.Application.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
+                        || contribution.Date <= existingContribution.Application.Selection.ApplicationsEnd))
                 {
                     existingContribution.Date = contribution.Date;
+                }
+                else if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Date), StringComparison.InvariantCultureIgnoreCase))
+                         && (contribution.Date <= existingContribution.Application.Selection.ApplicationsEnd.AddMonths(-_options.TimeFrameMonths)
+                             || contribution.Date >= existingContribution.Application.Selection.ApplicationsEnd))
+                {
+                    string message = $"The Contribution's Date '{contribution.Date}' isn't in the valid time frame for the current Selection.";
+                    result.Messages.Add(message);
+                    _logger.LogInformation(message);
                 }
 
                 if (propertyKeys.Any(key => key.Equals(nameof(Contribution.Uri), StringComparison.InvariantCultureIgnoreCase)))
@@ -214,6 +226,17 @@ namespace Mvp.Selections.Api.Services
                     result.Result = existingContribution;
                     result.StatusCode = HttpStatusCode.OK;
                 }
+            }
+            else if (existingContribution != null && !CanSeeContribution(user, contribution, true))
+            {
+                result.StatusCode = HttpStatusCode.Forbidden;
+                _logger.LogWarning($"User '{user.Id}' tried to access Contribution '{id}' to which there is no access.");
+            }
+            else if (existingContribution != null && !existingContribution.Application.Selection.AreApplicationsOpen())
+            {
+                string message = $"The Application '{existingContribution.Application.Id}' is not open so it can not be modified anymore.";
+                result.Messages.Add(message);
+                _logger.LogInformation(message);
             }
             else
             {
@@ -265,7 +288,33 @@ namespace Mvp.Selections.Api.Services
             return GetAllInternalAsync(user, userId, selectionYear, isPublic, page, pageSize, _standardIncludes, true);
         }
 
-        private static bool CanSeeContribution(User user, Contribution contribution)
+        public async Task<OperationResult<Contribution>> TogglePublicAsync(User user, Guid id)
+        {
+            OperationResult<Contribution> result = new ();
+            Contribution existingContribution = await _contributionRepository.GetAsync(id, _standardIncludes);
+            if (existingContribution != null && CanSeeContribution(user, existingContribution, true))
+            {
+                existingContribution.IsPublic = !existingContribution.IsPublic;
+                await _contributionRepository.SaveChangesAsync();
+                result.Result = existingContribution;
+                result.StatusCode = HttpStatusCode.OK;
+            }
+            else if (existingContribution != null && !CanSeeContribution(user, existingContribution, true))
+            {
+                result.StatusCode = HttpStatusCode.Forbidden;
+                _logger.LogWarning($"User '{user.Id}' tried to access Contribution '{id}' to which there is no access.");
+            }
+            else
+            {
+                string message = $"The Contribution '{id}' was not found.";
+                _logger.LogInformation(message);
+                result.Messages.Add(message);
+            }
+
+            return result;
+        }
+
+        private static bool CanSeeContribution(User user, Contribution contribution, bool isEdit = false)
         {
             bool result = false;
             if (contribution == null)
@@ -283,7 +332,7 @@ namespace Mvp.Selections.Api.Services
                 // Admins can see all contributions
                 result = true;
             }
-            else if (contribution.IsPublic)
+            else if (contribution.IsPublic && !isEdit)
             {
                 // Anyone is allowed to look at public contributions
                 result = true;

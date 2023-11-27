@@ -160,5 +160,27 @@ namespace Mvp.Selections.Api
                 return ContentResult(removeResult);
             });
         }
+
+        [FunctionName("TogglePublicContribution")]
+        [OpenApiOperation("TogglePublicContribution", "Contributions", "Admin", "Apply")]
+        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiRequestBody(JsonContentType, typeof(Contribution))]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Contribution))]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> TogglePublic(
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/contributions/{id:Guid}/togglePublic")]
+            HttpRequest req,
+            Guid id)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
+            {
+                OperationResult<Contribution> toggleResult = await _contributionService.TogglePublicAsync(authResult.User, id);
+                return ContentResult(toggleResult, ContributionsContractResolver.Instance);
+            });
+        }
     }
 }
