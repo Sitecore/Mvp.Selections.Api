@@ -19,6 +19,7 @@
   <ItemGroup>
     <Compile Include="..\Mvp.Selections.Api\Model\Applicant.cs" Link="Models\Applicant.cs" />
     <Compile Include="..\Mvp.Selections.Api\Model\ScoreCard.cs" Link="Models\ScoreCard.cs" />
+    <Compile Include="..\Mvp.Selections.Api\Model\MvpProfile.cs" Link="Models\MvpProfile.cs" />
   </ItemGroup>
 
   <ItemGroup>

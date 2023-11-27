@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mvp.Selections.Data;
 
@@ -11,9 +12,10 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20231018130229_ContributionIsPublic")]
+    partial class ContributionIsPublic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1573,7 +1575,7 @@ namespace Mvp.Selections.Data.Migrations
                             Id = (short)189,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Serbia"
+                            Name = "Serbia and Montenegro"
                         },
                         new
                         {
@@ -1924,13 +1926,6 @@ namespace Mvp.Selections.Data.Migrations
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Zimbabwe"
-                        },
-                        new
-                        {
-                            Id = (short)240,
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2022, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Montenegro"
                         });
                 });
 
@@ -2122,7 +2117,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasIndex("ScoreId");
 
-                    b.ToTable("ReviewCategoryScores");
+                    b.ToTable("ReviewCategoryScore");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Roles.Role", b =>
@@ -2739,8 +2734,8 @@ namespace Mvp.Selections.Data.Migrations
             modelBuilder.Entity("Mvp.Selections.Domain.Title", b =>
                 {
                     b.HasOne("Mvp.Selections.Domain.Application", "Application")
-                        .WithOne("Title")
-                        .HasForeignKey("Mvp.Selections.Domain.Title", "ApplicationId")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2862,8 +2857,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("Contributions");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("Title");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Country", b =>

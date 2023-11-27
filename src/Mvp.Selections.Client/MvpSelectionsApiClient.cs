@@ -21,7 +21,7 @@ namespace Mvp.Selections.Client
     {
         public const string AuthorizationScheme = "Bearer";
 
-        private static readonly JsonSerializerOptions JsonSerializerOptions;
+        private static readonly JsonSerializerOptions _JsonSerializerOptions;
 
         private readonly HttpClient _client;
 
@@ -29,14 +29,14 @@ namespace Mvp.Selections.Client
 
         static MvpSelectionsApiClient()
         {
-            JsonSerializerOptions = new JsonSerializerOptions
+            _JsonSerializerOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
-            JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            JsonSerializerOptions.Converters.Add(new RoleConverter());
+            _JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            _JsonSerializerOptions.Converters.Add(new RoleConverter());
         }
 
         public MvpSelectionsApiClient(HttpClient client, IOptions<MvpSelectionsApiClientOptions> options, ITokenProvider tokenProvider)
@@ -445,6 +445,28 @@ namespace Mvp.Selections.Client
 
         #region Contributions
 
+        public Task<Response<Contribution>> GetContributionAsync(Guid contributionId)
+        {
+            return GetAsync<Contribution>($"/api/v1/contributions/{contributionId}");
+        }
+
+        public Task<Response<IList<Contribution>>> GetContributionsForUserAsync(Guid userId, int? selectionYear, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return GetContributionsForUserAsync(userId, selectionYear, listParameters);
+        }
+
+        public Task<Response<IList<Contribution>>> GetContributionsForUserAsync(Guid userId, int? selectionYear, ListParameters listParameters)
+        {
+            string selectionYearQueryString = string.Empty;
+            if (selectionYear != null)
+            {
+                selectionYearQueryString = $"&selectionyear={selectionYear}";
+            }
+
+            return GetAsync<IList<Contribution>>($"/api/v1/users/{userId}/contributions?{listParameters.ToQueryString()}{selectionYearQueryString}");
+        }
+
         public Task<Response<Contribution>> AddContributionAsync(Guid applicationId, Contribution contribution)
         {
             return PostAsync<Contribution>($"/api/v1/applications/{applicationId}/contributions", contribution);
@@ -458,6 +480,11 @@ namespace Mvp.Selections.Client
         public Task<Response<bool>> RemoveContributionAsync(Guid applicationId, Guid contributionId)
         {
             return DeleteAsync($"/api/v1/applications/{applicationId}/contributions/{contributionId}");
+        }
+
+        public Task<Response<Contribution>> TogglePublicContributionAsync(Guid contributionId)
+        {
+            return PostAsync<Contribution>($"/api/v1/contributions/{contributionId}/togglePublic", null);
         }
 
         #endregion Contributions
@@ -669,6 +696,15 @@ namespace Mvp.Selections.Client
 
         #endregion Titles
 
+        #region MvpProfile
+
+        public Task<Response<MvpProfile>> GetMvpProfileAsync(Guid userId)
+        {
+            return GetAsync<MvpProfile>($"/api/v1/mvpprofiles/{userId}");
+        }
+
+        #endregion MvpProfile
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)
@@ -683,7 +719,7 @@ namespace Mvp.Selections.Client
             using HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
             }
             else
             {
@@ -694,10 +730,10 @@ namespace Mvp.Selections.Client
             return result;
         }
 
-        private async Task<Response<T>> PostAsync<T>(string requestUri, object content)
+        private async Task<Response<T>> PostAsync<T>(string requestUri, object? content)
         {
             Response<T> result = new ();
-            JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
+            JsonContent? jsonContent = content != null ? JsonContent.Create(content, null, _JsonSerializerOptions) : null;
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Post,
@@ -708,7 +744,7 @@ namespace Mvp.Selections.Client
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
             }
             else
             {
@@ -722,7 +758,7 @@ namespace Mvp.Selections.Client
         private async Task<Response<T>> PatchAsync<T>(string requestUri, object content)
         {
             Response<T> result = new ();
-            JsonContent jsonContent = JsonContent.Create(content, null, JsonSerializerOptions);
+            JsonContent jsonContent = JsonContent.Create(content, null, _JsonSerializerOptions);
             HttpRequestMessage request = new ()
             {
                 Method = HttpMethod.Patch,
@@ -733,7 +769,7 @@ namespace Mvp.Selections.Client
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await response.Content.ReadFromJsonAsync<T>(JsonSerializerOptions);
+                result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
             }
             else
             {

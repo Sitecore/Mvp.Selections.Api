@@ -44,9 +44,54 @@ namespace Mvp.Selections.Data.Repositories
                 .SingleOrDefaultAsync(u => u.Identifier == identifier);
         }
 
+        public Task<User?> GetForMvpProfileReadOnlyAsync(Guid id)
+        {
+            return Context.Users
+                .Include(u => u.Country!.Region)
+                .Include(u => u.Links)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Title)
+                .ThenInclude(t => t!.MvpType)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Contributions)
+                .ThenInclude(c => c.RelatedProducts)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Id == id);
+        }
+
         public bool DoesUserExist(string identifier)
         {
             return Context.Users.Any(u => u.Identifier == identifier);
+        }
+
+        public async Task<IList<User>> GetWithTitleReadOnlyAsync(MvpType? type = null, short? year = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
+        {
+            page--;
+            IQueryable<User> query = Context.Users.Where(u => u.Applications.Any(a => a.Title != null));
+            if (type != null)
+            {
+                query = query.Where(u => u.Applications.Any(a => a.Title!.MvpType == type));
+            }
+
+            if (year != null)
+            {
+                query = query.Where(u => u.Applications.Any(a => a.Selection.Year == year));
+            }
+
+            return await query
+                .OrderBy(u => u.Name)
+                .ThenBy(u => u.CreatedOn)
+                .ThenBy(u => u.Id)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Include(u => u.Applications.Where(a => a.Title != null))
+                .ThenInclude(a => a.Title)
+                .ThenInclude(t => t!.MvpType)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Selection)
+                .Includes(includes)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes)

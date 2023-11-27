@@ -13,5 +13,13 @@ namespace Mvp.Selections.Api.Services.Interfaces
         Task<OperationResult<Contribution>> RemoveAsync(User user, Guid applicationId, Guid id);
 
         Task<OperationResult<Contribution>> UpdateAsync(User user, Guid id, Contribution contribution, IList<string> propertyKeys);
+
+        Task<OperationResult<Contribution>> GetAsync(User user, Guid id);
+
+        Task<OperationResult<Contribution>> GetPublicAsync(Guid id);
+
+        Task<IList<Contribution>> GetAllAsync(User user, Guid? userId, int? selectionYear, bool? isPublic, int page, short pageSize);
+
+        Task<OperationResult<Contribution>> TogglePublicAsync(User user, Guid id);
     }
 }
