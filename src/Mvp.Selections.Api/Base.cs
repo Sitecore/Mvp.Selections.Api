@@ -16,6 +16,14 @@ namespace Mvp.Selections.Api
     public abstract class Base<TLogger>
         where TLogger : Base<TLogger>
     {
+        protected const string GetMethod = "get";
+
+        protected const string PostMethod = "post";
+
+        protected const string PatchMethod = "patch";
+
+        protected const string DeleteMethod = "delete";
+
         protected const string JsonContentType = "application/json";
 
         protected const string PlainTextContentType = "text/plain";
@@ -35,7 +43,7 @@ namespace Mvp.Selections.Api
 
         protected IAuthService AuthService { get; }
 
-        protected async Task<IActionResult> ExecuteSafeSecurityValidatedAsync(HttpRequest req, Right[] rights, Func<AuthResult, Task<IActionResult>> operation)
+        protected async Task<IActionResult> ExecuteSafeSecurityValidatedAsync(HttpRequest req, Right[] rights, Func<AuthResult, Task<IActionResult>> operation, Func<AuthResult, Task<IActionResult>> anonymousOperation = null)
         {
             IActionResult result;
             try
@@ -43,11 +51,13 @@ namespace Mvp.Selections.Api
                 AuthResult authResult = await AuthService.ValidateAsync(req, rights);
                 result = authResult.StatusCode == HttpStatusCode.OK
                     ? await operation(authResult)
-                    : new ContentResult
-                    {
-                        Content = authResult.Message, ContentType = PlainTextContentType,
-                        StatusCode = (int)authResult.StatusCode
-                    };
+                    : anonymousOperation != null
+                        ? await anonymousOperation(authResult)
+                        : new ContentResult
+                        {
+                            Content = authResult.Message, ContentType = PlainTextContentType,
+                            StatusCode = (int)authResult.StatusCode
+                        };
             }
             catch (Exception e)
             {

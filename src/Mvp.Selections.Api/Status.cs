@@ -36,7 +36,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "status")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "status")]
             HttpRequest req)
         {
             IActionResult result;
@@ -110,7 +110,7 @@ namespace Mvp.Selections.Api
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized)]
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public async Task<IActionResult> GetInit(
-            [HttpTrigger(AuthorizationLevel.Admin, "get", Route = "init")]
+            [HttpTrigger(AuthorizationLevel.Admin, GetMethod, Route = "init")]
             HttpRequest req)
         {
             IActionResult result;

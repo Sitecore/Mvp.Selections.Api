@@ -495,7 +495,7 @@ namespace Mvp.Selections.Api.Services
             }
             else
             {
-                result = new List<Application>();
+                result = new List<Application>(0);
             }
 
             return result;

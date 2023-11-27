@@ -21,6 +21,8 @@
 
         public Selection Selection { get; set; } = null!;
 
+        public Title? Title { get; set; } = null;
+
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Open;
 
         public ICollection<Contribution> Contributions { get; init; } = new List<Contribution>();
