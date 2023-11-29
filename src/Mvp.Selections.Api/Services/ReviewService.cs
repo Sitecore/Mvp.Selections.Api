@@ -292,7 +292,9 @@ namespace Mvp.Selections.Api.Services
             Review existingReview = await _reviewRepository.GetAsync(id, _standardIncludes);
             if (existingReview != null && (user.HasRight(Right.Admin) || (existingReview.Reviewer.Id == user.Id && existingReview.Status != ReviewStatus.Finished)))
             {
-                if (await _reviewRepository.RemoveReviewScoreCategoriesAsync(id) || await _reviewRepository.RemoveAsync(id))
+                bool removedReviewScoreCategories = await _reviewRepository.RemoveReviewScoreCategoriesAsync(id);
+                bool removedReview = await _reviewRepository.RemoveAsync(id);
+                if (removedReviewScoreCategories || removedReview)
                 {
                     await _reviewRepository.SaveChangesAsync();
                     result.StatusCode = HttpStatusCode.NoContent;
