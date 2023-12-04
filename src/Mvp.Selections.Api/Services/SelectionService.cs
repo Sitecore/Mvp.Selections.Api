@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Threading.Tasks;
+using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -62,39 +64,66 @@ namespace Mvp.Selections.Api.Services
             await _selectionRepository.SaveChangesAsync();
         }
 
-        public async Task<Selection> UpdateAsync(Guid id, Selection selection)
+        public async Task<OperationResult<Selection>> UpdateAsync(Guid id, Selection selection, IList<string> propertyKeys)
         {
-            Selection result = await GetAsync(id);
-            if (selection.Year > 0)
+            OperationResult<Selection> result = new ();
+            Selection existingSelection = await GetAsync(id);
+            if (existingSelection != null)
             {
-                result.Year = selection.Year;
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.Year), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    if (selection.Year > 0)
+                    {
+                        existingSelection.Year = selection.Year;
+                    }
+                    else
+                    {
+                        result.Messages.Add($"Can not set year to '{selection.Year}' for Selection '{id}'. It must be above 0.");
+                    }
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.ApplicationsActive), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingSelection.ApplicationsActive = selection.ApplicationsActive;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.ApplicationsStart), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingSelection.ApplicationsStart = selection.ApplicationsStart;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.ApplicationsEnd), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingSelection.ApplicationsEnd = selection.ApplicationsEnd;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.ReviewsActive), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingSelection.ReviewsActive = selection.ReviewsActive;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.ReviewsStart), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingSelection.ReviewsStart = selection.ReviewsStart;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(Selection.ReviewsEnd), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingSelection.ReviewsEnd = selection.ReviewsEnd;
+                }
+            }
+            else
+            {
+                result.Messages.Add($"Could not find Selection '{id}'.");
             }
 
-            result.ApplicationsActive = selection.ApplicationsActive;
-
-            if (selection.ApplicationsStart != DateTime.MinValue)
+            if (result.Messages.Count == 0)
             {
-                result.ApplicationsStart = selection.ApplicationsStart;
+                await _selectionRepository.SaveChangesAsync();
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = existingSelection;
             }
 
-            if (selection.ApplicationsEnd != DateTime.MinValue)
-            {
-                result.ApplicationsEnd = selection.ApplicationsEnd;
-            }
-
-            result.ReviewsActive = selection.ReviewsActive;
-
-            if (selection.ReviewsStart != DateTime.MinValue)
-            {
-                result.ReviewsStart = selection.ReviewsStart;
-            }
-
-            if (selection.ReviewsEnd != DateTime.MinValue)
-            {
-                result.ReviewsEnd = selection.ReviewsEnd;
-            }
-
-            await _selectionRepository.SaveChangesAsync();
             return result;
         }
     }

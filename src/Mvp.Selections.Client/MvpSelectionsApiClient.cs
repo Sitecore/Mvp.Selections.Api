@@ -32,8 +32,7 @@ namespace Mvp.Selections.Client
             _JsonSerializerOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                ReferenceHandler = ReferenceHandler.IgnoreCycles,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                ReferenceHandler = ReferenceHandler.IgnoreCycles
             };
             _JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             _JsonSerializerOptions.Converters.Add(new RoleConverter());
@@ -264,6 +263,11 @@ namespace Mvp.Selections.Client
         public Task<Response<Selection>> GetCurrentSelectionAsync()
         {
             return GetAsync<Selection>("/api/v1/selections/current");
+        }
+
+        public Task<Response<Selection>> PatchSelectionAsync(Guid selectionId, object content)
+        {
+            return PatchAsync<Selection>($"/api/v1/selections/{selectionId}", content);
         }
 
         #endregion Selections

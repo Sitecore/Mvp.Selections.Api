@@ -2,9 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Mvp.Selections.Client</id>
-    <version>4.9.0</version>
+    <version>4.10.1</version>
     <releaseNotes>
-      + Contribution TogglePublic
+      + Altered default JsonSerializerOptions to include all properties
+      + Selections Patch added
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>
