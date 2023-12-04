@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
@@ -120,9 +121,9 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
-                Selection input = await Serializer.DeserializeAsync<Selection>(req.Body);
-                Selection selection = await _selectionService.UpdateAsync(id, input);
-                return ContentResult(selection);
+                DeserializationResult<Selection> input = await Serializer.DeserializeAsync<Selection>(req.Body, true);
+                OperationResult<Selection> updateResult = await _selectionService.UpdateAsync(id, input.Object, input.PropertyKeys);
+                return ContentResult(updateResult);
             });
         }
 

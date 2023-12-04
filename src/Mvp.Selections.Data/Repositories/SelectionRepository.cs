@@ -63,5 +63,19 @@ namespace Mvp.Selections.Data.Repositories
                 .Includes(includes)
                 .ToListAsync();
         }
+
+        public new async Task<IList<Selection>> GetAllAsync(
+            int page,
+            short pageSize,
+            params Expression<Func<Selection, object>>[] includes)
+        {
+            page--;
+            return await Context.Selections
+                .OrderByDescending(s => s.Year)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Includes(includes)
+                .ToListAsync();
+        }
     }
 }

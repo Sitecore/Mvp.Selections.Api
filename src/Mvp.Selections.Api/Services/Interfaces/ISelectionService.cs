@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services.Interfaces
@@ -17,6 +18,6 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task RemoveAsync(Guid id);
 
-        Task<Selection> UpdateAsync(Guid id, Selection selection);
+        Task<OperationResult<Selection>> UpdateAsync(Guid id, Selection selection, IList<string> propertyKeys);
     }
 }
