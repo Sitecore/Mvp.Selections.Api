@@ -89,6 +89,11 @@ namespace Mvp.Selections.Client
             return GetAsync<IList<User>>($"/api/v1/applications/{applicationId}/reviewUsers");
         }
 
+        public Task<Response<User>> MergeUsersAsync(Guid oldId, Guid newId)
+        {
+            return PostAsync<User>($"/api/v1/users/{oldId}/merge/{newId}", null);
+        }
+
         #endregion Users
 
         #region Regions

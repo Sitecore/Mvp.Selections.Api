@@ -20,7 +20,9 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
         bool DoesUserExist(string identifier);
 
         Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes);
-        
+
         Task<IList<User>> GetWithTitleReadOnlyAsync(MvpType? type = null, short? year = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes);
+
+        Task MergeAsync(User old, User merged);
     }
 }
