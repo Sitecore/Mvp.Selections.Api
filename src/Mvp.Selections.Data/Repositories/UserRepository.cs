@@ -94,6 +94,51 @@ namespace Mvp.Selections.Data.Repositories
                 .ToListAsync();
         }
 
+        public async Task MergeAsync(User old, User merged)
+        {
+            await Context.ProfileLinks.Where(pl => pl.User.Id == old.Id).ForEachAsync(profileLink =>
+            {
+                profileLink.User = merged;
+            });
+
+            await Context.Consents.Where(c => c.User.Id == old.Id).ForEachAsync(consent =>
+            {
+                if (merged.Consents.Any(c => c.Type == consent.Type))
+                {
+                    Context.Consents.Remove(consent);
+                }
+                else
+                {
+                    consent.User = merged;
+                }
+            });
+
+            await Context.Applications.Where(a => a.Applicant.Id == old.Id).ForEachAsync(application =>
+            {
+                application.Applicant = merged;
+            });
+
+            await Context.Reviews.Where(r => r.Reviewer.Id == old.Id).ForEachAsync(review =>
+            {
+                review.Reviewer = merged;
+            });
+
+            await Context.Comments.Where(c => c.User.Id == old.Id).ForEachAsync(comment =>
+            {
+                comment.User = merged;
+            });
+
+            foreach (Role role in old.Roles)
+            {
+                if (merged.Roles.All(r => r.Id != role.Id))
+                {
+                    merged.Roles.Add(role);
+                }
+            }
+
+            await RemoveAsync(old.Id);
+        }
+
         public async Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes)
         {
             return await Context.Users
