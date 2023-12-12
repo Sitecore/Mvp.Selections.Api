@@ -158,6 +158,10 @@ namespace Mvp.Selections.Api
         [OpenApiParameter("applicationId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
         [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<User>))]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
         public Task<IActionResult> GetAllForApplicationReview(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/applications/{applicationId:Guid}/reviewUsers")]
             HttpRequest req,
@@ -166,6 +170,29 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
             {
                 OperationResult<IList<User>> users = await _userService.GetAllForApplicationReviewAsync(applicationId);
+                return ContentResult(users, UsersContractResolver.Instance);
+            });
+        }
+
+        [FunctionName("MergeUser")]
+        [OpenApiOperation("MergeUser", "Users", "Admin")]
+        [OpenApiParameter("oldId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiParameter("newId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
+        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(User))]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
+        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        public Task<IActionResult> Merge(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/users/{oldId:Guid}/merge/{newId:Guid}")]
+            HttpRequest req,
+            Guid oldId,
+            Guid newId)
+        {
+            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            {
+                OperationResult<User> users = await _userService.MergeAsync(oldId, newId);
                 return ContentResult(users, UsersContractResolver.Instance);
             });
         }

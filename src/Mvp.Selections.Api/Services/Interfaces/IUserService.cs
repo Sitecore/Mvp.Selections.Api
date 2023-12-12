@@ -17,5 +17,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
         Task<OperationResult<User>> UpdateAsync(Guid id, User user);
 
         Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId);
+
+        Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId);
     }
 }

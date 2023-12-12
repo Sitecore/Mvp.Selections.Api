@@ -171,6 +171,35 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
+        public async Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId)
+        {
+            OperationResult<User> result = new ();
+            User old = await _userRepository.GetAsync(oldId, u => u.Roles);
+            User merged = await _userRepository.GetAsync(newId, u => u.Consents, u => u.Roles);
+            if (old != null && merged != null)
+            {
+                await _userRepository.MergeAsync(old, merged);
+                await _userRepository.SaveChangesAsync();
+                merged = await _userRepository.GetAsync(newId, _standardIncludes);
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = merged;
+            }
+            else if (merged == null)
+            {
+                string message = $"Could not find target User '{newId}' to merge User '{oldId}' into.";
+                _logger.LogInformation(message);
+                result.Messages.Add(message);
+            }
+            else
+            {
+                string message = $"Could not find old User '{oldId}' to merge.";
+                _logger.LogInformation(message);
+                result.Messages.Add(message);
+            }
+
+            return result;
+        }
+
         public async Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id)
         {
             OperationResult<MvpProfile> result = new ();
