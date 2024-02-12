@@ -8,9 +8,9 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<User> GetAsync(Guid id);
+        Task<User?> GetAsync(Guid id);
 
-        Task<IList<User>> GetAllAsync(string name = null, string email = null, short? countryId = null, int page = 1, short pageSize = 100);
+        Task<IList<User>> GetAllAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100);
 
         Task<OperationResult<User>> AddAsync(User user);
 

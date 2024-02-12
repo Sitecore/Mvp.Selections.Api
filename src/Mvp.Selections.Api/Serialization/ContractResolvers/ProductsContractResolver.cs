@@ -11,7 +11,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty result;
+            JsonProperty? result;
             if (member.DeclaringType == typeof(Product) && member.Name == nameof(Product.Contributions))
             {
                 result = null;
@@ -21,7 +21,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = base.CreateProperty(member, memberSerialization);
             }
 
-            return result;
+            return result!;
         }
     }
 }

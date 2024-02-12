@@ -3,129 +3,86 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
+// ReSharper disable StringLiteralTypo - Uri segments
 namespace Mvp.Selections.Api
 {
-    public class MvpTypes : Base<MvpTypes>
+    public class MvpTypes(
+        ILogger<MvpTypes> logger,
+        ISerializer serializer,
+        IAuthService authService,
+        IMvpTypeService mvpTypeService)
+        : Base<MvpTypes>(logger, serializer, authService)
     {
-        private readonly IMvpTypeService _mvpTypeService;
-
-        public MvpTypes(ILogger<MvpTypes> logger, ISerializer serializer, IAuthService authService, IMvpTypeService mvpTypeService)
-            : base(logger, serializer, authService)
-        {
-            _mvpTypeService = mvpTypeService;
-        }
-
-        [FunctionName("GetAllMvpTypes")]
-        [OpenApiOperation("GetAllMvpTypes", "MvpTypes", "Admin", "Apply", "Review")]
-        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
-        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<MvpType>))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetAllMvpTypes")]
         public Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/mvptypes")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/mvptypes")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply, Right.Review], async _ =>
             {
                 ListParameters lp = new (req);
-                IList<MvpType> mvpTypes = await _mvpTypeService.GetAllAsync(lp.Page, lp.PageSize);
+                IList<MvpType> mvpTypes = await mvpTypeService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(mvpTypes, MvpTypesContractResolver.Instance);
             });
         }
 
-        [FunctionName("GetMvpType")]
-        [OpenApiOperation("GetMvpType", "MvpTypes", "Admin", "Apply", "Review")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(MvpType))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetMvpType")]
         public Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/mvptypes/{id:int}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/mvptypes/{id:int}")]
             HttpRequest req,
             short id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply, Right.Review }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply, Right.Review], async _ =>
             {
-                MvpType mvpType = await _mvpTypeService.GetAsync(id);
+                MvpType? mvpType = await mvpTypeService.GetAsync(id);
                 return ContentResult(mvpType, MvpTypesContractResolver.Instance);
             });
         }
 
-        [FunctionName("AddMvpType")]
-        [OpenApiOperation("AddMvpType", "MvpTypes", "Admin")]
-        [OpenApiRequestBody(JsonContentType, typeof(Region))]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(MvpType))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("AddMvpType")]
         public Task<IActionResult> Add(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/mvptypes")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/mvptypes")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
-                MvpType mvpType = await _mvpTypeService.AddAsync(input);
+                MvpType? input = await Serializer.DeserializeAsync<MvpType>(req.Body);
+                MvpType? mvpType = input != null ? await mvpTypeService.AddAsync(input) : null;
                 return ContentResult(mvpType, MvpTypesContractResolver.Instance, statusCode: HttpStatusCode.Created);
             });
         }
 
-        [FunctionName("UpdateMvpType")]
-        [OpenApiOperation("UpdateMvpType", "MvpTypes", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
-        [OpenApiRequestBody(JsonContentType, typeof(MvpType))]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(MvpType))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("UpdateMvpType")]
         public Task<IActionResult> Update(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/mvptypes/{id:int}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/mvptypes/{id:int}")]
             HttpRequest req,
             short id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                MvpType input = await Serializer.DeserializeAsync<MvpType>(req.Body);
-                MvpType mvpType = await _mvpTypeService.UpdateAsync(id, input);
+                MvpType? input = await Serializer.DeserializeAsync<MvpType>(req.Body);
+                MvpType? mvpType = input != null ? await mvpTypeService.UpdateAsync(id, input) : null;
                 return ContentResult(mvpType, MvpTypesContractResolver.Instance);
             });
         }
 
-        [FunctionName("RemoveMvpType")]
-        [OpenApiOperation("RemoveMvpType", "MvpTypes", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(short), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("RemoveMvpType")]
         public Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/mvptypes/{id:int}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, DeleteMethod, Route = "v1/mvptypes/{id:int}")]
             HttpRequest req,
             short id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                await _mvpTypeService.RemoveAsync(id);
+                await mvpTypeService.RemoveAsync(id);
                 return new NoContentResult();
             });
         }

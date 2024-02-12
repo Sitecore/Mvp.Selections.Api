@@ -13,21 +13,14 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization
 {
-    public class JsonSerializer : ISerializer
+    public class JsonSerializer(ILogger<JsonSerializer> logger, IOptionsSnapshot<JsonOptions> options)
+        : ISerializer
     {
-        private readonly ILogger<JsonSerializer> _logger;
-
-        private readonly JsonOptions _options;
-
-        public JsonSerializer(ILogger<JsonSerializer> logger, IOptionsSnapshot<JsonOptions> options)
-        {
-            _logger = logger;
-            _options = options.Value;
-        }
+        private readonly JsonOptions _options = options.Value;
 
         public string ContentType => "application/json";
 
-        public async Task<T> DeserializeAsync<T>(Stream stream)
+        public async Task<T?> DeserializeAsync<T>(Stream stream)
         {
             using StreamReader reader = new (stream);
             string streamContent = await reader.ReadToEndAsync();
@@ -52,7 +45,7 @@ namespace Mvp.Selections.Api.Serialization
             return result;
         }
 
-        public string Serialize(object data, IContractResolver contractResolver = null)
+        public string Serialize(object? data, IContractResolver? contractResolver = null)
         {
 #if DEBUG
             Stopwatch timer = Stopwatch.StartNew();
@@ -65,7 +58,7 @@ namespace Mvp.Selections.Api.Serialization
             string result = JsonConvert.SerializeObject(data, _options.JsonSerializerSettings);
 #if DEBUG
             timer.Stop();
-            _logger.LogDebug($"Serialized '{data?.GetType().AssemblyQualifiedName}' in {timer.ElapsedMilliseconds}ms.");
+            logger.LogDebug($"Serialized '{data?.GetType().AssemblyQualifiedName}' in {timer.ElapsedMilliseconds}ms.");
 #endif
 
             return result;

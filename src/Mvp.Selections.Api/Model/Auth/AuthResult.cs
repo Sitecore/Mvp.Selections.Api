@@ -5,12 +5,12 @@ namespace Mvp.Selections.Api.Model.Auth
 {
     public class AuthResult
     {
-        public OktaUser TokenUser { get; set; }
+        public OktaUser? TokenUser { get; set; }
 
-        public User User { get; set; }
+        public User? User { get; set; }
 
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Forbidden;
 
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
     }
 }

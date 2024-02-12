@@ -10,26 +10,17 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class ScoreService : IScoreService
+    public class ScoreService(ILogger<ScoreService> logger, IScoreRepository scoreRepository)
+        : IScoreService
     {
-        private readonly ILogger<ScoreService> _logger;
-
-        private readonly IScoreRepository _scoreRepository;
-
-        public ScoreService(ILogger<ScoreService> logger, IScoreRepository scoreRepository)
+        public Task<Score?> GetAsync(Guid id)
         {
-            _logger = logger;
-            _scoreRepository = scoreRepository;
-        }
-
-        public Task<Score> GetAsync(Guid id)
-        {
-            return _scoreRepository.GetAsync(id);
+            return scoreRepository.GetAsync(id);
         }
 
         public Task<IList<Score>> GetAllAsync(int page, short pageSize)
         {
-            return _scoreRepository.GetAllAsync(page, pageSize);
+            return scoreRepository.GetAllAsync(page, pageSize);
         }
 
         public async Task<Score> AddAsync(Score score)
@@ -40,15 +31,15 @@ namespace Mvp.Selections.Api.Services
                 Value = score.Value,
                 SortRank = score.SortRank
             };
-            newScore = _scoreRepository.Add(newScore);
-            await _scoreRepository.SaveChangesAsync();
+            newScore = scoreRepository.Add(newScore);
+            await scoreRepository.SaveChangesAsync();
             return newScore;
         }
 
         public async Task<OperationResult<Score>> UpdateAsync(Guid id, Score score)
         {
             OperationResult<Score> result = new ();
-            Score existingScore = await _scoreRepository.GetAsync(id);
+            Score? existingScore = await scoreRepository.GetAsync(id);
             if (existingScore != null)
             {
                 if (!string.IsNullOrWhiteSpace(score.Name))
@@ -66,14 +57,14 @@ namespace Mvp.Selections.Api.Services
                     existingScore.SortRank = score.SortRank;
                 }
 
-                await _scoreRepository.SaveChangesAsync();
+                await scoreRepository.SaveChangesAsync();
                 result.Result = existingScore;
                 result.StatusCode = HttpStatusCode.OK;
             }
             else
             {
                 string message = $"Score '{id}' was not found.";
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
                 result.Messages.Add(message);
             }
 
@@ -82,9 +73,9 @@ namespace Mvp.Selections.Api.Services
 
         public async Task RemoveAsync(Guid id)
         {
-            if (await _scoreRepository.RemoveAsync(id))
+            if (await scoreRepository.RemoveAsync(id))
             {
-                await _scoreRepository.SaveChangesAsync();
+                await scoreRepository.SaveChangesAsync();
             }
         }
     }

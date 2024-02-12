@@ -11,11 +11,11 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly UsersContractResolver Instance = new ();
 
-        private readonly string[] _userExcludedMembers = { nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews) };
+        private readonly string[] _userExcludedMembers = [nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews)];
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty result;
+            JsonProperty? result;
             if (member.DeclaringType == typeof(User) && _userExcludedMembers.Contains(member.Name))
             {
                 result = null;
@@ -37,7 +37,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = base.CreateProperty(member, memberSerialization);
             }
 
-            return result;
+            return result!;
         }
     }
 }

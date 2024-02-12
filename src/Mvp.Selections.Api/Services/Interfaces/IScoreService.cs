@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IScoreService
     {
-        Task<Score> GetAsync(Guid id);
+        Task<Score?> GetAsync(Guid id);
 
         Task<IList<Score>> GetAllAsync(int page, short pageSize);
 

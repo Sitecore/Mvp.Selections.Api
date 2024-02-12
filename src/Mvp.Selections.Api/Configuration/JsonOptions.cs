@@ -29,15 +29,15 @@ namespace Mvp.Selections.Api.Configuration
         // https://www.alphabot.com/security/blog/2017/net/How-to-configure-Json.NET-to-create-a-vulnerable-web-API.html
         private class MvpSelectionsDomainSerializationBinder : DefaultSerializationBinder
         {
-            public override Type BindToType(string assemblyName, string typeName)
+            public override Type BindToType(string? assemblyName, string typeName)
             {
-                Type result = null;
-                if (assemblyName.Equals(typeof(BaseEntity<>).Assembly.GetName().Name))
+                Type? result = null;
+                if (assemblyName?.Equals(typeof(BaseEntity<>).Assembly.GetName().Name) ?? false)
                 {
                     result = base.BindToType(assemblyName, typeName);
                 }
 
-                return result;
+                return result!;
             }
         }
     }

@@ -4,12 +4,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization;
 using Mvp.Selections.Api.Serialization.Interfaces;
@@ -18,131 +14,89 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Selections : Base<Selections>
+    public class Selections(
+        ILogger<Selections> logger,
+        ISerializer serializer,
+        IAuthService authService,
+        ISelectionService selectionService)
+        : Base<Selections>(logger, serializer, authService)
     {
-        private readonly ISelectionService _selectionService;
-
-        public Selections(ILogger<Selections> logger, ISerializer serializer, IAuthService authService, ISelectionService selectionService)
-            : base(logger, serializer, authService)
-        {
-            _selectionService = selectionService;
-        }
-
-        [FunctionName("GetCurrentSelection")]
-        [OpenApiOperation("GetCurrentSelection", "Selections")]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetCurrentSelection")]
         public Task<IActionResult> GetCurrent(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/current")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/selections/current")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Any }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async _ =>
             {
-                Selection current = await _selectionService.GetCurrentAsync();
+                Selection? current = await selectionService.GetCurrentAsync();
                 return ContentResult(current);
             });
         }
 
-        [FunctionName("GetSelection")]
-        [OpenApiOperation("GetSelection", "Selections", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetSelection")]
         public Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/selections/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                Selection selection = await _selectionService.GetAsync(id);
+                Selection? selection = await selectionService.GetAsync(id);
                 return ContentResult(selection);
             });
         }
 
-        [FunctionName("GetAllSelections")]
-        [OpenApiOperation("GetAllSelections", "Selections", "Admin")]
-        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
-        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<Selection>))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetAllSelections")]
         public Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/selections")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/selections")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
                 ListParameters lp = new (req);
-                IList<Selection> selections = await _selectionService.GetAllAsync(lp.Page, lp.PageSize);
+                IList<Selection> selections = await selectionService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(selections);
             });
         }
 
-        [FunctionName("AddSelection")]
-        [OpenApiOperation("AddSelection", "Selections", "Admin")]
-        [OpenApiRequestBody(JsonContentType, typeof(Selection))]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("AddSelection")]
         public Task<IActionResult> Add(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/selections")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/selections")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                Selection input = await Serializer.DeserializeAsync<Selection>(req.Body);
-                Selection selection = await _selectionService.AddAsync(input);
+                Selection? input = await Serializer.DeserializeAsync<Selection>(req.Body);
+                Selection? selection = input != null ? await selectionService.AddAsync(input) : null;
                 return ContentResult(selection, statusCode: HttpStatusCode.Created);
             });
         }
 
-        [FunctionName("UpdateSelection")]
-        [OpenApiOperation("UpdateSelection", "Selections", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiRequestBody(JsonContentType, typeof(Selection))]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(Selection))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("UpdateSelection")]
         public Task<IActionResult> Update(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "v1/selections/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/selections/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
                 DeserializationResult<Selection> input = await Serializer.DeserializeAsync<Selection>(req.Body, true);
-                OperationResult<Selection> updateResult = await _selectionService.UpdateAsync(id, input.Object, input.PropertyKeys);
+                OperationResult<Selection> updateResult = input.Object != null
+                    ? await selectionService.UpdateAsync(id, input.Object, input.PropertyKeys)
+                    : new OperationResult<Selection>();
                 return ContentResult(updateResult);
             });
         }
 
-        [FunctionName("RemoveSelection")]
-        [OpenApiOperation("RemoveSelection", "Selections", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("RemoveSelection")]
         public Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/selections/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, DeleteMethod, Route = "v1/selections/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                await _selectionService.RemoveAsync(id);
+                await selectionService.RemoveAsync(id);
                 return new NoContentResult();
             });
         }

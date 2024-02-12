@@ -6,11 +6,13 @@ namespace Mvp.Selections.Api.Configuration
     {
         public const string OktaClient = "OktaClient";
 
-        public string ClientId { get; set; }
+        public const string InvalidEndpoint = "http://localhost";
 
-        public string ClientSecret { get; set; }
+        public string ClientId { get; set; } = string.Empty;
 
-        public Uri ValidationEndpoint { get; set; }
+        public string ClientSecret { get; set; } = string.Empty;
+
+        public Uri ValidationEndpoint { get; set; } = new (InvalidEndpoint);
 
         public string ValidIssuer { get; set; } = string.Empty;
 
