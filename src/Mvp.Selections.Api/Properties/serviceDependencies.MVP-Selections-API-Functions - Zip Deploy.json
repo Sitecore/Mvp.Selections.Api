@@ -14,8 +14,8 @@
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING"
     },
     "apis1": {
-      "ignored": "true",
-      "type": "apis.azure"
+      "ignored": "True",
+      "type": "apis"
     }
   }
 }

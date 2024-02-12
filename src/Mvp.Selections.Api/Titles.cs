@@ -39,16 +39,11 @@ namespace Mvp.Selections.Api
             [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/titles")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
-            {
-                ListParameters lp = new (req);
-                string? name = req.Query.GetFirstValueOrDefault<string>("name");
-                IList<short> mvpTypeIds = req.Query.GetValuesOrEmpty<short>("mvpTypeId");
-                IList<short> years = req.Query.GetValuesOrEmpty<short>("year");
-                IList<short> countryIds = req.Query.GetValuesOrEmpty<short>("countryId");
-                IList<Title> titles = await titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, lp.Page, lp.PageSize);
-                return ContentResult(titles, authResult.User!.HasRight(Right.Admin) ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
-            });
+            return ExecuteSafeSecurityValidatedAsync(
+                req,
+                [Right.Any],
+                authResult => GetAllInternal(req, authResult.User),
+                _ => GetAllInternal(req, null));
         }
 
         [Function("AddTitle")]
@@ -92,6 +87,17 @@ namespace Mvp.Selections.Api
                 await titleService.RemoveAsync(id);
                 return new NoContentResult();
             });
+        }
+
+        private async Task<IActionResult> GetAllInternal(HttpRequest req, User? user)
+        {
+            ListParameters lp = new (req);
+            string? name = req.Query.GetFirstValueOrDefault<string>("name");
+            IList<short> mvpTypeIds = req.Query.GetValuesOrEmpty<short>("mvpTypeId");
+            IList<short> years = req.Query.GetValuesOrEmpty<short>("year");
+            IList<short> countryIds = req.Query.GetValuesOrEmpty<short>("countryId");
+            IList<Title> titles = await titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, lp.Page, lp.PageSize);
+            return ContentResult(titles, user?.HasRight(Right.Admin) ?? false ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
         }
     }
 }
