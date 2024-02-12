@@ -17,7 +17,7 @@ namespace Mvp.Selections.Client.Tests.Serialization
             
             // Assert
             Assert.NotNull(comment);
-            Assert.Equal(DateTime.Parse("2024-01-29T16:29:30.7059247") , comment?.CreatedOn);
+            Assert.Equal(DateTime.Parse("2024-01-29T16:29:30.7059247") , comment.CreatedOn);
         }
     }
 }
