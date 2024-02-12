@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace Mvp.Selections.Api.Model.Auth
 {
@@ -8,16 +9,16 @@ namespace Mvp.Selections.Api.Model.Auth
     {
         public const string AuthorizationHeaderKey = "Authorization";
 
-        public string Scheme { get; set; }
+        public string Scheme { get; set; } = string.Empty;
 
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
 
-        public static AuthorizationHeader ParseFrom(IHeaderDictionary headers)
+        public static AuthorizationHeader? ParseFrom(IHeaderDictionary headers)
         {
-            AuthorizationHeader result = null;
-            string authHeaderValue;
-            if (headers.ContainsKey(AuthorizationHeaderKey) &&
-                (authHeaderValue = headers[AuthorizationHeaderKey].FirstOrDefault()) != null)
+            AuthorizationHeader? result = null;
+            string? authHeaderValue;
+            if (headers.TryGetValue(AuthorizationHeaderKey, out StringValues value) &&
+                (authHeaderValue = value.FirstOrDefault()) != null)
             {
                 string[] authHeader = authHeaderValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (authHeader.Length == 2)

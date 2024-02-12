@@ -8,6 +8,6 @@ namespace Mvp.Selections.Api.Model.Search
 
         public string Message { get; set; } = string.Empty;
 
-        public T Result { get; set; } = default;
+        public T? Result { get; set; } = default;
     }
 }

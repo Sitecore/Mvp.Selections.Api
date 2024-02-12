@@ -6,11 +6,11 @@ namespace Mvp.Selections.Api.Configuration
     {
         public const string SearchIngestionClient = "SearchIngestionClient";
 
-        public string ApiKey { get; set; }
+        public string ApiKey { get; set; } = string.Empty;
 
         public Uri BaseAddress { get; set; } = new ("https://discover.sitecorecloud.io");
 
-        public string Domain { get; set; }
+        public string Domain { get; set; } = string.Empty;
 
         public SearchIngestionSourceEntity MvpSourceEntity { get; set; } = new ();
 
@@ -22,7 +22,7 @@ namespace Mvp.Selections.Api.Configuration
 
         public class SearchIngestionSourceEntity
         {
-            public string Source { get; set; }
+            public string Source { get; set; } = string.Empty;
 
             public string Entity { get; set; } = "content";
         }

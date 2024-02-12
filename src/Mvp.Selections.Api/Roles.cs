@@ -2,15 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
@@ -22,7 +17,12 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api
 {
-    public class Roles : Base<Roles>
+    public class Roles(
+        ILogger<Roles> logger,
+        ISerializer serializer,
+        IAuthService authService,
+        IRoleService roleService)
+        : Base<Roles>(logger, serializer, authService)
     {
         private const string ApplicationIdQueryStringKey = "applicationId";
 
@@ -34,164 +34,94 @@ namespace Mvp.Selections.Api
 
         private const string SelectionIdQueryStringKey = "selectionId";
 
-        private readonly IRoleService _roleService;
-
-        public Roles(ILogger<Roles> logger, ISerializer serializer, IAuthService authService, IRoleService roleService)
-            : base(logger, serializer, authService)
-        {
-            _roleService = roleService;
-        }
-
-        [FunctionName("GetAllSystemRoles")]
-        [OpenApiOperation("GetAllSystemRoles", "Roles", "Admin")]
-        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
-        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<SystemRole>))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetAllSystemRoles")]
         public Task<IActionResult> GetAllSystem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/system")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/roles/system")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
                 ListParameters lp = new (req);
-                IList<SystemRole> systemRoles = await _roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
+                IList<SystemRole> systemRoles = await roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
                 return ContentResult(systemRoles, RolesContractResolver.Instance);
             });
         }
 
-        [FunctionName("GetSystemRole")]
-        [OpenApiOperation("GetSystemRole", "Roles", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SystemRole))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetSystemRole")]
         public Task<IActionResult> GetSystem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/system/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/roles/system/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                SystemRole role = await _roleService.GetAsync<SystemRole>(id);
+                SystemRole? role = await roleService.GetAsync<SystemRole>(id);
                 return ContentResult(role, RolesContractResolver.Instance);
             });
         }
 
-        [FunctionName("AddSystemRole")]
-        [OpenApiOperation("AddSystemRole", "Roles", "Admin")]
-        [OpenApiRequestBody(JsonContentType, typeof(SystemRole))]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SystemRole))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("AddSystemRole")]
         public Task<IActionResult> AddSystem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/system")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/roles/system")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                SystemRole input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
-                Role role = await _roleService.AddSystemRoleAsync(input);
+                SystemRole? input = await Serializer.DeserializeAsync<SystemRole>(req.Body);
+                Role? role = input != null ? await roleService.AddSystemRoleAsync(input) : null;
                 return ContentResult(role, RolesContractResolver.Instance, HttpStatusCode.Created);
             });
         }
 
-        [FunctionName("AssignUserToRole")]
-        [OpenApiOperation("AssignUserToRole", "Roles", "Admin")]
-        [OpenApiRequestBody(JsonContentType, typeof(AssignUserToRoleRequestBody))]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("AssignUserToRole")]
         public Task<IActionResult> AssignUserToRole(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/{id:Guid}/users")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/roles/{id:Guid}/users")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                AssignUserToRoleRequestBody body = await Serializer.DeserializeAsync<AssignUserToRoleRequestBody>(req.Body);
-                OperationResult<AssignUserToRoleRequestBody> result = await _roleService.AssignUserAsync(id, body);
+                AssignUserToRoleRequestBody? body = await Serializer.DeserializeAsync<AssignUserToRoleRequestBody>(req.Body);
+                OperationResult<AssignUserToRoleRequestBody> result = body != null
+                    ? await roleService.AssignUserAsync(id, body)
+                    : new OperationResult<AssignUserToRoleRequestBody>();
                 return ContentResult(result);
             });
         }
 
-        [FunctionName("RemoveUserFromRole")]
-        [OpenApiOperation("RemoveUserFromRole", "Roles", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiParameter("userId", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("RemoveUserFromRole")]
         public Task<IActionResult> RemoveUserFromRole(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/roles/{id:Guid}/users/{userId:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, DeleteMethod, Route = "v1/roles/{id:Guid}/users/{userId:Guid}")]
             HttpRequest req,
             Guid id,
             Guid userId)
         {
-            // TODO [IVA] Refactor to use OperationResult
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                IActionResult result;
-                if (await _roleService.RemoveUserAsync(id, userId))
-                {
-                    result = new NoContentResult();
-                }
-                else
-                {
-                    result = new BadRequestErrorMessageResult($"Unable to remove User '{userId}' from Role '{id}'. Either user or role may not exist.");
-                }
-
-                return result;
+                OperationResult<User> result = await roleService.RemoveUserAsync(id, userId);
+                return ContentResult(result);
             });
         }
 
-        [FunctionName("RemoveRole")]
-        [OpenApiOperation("RemoveRole", "Roles", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("RemoveRole")]
         public Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/roles/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, DeleteMethod, Route = "v1/roles/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                await _roleService.RemoveRoleAsync(id);
+                await roleService.RemoveRoleAsync(id);
                 return new NoContentResult();
             });
         }
 
-        [FunctionName("GetAllSelectionRoles")]
-        [OpenApiOperation("GetAllSelectionRoles", "Roles", "Admin")]
-        [OpenApiParameter(ListParameters.PageQueryStringKey, In = ParameterLocation.Query, Type = typeof(int), Description = "Page")]
-        [OpenApiParameter(ListParameters.PageSizeQueryStringKey, In = ParameterLocation.Query, Type = typeof(short), Description = "Page size")]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(IList<SelectionRole>))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetAllSelectionRoles")]
         public Task<IActionResult> GetAllSelection(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/selection")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/roles/selection")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
                 ListParameters lp = new (req);
                 Guid? applicationId = req.Query.GetFirstValueOrDefault<Guid?>(ApplicationIdQueryStringKey);
@@ -199,47 +129,33 @@ namespace Mvp.Selections.Api
                 short? mvpTypeId = req.Query.GetFirstValueOrDefault<short?>(MvpTypeIdQueryStringKey);
                 int? regionId = req.Query.GetFirstValueOrDefault<short?>(RegionIdQueryStringKey);
                 Guid? selectionId = req.Query.GetFirstValueOrDefault<Guid?>(SelectionIdQueryStringKey);
-                IList<SelectionRole> selectionRoles = await _roleService.GetAllSelectionRolesAsync(applicationId, countryId, mvpTypeId, regionId, selectionId, lp.Page, lp.PageSize);
+                IList<SelectionRole> selectionRoles = await roleService.GetAllSelectionRolesAsync(applicationId, countryId, mvpTypeId, regionId, selectionId, lp.Page, lp.PageSize);
                 return ContentResult(selectionRoles, RolesContractResolver.Instance);
             });
         }
 
-        [FunctionName("GetSelectionRole")]
-        [OpenApiOperation("GetSelectionRole", "Roles", "Admin")]
-        [OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true)]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SelectionRole))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("GetSelectionRole")]
         public Task<IActionResult> GetSelection(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/roles/selection/{id:Guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/roles/selection/{id:Guid}")]
             HttpRequest req,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                SelectionRole role = await _roleService.GetAsync<SelectionRole>(id);
+                SelectionRole? role = await roleService.GetAsync<SelectionRole>(id);
                 return ContentResult(role, RolesContractResolver.Instance);
             });
         }
 
-        [FunctionName("AddSelectionRole")]
-        [OpenApiOperation("AddSelectionRole", "Roles", "Admin")]
-        [OpenApiRequestBody(JsonContentType, typeof(SelectionRole))]
-        [OpenApiSecurity(IAuthService.BearerScheme, SecuritySchemeType.Http, BearerFormat = JwtBearerFormat, Scheme = OpenApiSecuritySchemeType.Bearer)]
-        [OpenApiResponseWithBody(HttpStatusCode.OK, JsonContentType, typeof(SelectionRole))]
-        [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.Forbidden, PlainTextContentType, typeof(string))]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("AddSelectionRole")]
         public Task<IActionResult> AddSelection(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/roles/selection")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/roles/selection")]
             HttpRequest req)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async _ =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                SelectionRole input = await Serializer.DeserializeAsync<SelectionRole>(req.Body);
-                Role role = await _roleService.AddSelectionRoleAsync(input);
+                SelectionRole? input = await Serializer.DeserializeAsync<SelectionRole>(req.Body);
+                Role? role = input != null ? await roleService.AddSelectionRoleAsync(input) : null;
                 return ContentResult(role, RolesContractResolver.Instance, HttpStatusCode.Created);
             });
         }

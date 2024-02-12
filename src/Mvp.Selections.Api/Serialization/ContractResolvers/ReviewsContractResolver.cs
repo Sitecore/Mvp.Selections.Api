@@ -10,13 +10,13 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly ReviewsContractResolver Instance = new ();
 
-        private readonly string[] _userExcludedMembers = { nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Roles), nameof(User.Email) };
+        private readonly string[] _userExcludedMembers = [nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Roles), nameof(User.Email)];
 
-        private readonly string[] _reviewCategoryScoreExcludedMembers = { nameof(ReviewCategoryScore.ReviewId), nameof(ReviewCategoryScore.Review), nameof(ReviewCategoryScore.ScoreCategory), nameof(ReviewCategoryScore.Score) };
+        private readonly string[] _reviewCategoryScoreExcludedMembers = [nameof(ReviewCategoryScore.ReviewId), nameof(ReviewCategoryScore.Review), nameof(ReviewCategoryScore.ScoreCategory), nameof(ReviewCategoryScore.Score)];
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty result;
+            JsonProperty? result;
             if (member.DeclaringType == typeof(Review) && member.Name == nameof(Review.Application))
             {
                 result = null;
@@ -34,7 +34,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = base.CreateProperty(member, memberSerialization);
             }
 
-            return result;
+            return result!;
         }
     }
 }

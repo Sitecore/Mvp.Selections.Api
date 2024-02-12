@@ -7,19 +7,12 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public abstract class BaseRepository<T, TId> : IBaseRepository<T, TId>
+    public abstract class BaseRepository<T, TId>(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : IBaseRepository<T, TId>
         where T : BaseEntity<TId>
         where TId : struct, IEquatable<TId>
     {
-        private readonly ICurrentUserNameProvider _currentUserNameProvider;
-
-        protected BaseRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-        {
-            Context = context;
-            _currentUserNameProvider = currentUserNameProvider;
-        }
-
-        protected Context Context { get; }
+        protected Context Context { get; } = context;
 
         public async Task<T?> GetAsync(TId id, params Expression<Func<T, object>>[] includes)
         {
@@ -93,7 +86,7 @@ namespace Mvp.Selections.Data.Repositories
                 if (entry.Entity is BaseEntity<TId> baseEntity)
                 {
                     baseEntity.ModifiedOn = DateTime.UtcNow;
-                    baseEntity.ModifiedBy = _currentUserNameProvider.GetCurrentUserName();
+                    baseEntity.ModifiedBy = currentUserNameProvider.GetCurrentUserName();
                 }
             }
 
@@ -102,7 +95,7 @@ namespace Mvp.Selections.Data.Repositories
                 if (entry.Entity is BaseEntity<TId> baseEntity)
                 {
                     baseEntity.CreatedOn = DateTime.UtcNow;
-                    baseEntity.CreatedBy = _currentUserNameProvider.GetCurrentUserName();
+                    baseEntity.CreatedBy = currentUserNameProvider.GetCurrentUserName();
                 }
             }
         }

@@ -16,6 +16,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{44AD4EFD-07A6-4019-BD62-15AB92B8EE27}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines.yml = azure-pipelines.yml
+		Mvp.Selections.sln.DotSettings = Mvp.Selections.sln.DotSettings
 	EndProjectSection
 EndProject
 Global

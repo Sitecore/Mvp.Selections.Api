@@ -8,28 +8,22 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class CountryService : ICountryService
+    public class CountryService(ICountryRepository countryRepository)
+        : ICountryService
     {
-        private readonly ICountryRepository _countryRepository;
-
         private readonly Expression<Func<Country, object>>[] _standardIncludes =
-        {
-            c => c.Region
-        };
+        [
+            c => c.Region!
+        ];
 
-        public CountryService(ICountryRepository countryRepository)
+        public Task<Country?> GetAsync(short id)
         {
-            _countryRepository = countryRepository;
-        }
-
-        public Task<Country> GetAsync(short id)
-        {
-            return _countryRepository.GetAsync(id, _standardIncludes);
+            return countryRepository.GetAsync(id, _standardIncludes);
         }
 
         public async Task<IList<Country>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return await _countryRepository.GetAllAsync(page, pageSize, _standardIncludes);
+            return await countryRepository.GetAllAsync(page, pageSize, _standardIncludes);
         }
     }
 }
