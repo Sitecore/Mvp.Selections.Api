@@ -2,6 +2,6 @@
 {
     public class DocumentRequest
     {
-        public Document Document { get; set; }
+        public Document? Document { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty result;
+            JsonProperty? result;
             if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
             {
                 result = null;
@@ -25,7 +25,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = base.CreateProperty(member, memberSerialization);
             }
 
-            return result;
+            return result!;
         }
     }
 }

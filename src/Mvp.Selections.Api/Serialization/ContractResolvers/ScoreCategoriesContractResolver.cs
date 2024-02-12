@@ -10,13 +10,13 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly ScoreCategoriesContractResolver Instance = new ();
 
-        private readonly string[] _scoreCategoryExcludedMembers = { nameof(ScoreCategory.Selection), nameof(ScoreCategory.MvpType), nameof(ScoreCategory.Weight) };
+        private readonly string[] _scoreCategoryExcludedMembers = [nameof(ScoreCategory.Selection), nameof(ScoreCategory.MvpType), nameof(ScoreCategory.Weight)];
 
-        private readonly string[] _scoreExcludedMembers = { nameof(Score.ScoreCategories), nameof(Score.Value) };
+        private readonly string[] _scoreExcludedMembers = [nameof(Score.ScoreCategories), nameof(Score.Value)];
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty result;
+            JsonProperty? result;
             if (member.DeclaringType == typeof(ScoreCategory) && _scoreCategoryExcludedMembers.Contains(member.Name))
             {
                 result = null;
@@ -30,7 +30,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = base.CreateProperty(member, memberSerialization);
             }
 
-            return result;
+            return result!;
         }
     }
 }

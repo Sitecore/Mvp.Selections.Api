@@ -6,7 +6,7 @@ namespace Mvp.Selections.Api.Model.Request
     public class OperationResult<T>
         where T : class
     {
-        public T Result { get; set; }
+        public T? Result { get; set; }
 
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
 

@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IScoreCategoryService
     {
-        Task<ScoreCategory> GetAsync(Guid id);
+        Task<ScoreCategory?> GetAsync(Guid id);
 
         Task<OperationResult<IList<ScoreCategory>>> GetAllAsync(Guid selectionId, short mvpTypeId);
 

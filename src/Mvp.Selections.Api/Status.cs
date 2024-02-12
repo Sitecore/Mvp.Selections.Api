@@ -4,9 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,23 +16,17 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api
 {
-    public class Status : Base<Status>
+    public class Status(
+        ILogger<Status> logger,
+        ISerializer serializer,
+        IAuthService authService,
+        IOptions<OktaClientOptions> oktaClientOptions,
+        Context context)
+        : Base<Status>(logger, serializer, authService)
     {
-        private readonly OktaClientOptions _oktaClientOptions;
+        private readonly OktaClientOptions _oktaClientOptions = oktaClientOptions.Value;
 
-        private readonly Context _context;
-
-        public Status(ILogger<Status> logger, ISerializer serializer, IAuthService authService, IOptions<OktaClientOptions> oktaClientOptions, Context context)
-            : base(logger, serializer, authService)
-        {
-            _oktaClientOptions = oktaClientOptions.Value;
-            _context = context;
-        }
-
-        [FunctionName("Status")]
-        [OpenApiOperation("Status", "Status")]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("Status")]
         public async Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "status")]
             HttpRequest req)
@@ -42,7 +34,7 @@ namespace Mvp.Selections.Api
             IActionResult result;
             try
             {
-                List<string> messages = new ();
+                List<string> messages = [];
                 if (string.IsNullOrEmpty(_oktaClientOptions.ClientId))
                 {
                     const string message = "No client ID available for Okta validations.";
@@ -57,7 +49,8 @@ namespace Mvp.Selections.Api
                     Logger.LogCritical(message);
                 }
 
-                if (_oktaClientOptions.ValidationEndpoint == null || string.IsNullOrWhiteSpace(_oktaClientOptions.ValidationEndpoint.Host))
+                if (string.IsNullOrWhiteSpace(_oktaClientOptions.ValidationEndpoint.Host)
+                    || _oktaClientOptions.ValidationEndpoint.OriginalString == OktaClientOptions.InvalidEndpoint)
                 {
                     const string message = "No validation endpoint available for Okta validations.";
                     messages.Add(message);
@@ -73,7 +66,7 @@ namespace Mvp.Selections.Api
 
                 try
                 {
-                    List<Country> unused = await _context.Countries.ToListAsync();
+                    List<Country> unused = await context.Countries.ToListAsync();
                 }
                 catch (Exception ex)
                 {
@@ -104,11 +97,7 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        [FunctionName("Init")]
-        [OpenApiOperation("Init", "Status")]
-        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent)]
-        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized)]
-        [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, PlainTextContentType, typeof(string))]
+        [Function("Init")]
         public async Task<IActionResult> GetInit(
             [HttpTrigger(AuthorizationLevel.Admin, GetMethod, Route = "init")]
             HttpRequest req)
@@ -116,7 +105,7 @@ namespace Mvp.Selections.Api
             IActionResult result;
             try
             {
-                await _context.Database.MigrateAsync();
+                await context.Database.MigrateAsync();
                 result = new NoContentResult();
             }
             catch (Exception e)

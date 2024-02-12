@@ -11,35 +11,26 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class ScoreCardService : IScoreCardService
+    public class ScoreCardService(
+        IApplicantService applicantService,
+        IReviewService reviewService,
+        IScoreCategoryService scoreCategoryService)
+        : IScoreCardService
     {
-        private readonly IApplicantService _applicantService;
-
-        private readonly IReviewService _reviewService;
-
-        private readonly IScoreCategoryService _scoreCategoryService;
-
-        public ScoreCardService(IApplicantService applicantService, IReviewService reviewService, IScoreCategoryService scoreCategoryService)
-        {
-            _applicantService = applicantService;
-            _reviewService = reviewService;
-            _scoreCategoryService = scoreCategoryService;
-        }
-
         public async Task<OperationResult<IList<ScoreCard>>> GetScoreCardsAsync(User user, Guid selectionId, short mvpTypeId)
         {
             OperationResult<IList<ScoreCard>> result = new ()
             {
                 Result = new List<ScoreCard>()
             };
-            OperationResult<IList<ScoreCategory>> scoreCategoriesResult = await _scoreCategoryService.GetAllAsync(selectionId, mvpTypeId);
-            if (scoreCategoriesResult.StatusCode == HttpStatusCode.OK)
+            OperationResult<IList<ScoreCategory>> scoreCategoriesResult = await scoreCategoryService.GetAllAsync(selectionId, mvpTypeId);
+            if (scoreCategoriesResult is { StatusCode: HttpStatusCode.OK, Result: not null })
             {
                 decimal totalCategoryScoreValue = scoreCategoriesResult.Result.Sum(sc => sc.CalculateScoreValue());
-                IList<Applicant> applicants = await _applicantService.GetApplicantsAsync(user, selectionId, 1, short.MaxValue);
+                IList<Applicant> applicants = await applicantService.GetApplicantsAsync(user, selectionId, 1, short.MaxValue);
 
                 // TODO [ILs] Quick hack to filter by mvpType, can be optimized by DB call itself
-                foreach (Applicant applicant in applicants.Where(a => a.MvpType.Id == mvpTypeId))
+                foreach (Applicant applicant in applicants.Where(a => a.MvpType?.Id == mvpTypeId))
                 {
                     await CalculateScoreCardsAsync(result, user, applicant, scoreCategoriesResult.Result, totalCategoryScoreValue);
                 }
@@ -68,7 +59,7 @@ namespace Mvp.Selections.Api.Services
         private static decimal CalculateScoreValue(ScoreCategory category, Review review)
         {
             decimal categoryScoreValue = 0;
-            ReviewCategoryScore current =
+            ReviewCategoryScore? current =
                 review.CategoryScores.SingleOrDefault(rcs => rcs.ScoreCategoryId == category.Id);
             if (current != null)
             {
@@ -82,8 +73,8 @@ namespace Mvp.Selections.Api.Services
         private async Task CalculateScoreCardsAsync(OperationResult<IList<ScoreCard>> result, User user, Applicant applicant, IList<ScoreCategory> scoreCategories, decimal totalCategoryScoreValue)
         {
             Dictionary<Guid, int> scores = new ();
-            OperationResult<IList<Review>> reviewsResult = await _reviewService.GetAllAsync(user, applicant.ApplicationId, 1, short.MaxValue);
-            if (reviewsResult.StatusCode == HttpStatusCode.OK && reviewsResult.Result.Count > 0)
+            OperationResult<IList<Review>> reviewsResult = await reviewService.GetAllAsync(user, applicant.ApplicationId, 1, short.MaxValue);
+            if (reviewsResult is { StatusCode: HttpStatusCode.OK, Result.Count: > 0 })
             {
                 foreach (Review review in reviewsResult.Result)
                 {
@@ -104,7 +95,7 @@ namespace Mvp.Selections.Api.Services
                     ReviewCount = reviewsResult.Result.Count
                 };
 
-                result.Result.Add(card);
+                result.Result?.Add(card);
             }
             else if (reviewsResult.StatusCode == HttpStatusCode.OK)
             {
@@ -119,7 +110,7 @@ namespace Mvp.Selections.Api.Services
                     MinReviewId = Guid.Empty
                 };
 
-                result.Result.Add(card);
+                result.Result?.Add(card);
             }
             else
             {

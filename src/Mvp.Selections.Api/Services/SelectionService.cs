@@ -11,34 +11,28 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class SelectionService : ISelectionService
+    public class SelectionService(ISelectionRepository selectionRepository)
+        : ISelectionService
     {
-        private readonly ISelectionRepository _selectionRepository;
-
         private readonly Expression<Func<Selection, object>>[] _standardIncludes =
-        {
+        [
             s => s.MvpTypes
-        };
+        ];
 
-        public SelectionService(ISelectionRepository selectionRepository)
+        public async Task<Selection?> GetCurrentAsync()
         {
-            _selectionRepository = selectionRepository;
-        }
-
-        public async Task<Selection> GetCurrentAsync()
-        {
-            IList<Selection> activeSelections = await _selectionRepository.GetAllActiveAsync(_standardIncludes);
+            IList<Selection> activeSelections = await selectionRepository.GetAllActiveAsync(_standardIncludes);
             return activeSelections.FirstOrDefault();
         }
 
-        public Task<Selection> GetAsync(Guid id)
+        public Task<Selection?> GetAsync(Guid id)
         {
-            return _selectionRepository.GetAsync(id, _standardIncludes);
+            return selectionRepository.GetAsync(id, _standardIncludes);
         }
 
         public Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _selectionRepository.GetAllAsync(page, pageSize, _standardIncludes);
+            return selectionRepository.GetAllAsync(page, pageSize, _standardIncludes);
         }
 
         public async Task<Selection> AddAsync(Selection selection)
@@ -53,21 +47,21 @@ namespace Mvp.Selections.Api.Services
                 ReviewsStart = selection.ReviewsStart,
                 ReviewsEnd = selection.ReviewsEnd
             };
-            result = _selectionRepository.Add(result);
-            await _selectionRepository.SaveChangesAsync();
+            result = selectionRepository.Add(result);
+            await selectionRepository.SaveChangesAsync();
             return result;
         }
 
         public async Task RemoveAsync(Guid id)
         {
-            await _selectionRepository.RemoveAsync(id);
-            await _selectionRepository.SaveChangesAsync();
+            await selectionRepository.RemoveAsync(id);
+            await selectionRepository.SaveChangesAsync();
         }
 
         public async Task<OperationResult<Selection>> UpdateAsync(Guid id, Selection selection, IList<string> propertyKeys)
         {
             OperationResult<Selection> result = new ();
-            Selection existingSelection = await GetAsync(id);
+            Selection? existingSelection = await GetAsync(id);
             if (existingSelection != null)
             {
                 if (propertyKeys.Any(key => key.Equals(nameof(Selection.Year), StringComparison.InvariantCultureIgnoreCase)))
@@ -119,7 +113,7 @@ namespace Mvp.Selections.Api.Services
 
             if (result.Messages.Count == 0)
             {
-                await _selectionRepository.SaveChangesAsync();
+                await selectionRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.OK;
                 result.Result = existingSelection;
             }

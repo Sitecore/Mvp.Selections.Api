@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface ITitleService
     {
-        Task<IList<Title>> GetAllAsync(string name = null, IList<short> mvpTypeIds = null, IList<short> years = null, IList<short> countryIds = null, int page = 1, short pageSize = 100);
+        Task<IList<Title>> GetAllAsync(string? name = null, IList<short>? mvpTypeIds = null, IList<short>? years = null, IList<short>? countryIds = null, int page = 1, short pageSize = 100);
 
         Task<OperationResult<Title>> AddAsync(User user, Title title);
 
@@ -16,6 +16,6 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task RemoveAsync(Guid id);
 
-        Task<Title> GetAsync(Guid id);
+        Task<Title?> GetAsync(Guid id);
     }
 }

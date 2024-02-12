@@ -6,18 +6,12 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class MvpTypeService : IMvpTypeService
+    public class MvpTypeService(IMvpTypeRepository mvpTypeRepository)
+        : IMvpTypeService
     {
-        private readonly IMvpTypeRepository _mvpTypeRepository;
-
-        public MvpTypeService(IMvpTypeRepository mvpTypeRepository)
+        public Task<MvpType?> GetAsync(short id)
         {
-            _mvpTypeRepository = mvpTypeRepository;
-        }
-
-        public Task<MvpType> GetAsync(short id)
-        {
-            return _mvpTypeRepository.GetAsync(id);
+            return mvpTypeRepository.GetAsync(id);
         }
 
         public async Task<MvpType> AddAsync(MvpType mvpType)
@@ -26,30 +20,34 @@ namespace Mvp.Selections.Api.Services
             {
                 Name = mvpType.Name
             };
-            result = _mvpTypeRepository.Add(result);
-            await _mvpTypeRepository.SaveChangesAsync();
+            result = mvpTypeRepository.Add(result);
+            await mvpTypeRepository.SaveChangesAsync();
             return result;
         }
 
         public async Task RemoveAsync(short id)
         {
-            if (await _mvpTypeRepository.RemoveAsync(id))
+            if (await mvpTypeRepository.RemoveAsync(id))
             {
-                await _mvpTypeRepository.SaveChangesAsync();
+                await mvpTypeRepository.SaveChangesAsync();
             }
         }
 
-        public async Task<MvpType> UpdateAsync(short id, MvpType mvpType)
+        public async Task<MvpType?> UpdateAsync(short id, MvpType mvpType)
         {
-            MvpType result = await GetAsync(id);
-            result.Name = mvpType.Name;
-            await _mvpTypeRepository.SaveChangesAsync();
+            MvpType? result = await GetAsync(id);
+            if (result != null)
+            {
+                result.Name = mvpType.Name;
+                await mvpTypeRepository.SaveChangesAsync();
+            }
+
             return result;
         }
 
         public Task<IList<MvpType>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _mvpTypeRepository.GetAllAsync(page, pageSize);
+            return mvpTypeRepository.GetAllAsync(page, pageSize);
         }
     }
 }

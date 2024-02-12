@@ -10,7 +10,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
     {
         Task<OperationResult<Application>> GetAsync(User user, Guid id, bool isReadOnly = true);
 
-        Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, string userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100);
+        Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100);
 
         Task<OperationResult<Application>> AddAsync(User user, Guid selectionId, Application application);
 

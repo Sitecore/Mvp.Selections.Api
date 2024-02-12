@@ -12,21 +12,9 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class RoleService : IRoleService
+    public class RoleService(ILogger<RoleService> logger, IRoleRepository roleRepository, IUserService userService)
+        : IRoleService
     {
-        private readonly ILogger<RoleService> _logger;
-
-        private readonly IRoleRepository _roleRepository;
-
-        private readonly IUserService _userService;
-
-        public RoleService(ILogger<RoleService> logger, IRoleRepository roleRepository, IUserService userService)
-        {
-            _logger = logger;
-            _roleRepository = roleRepository;
-            _userService = userService;
-        }
-
         public async Task<Role> AddSystemRoleAsync(SystemRole systemRole)
         {
             SystemRole result = new (Guid.Empty)
@@ -34,34 +22,34 @@ namespace Mvp.Selections.Api.Services
                 Name = systemRole.Name,
                 Rights = systemRole.Rights
             };
-            result = _roleRepository.Add(result) as SystemRole;
-            await _roleRepository.SaveChangesAsync();
+            result = (SystemRole)roleRepository.Add(result);
+            await roleRepository.SaveChangesAsync();
             return result;
         }
 
         public async Task RemoveRoleAsync(Guid id)
         {
-            await _roleRepository.RemoveAsync(id);
-            await _roleRepository.SaveChangesAsync();
+            await roleRepository.RemoveAsync(id);
+            await roleRepository.SaveChangesAsync();
         }
 
         public Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Role
         {
-            return _roleRepository.GetAllAsync<T>(page, pageSize);
+            return roleRepository.GetAllAsync<T>(page, pageSize);
         }
 
-        public async Task<OperationResult<AssignUserToRoleRequestBody>> AssignUserAsync(Guid roleId, AssignUserToRoleRequestBody body)
+        public async Task<OperationResult<AssignUserToRoleRequestBody>> AssignUserAsync(Guid roleId, AssignUserToRoleRequestBody? body)
         {
             OperationResult<AssignUserToRoleRequestBody> result = new ();
             if (body != null)
             {
-                Role role = await _roleRepository.GetAsync(roleId);
-                User user = await _userService.GetAsync(body.UserId);
+                Role? role = await roleRepository.GetAsync(roleId);
+                User? user = await userService.GetAsync(body.UserId);
                 if (role != null && user != null)
                 {
                     role.Users.Add(user);
-                    await _roleRepository.SaveChangesAsync();
+                    await roleRepository.SaveChangesAsync();
                     result.StatusCode = HttpStatusCode.Created;
                     result.Result = body;
                 }
@@ -69,52 +57,54 @@ namespace Mvp.Selections.Api.Services
                 {
                     string message = $"Attempted to assign User '{body.UserId}' to Role '{roleId}' but Role did not exist.";
                     result.Messages.Add(message);
-                    _logger.LogWarning(message);
+                    logger.LogWarning(message);
                 }
                 else
                 {
                     string message = $"Attempted to assign User '{body.UserId}' to Role '{roleId}' but User did not exist.";
                     result.Messages.Add(message);
-                    _logger.LogWarning(message);
+                    logger.LogWarning(message);
                 }
             }
             else
             {
                 string message = $"Could not assign new User to Role '{roleId}'. Missing User Id.";
                 result.Messages.Add(message);
-                _logger.LogWarning(message);
+                logger.LogWarning(message);
             }
 
             return result;
         }
 
-        public async Task<bool> RemoveUserAsync(Guid roleId, Guid userId)
+        public async Task<OperationResult<User>> RemoveUserAsync(Guid roleId, Guid userId)
         {
-            bool result = false;
-            Role role = await _roleRepository.GetAsync(roleId);
-            User user = await _userService.GetAsync(userId);
+            OperationResult<User> result = new ();
+            Role? role = await roleRepository.GetAsync(roleId);
+            User? user = await userService.GetAsync(userId);
             if (role != null && user != null)
             {
                 role.Users.Remove(user);
-                await _roleRepository.SaveChangesAsync();
-                result = true;
+                await roleRepository.SaveChangesAsync();
+                result.StatusCode = HttpStatusCode.NoContent;
             }
             else if (role == null)
             {
-                _logger.LogWarning($"Attempted to remove User '{userId}' from Role '{roleId}' but Role did not exist.");
+                result.Messages.Add($"Attempted to remove User '{userId}' from Role '{roleId}' but Role did not exist.");
+                logger.LogWarning("Attempted to remove User '{UserId}' from Role '{RoleId}' but Role did not exist.", userId, roleId);
             }
             else
             {
-                _logger.LogWarning($"Attempted to remove User '{userId}' from Role '{roleId}' but User did not exist.");
+                result.Messages.Add($"Attempted to remove User '{userId}' from Role '{roleId}' but User did not exist.");
+                logger.LogWarning("Attempted to remove User '{UserId}' from Role '{RoleId}' but User did not exist.", userId, roleId);
             }
 
             return result;
         }
 
-        public Task<T> GetAsync<T>(Guid id)
+        public Task<T?> GetAsync<T>(Guid id)
             where T : Role
         {
-            return _roleRepository.GetAsync<T>(id, r => r.Users);
+            return roleRepository.GetAsync<T>(id, r => r.Users);
         }
 
         public async Task<Role> AddSelectionRoleAsync(SelectionRole selectionRole)
@@ -128,8 +118,8 @@ namespace Mvp.Selections.Api.Services
                 RegionId = selectionRole.RegionId,
                 SelectionId = selectionRole.SelectionId
             };
-            result = _roleRepository.Add(result) as SelectionRole;
-            await _roleRepository.SaveChangesAsync();
+            result = (SelectionRole)roleRepository.Add(result);
+            await roleRepository.SaveChangesAsync();
             return result;
         }
 
@@ -142,7 +132,7 @@ namespace Mvp.Selections.Api.Services
             int page = 1,
             short pageSize = 100)
         {
-            return _roleRepository.GetAllSelectionRolesReadOnlyAsync(countryId, mvpTypeId, regionId, selectionId, applicationId, page, pageSize, sr => sr.Users);
+            return roleRepository.GetAllSelectionRolesReadOnlyAsync(countryId, mvpTypeId, regionId, selectionId, applicationId, page, pageSize, sr => sr.Users);
         }
     }
 }

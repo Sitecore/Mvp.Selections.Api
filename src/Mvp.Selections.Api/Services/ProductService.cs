@@ -6,23 +6,17 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class ProductService : IProductService
+    public class ProductService(IProductRepository productRepository)
+        : IProductService
     {
-        private readonly IProductRepository _productRepository;
-
-        public ProductService(IProductRepository productRepository)
+        public async Task<Product?> GetAsync(int id)
         {
-            _productRepository = productRepository;
-        }
-
-        public async Task<Product> GetAsync(int id)
-        {
-            return await _productRepository.GetAsync(id);
+            return await productRepository.GetAsync(id);
         }
 
         public Task<IList<Product>> GetAllAsync(int page = 1, short pageSize = 100)
         {
-            return _productRepository.GetAllAsync(page, pageSize);
+            return productRepository.GetAllAsync(page, pageSize);
         }
 
         public async Task<Product> AddAsync(Product product)
@@ -31,24 +25,28 @@ namespace Mvp.Selections.Api.Services
             {
                 Name = product.Name
             };
-            result = _productRepository.Add(result);
-            await _productRepository.SaveChangesAsync();
+            result = productRepository.Add(result);
+            await productRepository.SaveChangesAsync();
             return result;
         }
 
-        public async Task<Product> UpdateAsync(int id, Product product)
+        public async Task<Product?> UpdateAsync(int id, Product product)
         {
-            Product result = await GetAsync(id);
-            result.Name = product.Name;
-            await _productRepository.SaveChangesAsync();
+            Product? result = await GetAsync(id);
+            if (result != null)
+            {
+                result.Name = product.Name;
+                await productRepository.SaveChangesAsync();
+            }
+
             return result;
         }
 
         public async Task RemoveAsync(int id)
         {
-            if (await _productRepository.RemoveAsync(id))
+            if (await productRepository.RemoveAsync(id))
             {
-                await _productRepository.SaveChangesAsync();
+                await productRepository.SaveChangesAsync();
             }
         }
     }

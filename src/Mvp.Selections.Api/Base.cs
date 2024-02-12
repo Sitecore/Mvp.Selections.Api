@@ -13,7 +13,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api
 {
-    public abstract class Base<TLogger>
+    public abstract class Base<TLogger>(ILogger<TLogger> logger, ISerializer serializer, IAuthService authService)
         where TLogger : Base<TLogger>
     {
         protected const string GetMethod = "get";
@@ -30,20 +30,13 @@ namespace Mvp.Selections.Api
 
         protected const string JwtBearerFormat = "JWT";
 
-        protected Base(ILogger<TLogger> logger, ISerializer serializer, IAuthService authService)
-        {
-            Logger = logger;
-            Serializer = serializer;
-            AuthService = authService;
-        }
+        protected ILogger<TLogger> Logger { get; } = logger;
 
-        protected ILogger<TLogger> Logger { get; }
+        protected ISerializer Serializer { get; } = serializer;
 
-        protected ISerializer Serializer { get; }
+        protected IAuthService AuthService { get; } = authService;
 
-        protected IAuthService AuthService { get; }
-
-        protected async Task<IActionResult> ExecuteSafeSecurityValidatedAsync(HttpRequest req, Right[] rights, Func<AuthResult, Task<IActionResult>> operation, Func<AuthResult, Task<IActionResult>> anonymousOperation = null)
+        protected async Task<IActionResult> ExecuteSafeSecurityValidatedAsync(HttpRequest req, Right[] rights, Func<AuthResult, Task<IActionResult>> operation, Func<AuthResult, Task<IActionResult>>? anonymousOperation = null)
         {
             IActionResult result;
             try
@@ -68,7 +61,7 @@ namespace Mvp.Selections.Api
             return result;
         }
 
-        protected IActionResult ContentResult(object content, IContractResolver contractResolver = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+        protected IActionResult ContentResult(object? content, IContractResolver? contractResolver = null, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             return new ContentResult
             {
@@ -78,7 +71,7 @@ namespace Mvp.Selections.Api
             };
         }
 
-        protected IActionResult ContentResult<T>(OperationResult<T> operationResult, IContractResolver contractResolver = null)
+        protected IActionResult ContentResult<T>(OperationResult<T> operationResult, IContractResolver? contractResolver = null)
             where T : class
         {
             IActionResult result = operationResult.StatusCode switch

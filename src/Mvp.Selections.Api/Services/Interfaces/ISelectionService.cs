@@ -8,9 +8,9 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface ISelectionService
     {
-        Task<Selection> GetCurrentAsync();
+        Task<Selection?> GetCurrentAsync();
 
-        Task<Selection> GetAsync(Guid id);
+        Task<Selection?> GetAsync(Guid id);
 
         Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100);
 

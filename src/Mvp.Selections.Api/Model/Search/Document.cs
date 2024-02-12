@@ -2,8 +2,8 @@
 {
     public class Document
     {
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
-        public dynamic Fields { get; set; }
+        public dynamic? Fields { get; set; }
     }
 }

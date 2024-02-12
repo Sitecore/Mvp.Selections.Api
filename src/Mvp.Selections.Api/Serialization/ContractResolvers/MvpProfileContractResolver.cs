@@ -10,19 +10,19 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
     {
         public static readonly MvpProfileContractResolver Instance = new ();
 
-        private readonly string[] _userExcludedMembers = { nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Email), nameof(User.Roles), nameof(User.Rights) };
+        private readonly string[] _userExcludedMembers = [nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Email), nameof(User.Roles), nameof(User.Rights)];
 
-        private readonly string[] _selectionExcludedMembers = { nameof(Selection.ApplicationsActive), nameof(Selection.ApplicationsEnd), nameof(Selection.ApplicationsStart), nameof(Selection.ReviewsActive), nameof(Selection.ReviewsEnd), nameof(Selection.ReviewsStart) };
+        private readonly string[] _selectionExcludedMembers = [nameof(Selection.ApplicationsActive), nameof(Selection.ApplicationsEnd), nameof(Selection.ApplicationsStart), nameof(Selection.ReviewsActive), nameof(Selection.ReviewsEnd), nameof(Selection.ReviewsStart)];
 
-        private readonly string[] _applicationExcludedMembers = { nameof(Application.Contributions), nameof(Application.Eligibility), nameof(Application.Mentor), nameof(Application.Objectives), nameof(Application.Reviews), nameof(Application.Status) };
+        private readonly string[] _applicationExcludedMembers = [nameof(Application.Contributions), nameof(Application.Eligibility), nameof(Application.Mentor), nameof(Application.Objectives), nameof(Application.Reviews), nameof(Application.Status)];
 
-        private readonly string[] _countryExcludedMembers = { nameof(Country.Region), nameof(Country.Users) };
+        private readonly string[] _countryExcludedMembers = [nameof(Country.Region), nameof(Country.Users)];
 
-        private readonly string[] _titleExcludedMembers = { nameof(Title.Application), nameof(Title.Warning) };
+        private readonly string[] _titleExcludedMembers = [nameof(Title.Application), nameof(Title.Warning)];
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty result;
+            JsonProperty? result;
             if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
             {
                 result = null;
@@ -68,7 +68,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
                 result = base.CreateProperty(member, memberSerialization);
             }
 
-            return result;
+            return result!;
         }
     }
 }

@@ -14,55 +14,31 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api.Services
 {
-    public class ApplicationService : IApplicationService, IApplicantService
+    public class ApplicationService(
+        ILogger<ApplicationService> logger,
+        IApplicationRepository applicationRepository,
+        ISelectionService selectionService,
+        IProductService productService,
+        IUserService userService,
+        ICountryService countryService,
+        IMvpTypeService mvpTypeService)
+        : IApplicationService, IApplicantService
     {
-        private readonly ILogger<ApplicationService> _logger;
-
-        private readonly IApplicationRepository _applicationRepository;
-
-        private readonly ISelectionService _selectionService;
-
-        private readonly IProductService _productService;
-
-        private readonly IUserService _userService;
-
-        private readonly ICountryService _countryService;
-
-        private readonly IMvpTypeService _mvpTypeService;
-
         private readonly Expression<Func<Application, object>>[] _standardIncludes =
-        {
+        [
             app => app.Applicant.Links,
-            app => app.Country.Region,
+            app => app.Country.Region!,
             app => app.Contributions,
             app => app.MvpType,
             app => app.Selection
-        };
-
-        public ApplicationService(
-            ILogger<ApplicationService> logger,
-            IApplicationRepository applicationRepository,
-            ISelectionService selectionService,
-            IProductService productService,
-            IUserService userService,
-            ICountryService countryService,
-            IMvpTypeService mvpTypeService)
-        {
-            _logger = logger;
-            _applicationRepository = applicationRepository;
-            _selectionService = selectionService;
-            _productService = productService;
-            _userService = userService;
-            _countryService = countryService;
-            _mvpTypeService = mvpTypeService;
-        }
+        ];
 
         public Task<OperationResult<Application>> GetAsync(User user, Guid id, bool isReadOnly = true)
         {
             return GetInternalAsync(user, id, _standardIncludes, isReadOnly);
         }
 
-        public Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, string userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
+        public Task<IList<Application>> GetAllAsync(User user, Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
             return GetAllInternalAsync(user, userId, userName, selectionId, countryId, status, page, pageSize, _standardIncludes, true);
         }
@@ -78,7 +54,7 @@ namespace Mvp.Selections.Api.Services
                 Status = application.Status
             };
 
-            Selection selection = await _selectionService.GetAsync(selectionId);
+            Selection? selection = await selectionService.GetAsync(selectionId);
             if (selection != null && (selection.AreApplicationsOpen() || user.HasRight(Right.Admin)))
             {
                 newApplication.Selection = selection;
@@ -87,17 +63,18 @@ namespace Mvp.Selections.Api.Services
             {
                 string message = $"The Selection '{selectionId}' is not accepting applications right now.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
             else
             {
                 string message = $"Could not find Selection '{selectionId}'.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse - MvpType can be null after deserialization
-            MvpType mvpType = application.MvpType != null ? await _mvpTypeService.GetAsync(application.MvpType.Id) : null;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - MvpType can be null after deserialization
+            MvpType? mvpType = application.MvpType != null ? await mvpTypeService.GetAsync(application.MvpType.Id) : null;
             if (mvpType != null)
             {
                 newApplication.MvpType = mvpType;
@@ -107,7 +84,7 @@ namespace Mvp.Selections.Api.Services
                 // ReSharper disable once ConstantConditionalAccessQualifier - Country can be null after deserialization
                 string message = $"Could not find MvpType '{application.MvpType?.Id}'.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
 
             foreach (Contribution contribution in application.Contributions)
@@ -115,7 +92,7 @@ namespace Mvp.Selections.Api.Services
                 Contribution newContribution = CreateNewContribution(contribution);
                 foreach (Product product in contribution.RelatedProducts)
                 {
-                    Product dbProduct = await _productService.GetAsync(product.Id);
+                    Product? dbProduct = await productService.GetAsync(product.Id);
                     if (dbProduct != null)
                     {
                         newContribution.RelatedProducts.Add(dbProduct);
@@ -124,7 +101,7 @@ namespace Mvp.Selections.Api.Services
                     {
                         string message = $"Could not find Product '{product.Id}' for Contribution '{contribution.Name}'.";
                         result.Messages.Add(message);
-                        _logger.LogInformation(message);
+                        logger.LogInformation(message);
                     }
                 }
 
@@ -135,7 +112,8 @@ namespace Mvp.Selections.Api.Services
             if (user.HasRight(Right.Admin))
             {
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse - Applicant can be null after deserialization
-                User applicant = application.Applicant != null ? await _userService.GetAsync(application.Applicant.Id) : null;
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - Applicant can be null after deserialization
+                User? applicant = application.Applicant != null ? await userService.GetAsync(application.Applicant.Id) : null;
                 if (applicant != null)
                 {
                     newApplication.Applicant = applicant;
@@ -145,11 +123,12 @@ namespace Mvp.Selections.Api.Services
                     // ReSharper disable once ConstantConditionalAccessQualifier - Applicant can be null after deserialization
                     string message = $"Could not find User '{application.Applicant?.Id}'.";
                     result.Messages.Add(message);
-                    _logger.LogInformation(message);
+                    logger.LogInformation(message);
                 }
 
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse - Country can be null after deserialization
-                Country country = application.Country != null ? await _countryService.GetAsync(application.Country.Id) : null;
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - Country can be null after deserialization
+                Country? country = application.Country != null ? await countryService.GetAsync(application.Country.Id) : null;
                 if (country != null)
                 {
                     newApplication.Country = country;
@@ -159,7 +138,7 @@ namespace Mvp.Selections.Api.Services
                     // ReSharper disable once ConstantConditionalAccessQualifier - Country can be null after deserialization
                     string message = $"Could not find Country '{application.Country?.Id}'.";
                     result.Messages.Add(message);
-                    _logger.LogInformation(message);
+                    logger.LogInformation(message);
                 }
             }
             else if (user.Country != null)
@@ -171,24 +150,25 @@ namespace Mvp.Selections.Api.Services
             {
                 string message = $"User '{user.Id}' has no Country on their profile.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - Applicant can be null at creation
             if (newApplication.Applicant != null)
             {
-                IList<Application> existingApplications = await _applicationRepository.GetAllForUserReadOnlyAsync(newApplication.Applicant.Id, selectionId);
+                IList<Application> existingApplications = await applicationRepository.GetAllForUserReadOnlyAsync(newApplication.Applicant.Id, selectionId);
                 if (existingApplications.Any())
                 {
                     string message = $"Can not submit multiple applications to Selection '{selectionId}'.";
                     result.Messages.Add(message);
-                    _logger.LogInformation(message);
+                    logger.LogInformation(message);
                 }
             }
 
             if (result.Messages.Count == 0)
             {
-                newApplication = _applicationRepository.Add(newApplication);
-                await _applicationRepository.SaveChangesAsync();
+                newApplication = applicationRepository.Add(newApplication);
+                await applicationRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.Created;
                 result.Result = newApplication;
             }
@@ -200,10 +180,9 @@ namespace Mvp.Selections.Api.Services
         {
             OperationResult<Application> result = new ();
             OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, false);
-            Application updatedApplication = null;
+            Application? updatedApplication = null;
             if (
-                getResult.StatusCode == HttpStatusCode.OK
-                && getResult.Result != null
+                getResult is { StatusCode: HttpStatusCode.OK, Result: not null }
                 && (user.HasRight(Right.Admin) || getResult.Result.Selection.AreApplicationsOpen()))
             {
                 updatedApplication = getResult.Result;
@@ -225,9 +204,10 @@ namespace Mvp.Selections.Api.Services
                 updatedApplication.Status = application.Status;
 
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse - MvpType can be null after deserialization
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - MvpType can be null after deserialization
                 if (application.MvpType != null)
                 {
-                    MvpType mvpType = await _mvpTypeService.GetAsync(application.MvpType.Id);
+                    MvpType? mvpType = await mvpTypeService.GetAsync(application.MvpType.Id);
                     if (mvpType != null)
                     {
                         updatedApplication.MvpType = mvpType;
@@ -235,9 +215,10 @@ namespace Mvp.Selections.Api.Services
                     else
                     {
                         // ReSharper disable once ConstantConditionalAccessQualifier - MvpType can be null after deserialization
+                        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract - MvpType can be null after deserialization
                         string message = $"Could not find MvpType '{application.MvpType?.Id}'.";
                         result.Messages.Add(message);
-                        _logger.LogInformation(message);
+                        logger.LogInformation(message);
                     }
                 }
 
@@ -248,7 +229,7 @@ namespace Mvp.Selections.Api.Services
                         Contribution newContribution = CreateNewContribution(contribution);
                         foreach (Product product in contribution.RelatedProducts)
                         {
-                            Product dbProduct = await _productService.GetAsync(product.Id);
+                            Product? dbProduct = await productService.GetAsync(product.Id);
                             if (dbProduct != null)
                             {
                                 newContribution.RelatedProducts.Add(dbProduct);
@@ -257,7 +238,7 @@ namespace Mvp.Selections.Api.Services
                             {
                                 string message = $"Could not find Product '{product.Id}' for Contribution '{contribution.Name}'.";
                                 result.Messages.Add(message);
-                                _logger.LogInformation(message);
+                                logger.LogInformation(message);
                             }
                         }
 
@@ -268,7 +249,7 @@ namespace Mvp.Selections.Api.Services
                     }
                     else
                     {
-                        Contribution updatedContribution = updatedApplication.Contributions.SingleOrDefault(l => l.Id == contribution.Id);
+                        Contribution? updatedContribution = updatedApplication.Contributions.SingleOrDefault(l => l.Id == contribution.Id);
                         if (updatedContribution != null)
                         {
                             updatedContribution.Name = contribution.Name;
@@ -281,7 +262,7 @@ namespace Mvp.Selections.Api.Services
                             {
                                 if (updatedContribution.RelatedProducts.All(rp => rp.Id != product.Id))
                                 {
-                                    Product dbProduct = await _productService.GetAsync(product.Id);
+                                    Product? dbProduct = await productService.GetAsync(product.Id);
                                     if (dbProduct != null)
                                     {
                                         updatedContribution.RelatedProducts.Add(dbProduct);
@@ -290,7 +271,7 @@ namespace Mvp.Selections.Api.Services
                                     {
                                         string message = $"Could not find Product '{product.Id}' for Contribution '{contribution.Name}'.";
                                         result.Messages.Add(message);
-                                        _logger.LogInformation(message);
+                                        logger.LogInformation(message);
                                     }
                                 }
                             }
@@ -299,7 +280,7 @@ namespace Mvp.Selections.Api.Services
                         {
                             string message = $"Could not find Contribution '{contribution.Id}'.";
                             result.Messages.Add(message);
-                            _logger.LogInformation(message);
+                            logger.LogInformation(message);
                         }
                     }
                 }
@@ -309,7 +290,7 @@ namespace Mvp.Selections.Api.Services
                 result.StatusCode = HttpStatusCode.BadRequest;
                 string message = $"Application '{id}' can no longer be altered.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
             else
             {
@@ -318,7 +299,7 @@ namespace Mvp.Selections.Api.Services
 
             if (result.Messages.Count == 0)
             {
-                await _applicationRepository.SaveChangesAsync();
+                await applicationRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.OK;
                 result.Result = updatedApplication;
             }
@@ -330,31 +311,31 @@ namespace Mvp.Selections.Api.Services
         {
             OperationResult<Application> result = new ();
             OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, true);
-            if (getResult.StatusCode == HttpStatusCode.OK && getResult.Result != null && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
+            if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null } && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
             {
-                if (await _applicationRepository.RemoveAsync(id))
+                if (await applicationRepository.RemoveAsync(id))
                 {
-                    await _applicationRepository.SaveChangesAsync();
+                    await applicationRepository.SaveChangesAsync();
                     result.StatusCode = HttpStatusCode.NoContent;
                 }
                 else
                 {
                     string message = $"Application '{id}' was not found.";
                     result.Messages.Add(message);
-                    _logger.LogInformation(message);
+                    logger.LogInformation(message);
                 }
             }
-            else if (getResult.StatusCode == HttpStatusCode.OK && getResult.Result != null)
+            else if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null })
             {
                 string message = $"Application '{id}' can no longer be altered.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
             else if (getResult.StatusCode == HttpStatusCode.OK)
             {
                 string message = $"Application '{id}' was not found.";
                 result.Messages.Add(message);
-                _logger.LogInformation(message);
+                logger.LogInformation(message);
             }
             else
             {
@@ -367,12 +348,12 @@ namespace Mvp.Selections.Api.Services
         public async Task<IList<Applicant>> GetApplicantsAsync(User user, Guid selectionId, int page = 1, short pageSize = 100)
         {
             Expression<Func<Application, object>>[] includes =
-            {
+            [
                 app => app.Applicant,
                 app => app.Country,
                 app => app.MvpType,
                 app => app.Reviews.Where(r => r.Reviewer.Id == user.Id && r.Status == ReviewStatus.Finished)
-            };
+            ];
             IList<Application> applications = await GetAllInternalAsync(user, null, null, selectionId, null, ApplicationStatus.Submitted, page, pageSize, includes, true);
             return applications
                 .Where(a => a.Applicant.Id != user.Id || user.HasRight(Right.Admin))
@@ -401,7 +382,7 @@ namespace Mvp.Selections.Api.Services
             };
         }
 
-        private static bool CanSeeApplication(User user, Application application)
+        private static bool CanSeeApplication(User user, Application? application)
         {
             bool result = false;
             if (application == null)
@@ -451,12 +432,12 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private async Task<OperationResult<Application>> GetInternalAsync(User user, Guid id, Expression<Func<Application, object>>[] includes, bool isReadOnly)
+        private async Task<OperationResult<Application>> GetInternalAsync(User user, Guid id, Expression<Func<Application, object>>[]? includes, bool isReadOnly)
         {
             OperationResult<Application> result = new ();
-            Application application = isReadOnly ?
-                await _applicationRepository.GetReadOnlyAsync(id, includes ?? _standardIncludes) :
-                await _applicationRepository.GetAsync(id, includes ?? _standardIncludes);
+            Application? application = isReadOnly ?
+                await applicationRepository.GetReadOnlyAsync(id, includes ?? _standardIncludes) :
+                await applicationRepository.GetAsync(id, includes ?? _standardIncludes);
 
             if (CanSeeApplication(user, application))
             {
@@ -466,32 +447,32 @@ namespace Mvp.Selections.Api.Services
             else
             {
                 result.StatusCode = HttpStatusCode.Forbidden;
-                _logger.LogWarning($"User '{user.Id}' tried to access Application '{id}' to which there is no access.");
+                logger.LogWarning($"User '{user.Id}' tried to access Application '{id}' to which there is no access.");
             }
 
             return result;
         }
 
-        private async Task<IList<Application>> GetAllInternalAsync(User user, Guid? userId, string userName, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[] includes, bool isReadOnly)
+        private async Task<IList<Application>> GetAllInternalAsync(User user, Guid? userId, string? userName, Guid? selectionId, short? countryId, ApplicationStatus? status, int page, short pageSize, Expression<Func<Application, object>>[]? includes, bool isReadOnly)
         {
             IList<Application> result;
             if (user.HasRight(Right.Admin))
             {
                 result = isReadOnly ?
-                    await _applicationRepository.GetAllReadOnlyAsync(userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
-                    await _applicationRepository.GetAllAsync(userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+                    await applicationRepository.GetAllReadOnlyAsync(userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await applicationRepository.GetAllAsync(userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
             }
             else if (user.HasRight(Right.Review))
             {
                 result = isReadOnly ?
-                    await _applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
-                    await _applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
+                    await applicationRepository.GetAllForReviewReadOnlyAsync(user.Roles.OfType<SelectionRole>(), userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await applicationRepository.GetAllForReviewAsync(user.Roles.OfType<SelectionRole>(), userId, userName, selectionId, countryId, status, page, pageSize, includes ?? _standardIncludes);
             }
             else if (user.HasRight(Right.Apply))
             {
                 result = isReadOnly ?
-                    await _applicationRepository.GetAllForUserReadOnlyAsync(user.Id, selectionId, status, page, pageSize, includes ?? _standardIncludes) :
-                    await _applicationRepository.GetAllForUserAsync(user.Id, selectionId, status, page, pageSize, includes ?? _standardIncludes);
+                    await applicationRepository.GetAllForUserReadOnlyAsync(user.Id, selectionId, status, page, pageSize, includes ?? _standardIncludes) :
+                    await applicationRepository.GetAllForUserAsync(user.Id, selectionId, status, page, pageSize, includes ?? _standardIncludes);
             }
             else
             {

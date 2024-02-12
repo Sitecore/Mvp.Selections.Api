@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Roles;
+using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Api.Services.Interfaces
@@ -18,9 +19,9 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<OperationResult<AssignUserToRoleRequestBody>> AssignUserAsync(Guid roleId, AssignUserToRoleRequestBody body);
 
-        Task<bool> RemoveUserAsync(Guid roleId, Guid userId);
+        Task<OperationResult<User>> RemoveUserAsync(Guid roleId, Guid userId);
 
-        Task<T> GetAsync<T>(Guid id)
+        Task<T?> GetAsync<T>(Guid id)
             where T : Role;
 
         Task<Role> AddSelectionRoleAsync(SelectionRole selectionRole);
