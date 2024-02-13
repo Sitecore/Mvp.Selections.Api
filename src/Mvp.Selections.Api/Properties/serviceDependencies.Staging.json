@@ -12,10 +12,6 @@
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/MVP-Selections-API-Insights",
       "type": "appInsights.azure",
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING"
-    },
-    "apis1": {
-      "ignored": "True",
-      "type": "apis"
     }
   }
 }
