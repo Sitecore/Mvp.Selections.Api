@@ -12,7 +12,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
+  solution: '**/Mvp.Selections.Api.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
