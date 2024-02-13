@@ -67,7 +67,7 @@ steps:
   inputs:
     rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
     includeRootFolder: false
-    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+    archiveFile: "$(Build.ArtifactStagingDirectory)/build$(Build.BuildId).zip"
 
 - task: PublishBuildArtifacts@1
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
