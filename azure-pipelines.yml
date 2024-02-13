@@ -17,15 +17,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: NuGetToolInstaller@1
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'restore'
-    restoreSolution: '$(solution)'
-    feedsToUse: 'select'
-    verbosityRestore: 'Normal'
-
 - task: Assembly-Info-NetCore@3
   inputs:
     Path: '$(Build.SourcesDirectory)'
@@ -48,13 +39,9 @@ steps:
     FailOnWarning: false
     DisableTelemetry: true
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    msbuildArchitecture: 'x64'
+- script: |
+    dotnet restore
+    dotnet build --configuration $(buildConfiguration)
 
 - task: VSTest@2
   inputs:
@@ -65,6 +52,22 @@ steps:
     searchFolder: '$(System.DefaultWorkingDirectory)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: publish
+    arguments: '--configuration $(buildConfiguration) --output publish_output'
+    projects: '$(Solution)'
+    publishWebProjects: false
+    modifyOutputPath: false
+    zipAfterPublish: false
+
+- task: ArchiveFiles@2
+  displayName: "Archive files"
+  inputs:
+    rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
+    includeRootFolder: false
+    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
 
 - task: PublishBuildArtifacts@1
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
