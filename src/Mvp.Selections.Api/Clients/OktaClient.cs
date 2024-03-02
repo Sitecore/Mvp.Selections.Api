@@ -23,13 +23,13 @@ namespace Mvp.Selections.Api.Clients
             }
             else
             {
-                FormUrlEncodedContent reqContent = new (new[]
-                {
+                FormUrlEncodedContent reqContent = new (
+                [
                     new KeyValuePair<string, string>("token", token),
                     new KeyValuePair<string, string>("token_type_hint", "id_token"),
                     new KeyValuePair<string, string>("client_id", _options.ClientId),
                     new KeyValuePair<string, string>("client_secret", _options.ClientSecret)
-                });
+                ]);
                 HttpResponseMessage response = await client.PostAsync(_options.ValidationEndpoint, reqContent);
                 IntrospectionResponse? introspectionResponse = await serializer.DeserializeAsync<IntrospectionResponse>(await response.Content.ReadAsStreamAsync());
 

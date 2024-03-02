@@ -8,18 +8,9 @@ using Mvp.Selections.Api.Model.Search;
 
 namespace Mvp.Selections.Api.Clients
 {
-    public class SearchIngestionClient
+    public class SearchIngestionClient(HttpClient client, IOptions<SearchIngestionClientOptions> options)
     {
-        private readonly HttpClient _client;
-
-        private readonly SearchIngestionClientOptions _options;
-
-        public SearchIngestionClient(HttpClient client, IOptions<SearchIngestionClientOptions> options)
-        {
-            _client = client;
-            _client.BaseAddress = options.Value.BaseAddress;
-            _options = options.Value;
-        }
+        private readonly SearchIngestionClientOptions _options = options.Value;
 
         public Task<Response<bool>> CreateDocumentAsync(SearchIngestionClientOptions.SearchIngestionSourceEntity sourceEntity, Document document, params string[] locales)
         {
@@ -89,7 +80,7 @@ namespace Mvp.Selections.Api.Clients
         {
             Response<bool> result = new () { Result = false };
             AddAuthorization(request);
-            HttpResponseMessage response = await _client.SendAsync(request);
+            HttpResponseMessage response = await client.SendAsync(request);
 
             result.StatusCode = response.StatusCode;
             if (response.IsSuccessStatusCode)

@@ -3,14 +3,9 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Domain
 {
-    public class User : BaseEntity<Guid>
+    public class User(Guid id) : BaseEntity<Guid>(id)
     {
         private Right? _rights;
-
-        public User(Guid id)
-            : base(id)
-        {
-        }
 
         public string Identifier { get; set; } = string.Empty;
 
@@ -24,17 +19,17 @@ namespace Mvp.Selections.Domain
 
         public Country? Country { get; set; }
 
-        public ICollection<User> Mentors { get; init; } = new List<User>();
+        public ICollection<User> Mentors { get; init; } = [];
 
-        public ICollection<Application> Applications { get; init; } = new List<Application>();
+        public ICollection<Application> Applications { get; init; } = [];
 
-        public ICollection<Consent> Consents { get; init; } = new List<Consent>();
+        public ICollection<Consent> Consents { get; init; } = [];
 
-        public ICollection<ProfileLink> Links { get; init; } = new List<ProfileLink>();
+        public ICollection<ProfileLink> Links { get; init; } = [];
 
-        public ICollection<Review> Reviews { get; init; } = new List<Review>();
+        public ICollection<Review> Reviews { get; init; } = [];
 
-        public ICollection<Role> Roles { get; init; } = new List<Role>();
+        public ICollection<Role> Roles { get; init; } = [];
 
         [NotMapped]
         public Right Rights => _rights ?? RecalculateRights();

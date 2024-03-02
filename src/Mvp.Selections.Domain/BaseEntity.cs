@@ -7,23 +7,16 @@ using System.Text.Json.Serialization;
 
 namespace Mvp.Selections.Domain
 {
-    public abstract class BaseEntity<TId>
+    public abstract class BaseEntity<TId>(TId id)
         where TId : struct
     {
-        protected BaseEntity(TId id)
-        {
-            Id = id;
-            CreatedOn = DateTime.UtcNow;
-            CreatedBy = string.Empty;
-        }
-
-        public TId Id { get; private set; }
+        public TId Id { get; private set; } = id;
 
         [JsonInclude]
-        public DateTime CreatedOn { get; internal set; }
+        public DateTime CreatedOn { get; internal set; } = DateTime.UtcNow;
 
         [JsonInclude]
-        public string CreatedBy { get; internal set; }
+        public string CreatedBy { get; internal set; } = string.Empty;
 
         public DateTime? ModifiedOn { get; set; }
 

@@ -22,7 +22,7 @@ namespace Mvp.Selections.Api.Services
         private readonly Expression<Func<Title, object>>[] _standardIncludes =
         [
             t => t.MvpType,
-            t => t.Application.Applicant,
+            t => t.Application.Applicant.Country!,
             t => t.Application.Selection,
             t => t.Application.Country
         ];

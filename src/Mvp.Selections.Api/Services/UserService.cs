@@ -16,6 +16,8 @@ using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Roles;
+using C = Mvp.Selections.Api.Model.Community;
+using X = Mvp.Selections.Api.Model.X;
 
 namespace Mvp.Selections.Api.Services
 {
@@ -26,7 +28,9 @@ namespace Mvp.Selections.Api.Services
         IApplicationRepository applicationRepository,
         IRoleRepository roleRepository,
         SearchIngestionClient searchIngestionClient,
-        IOptions<SearchIngestionClientOptions> searchIngestionClientOptions)
+        IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
+        XClient xClient,
+        CommunityClient cClient)
         : IUserService, IMvpProfileService
     {
         private readonly Expression<Func<User, object>>[] _standardIncludes =
@@ -59,7 +63,7 @@ namespace Mvp.Selections.Api.Services
                 ImageType = user.ImageType
             };
 
-            newUser.ImageUri = GetImageUri(newUser);
+            newUser.ImageUri = await GetImageUri(newUser);
 
             if (user.Country != null)
             {
@@ -86,7 +90,7 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task<OperationResult<User>> UpdateAsync(Guid id, User user)
+        public async Task<OperationResult<User>> UpdateAsync(Guid id, User user, IList<string> propertyKeys)
         {
             OperationResult<User> result = new ();
             User? existingUser = await GetAsync(id);
@@ -97,21 +101,35 @@ namespace Mvp.Selections.Api.Services
                     existingUser.Identifier = user.Identifier;
                 }
 
-                existingUser.Name = user.Name;
-                existingUser.Email = user.Email;
-                existingUser.ImageType = user.ImageType;
-                existingUser.ImageUri = GetImageUri(existingUser);
-
-                Country? country = user.Country != null ? await countryRepository.GetAsync(user.Country.Id) : null;
-                if (country != null)
+                if (propertyKeys.Any(key => key.Equals(nameof(User.Name), StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    existingUser.Country = country;
+                    existingUser.Name = user.Name;
                 }
-                else
+
+                if (propertyKeys.Any(key => key.Equals(nameof(User.Email), StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    string message = $"Could not find Country '{user.Country?.Id}'.";
-                    result.Messages.Add(message);
-                    logger.LogInformation(message);
+                    existingUser.Email = user.Email;
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(User.ImageType), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    existingUser.ImageType = user.ImageType;
+                    existingUser.ImageUri = await GetImageUri(existingUser);
+                }
+
+                if (propertyKeys.Any(key => key.Equals(nameof(User.Country), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    Country? country = user.Country != null ? await countryRepository.GetAsync(user.Country.Id) : null;
+                    if (country != null)
+                    {
+                        existingUser.Country = country;
+                    }
+                    else
+                    {
+                        string message = $"Could not find Country '{user.Country?.Id}'.";
+                        result.Messages.Add(message);
+                        logger.LogInformation(message);
+                    }
                 }
             }
             else
@@ -328,26 +346,71 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private static Uri? GetImageUri(User user)
+        private async Task<Uri?> GetImageUri(User user)
         {
             Uri? result;
             switch (user.ImageType)
             {
                 case ImageType.Community:
-                    // TODO [IVA] No idea how to retrieve this
-                    result = null;
+                    result = await GetCommunityUri(user);
                     break;
                 case ImageType.Gravatar:
                     result = GetGravatarUri(user.Email);
                     break;
                 case ImageType.Twitter:
-                    // TODO [IVA] Find a way to load profile image from Twitter
-                    result = new Uri("https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
+                    result = await GetTwitterUri(user);
                     break;
                 case ImageType.Anonymous:
                 default:
                     result = null;
                     break;
+            }
+
+            return result;
+        }
+
+        private async Task<Uri?> GetCommunityUri(User user)
+        {
+            Uri? result = null;
+            ProfileLink? communityLink = user.Links.FirstOrDefault(l => l.Type == ProfileLinkType.Community);
+            if (communityLink != null)
+            {
+                string? userId = CommunityClient.GetUserId(communityLink.Uri);
+                if (userId != null)
+                {
+                    C.Response<C.Profile> profileResponse = await cClient.GetProfile(userId);
+                    if (profileResponse.StatusCode == HttpStatusCode.OK && !string.IsNullOrWhiteSpace(profileResponse.Result?.Photo?.Value))
+                    {
+                        communityLink.ImageUri = new Uri(profileResponse.Result.Photo.Value);
+                        result = communityLink.ImageUri;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<Uri?> GetTwitterUri(User user)
+        {
+            Uri? result = null;
+            ProfileLink? twitterLink = user.Links.FirstOrDefault(l => l.Type == ProfileLinkType.Twitter);
+            if (twitterLink != null)
+            {
+                // We only want to look up each user once a day to stay in Free tier
+                if (twitterLink.ModifiedOn != null ? twitterLink.ModifiedOn < DateTime.UtcNow.AddDays(-1) : twitterLink.CreatedOn < DateTime.UtcNow.AddDays(-1))
+                {
+                    string username = twitterLink.Uri.Segments.Last();
+                    X.Response<X.Profile> profileResponse = await xClient.GetProfile(username);
+                    if (profileResponse.StatusCode == HttpStatusCode.OK && !string.IsNullOrWhiteSpace(profileResponse.Result?.Data?.ProfileImage))
+                    {
+                        twitterLink.ImageUri = new Uri(profileResponse.Result.Data.ProfileImage);
+                        result = twitterLink.ImageUri;
+                    }
+                }
+                else
+                {
+                    result = twitterLink.ImageUri;
+                }
             }
 
             return result;

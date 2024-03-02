@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -40,9 +41,9 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
             {
-                User? input = await Serializer.DeserializeAsync<User>(req.Body);
-                OperationResult<User> updateResult = input != null
-                    ? await userService.UpdateAsync(authResult.User!.Id, input)
+                DeserializationResult<User> deserializationResult = await Serializer.DeserializeAsync<User>(req.Body, true);
+                OperationResult<User> updateResult = deserializationResult.Object != null
+                    ? await userService.UpdateAsync(authResult.User!.Id, deserializationResult.Object, deserializationResult.PropertyKeys)
                     : new OperationResult<User>();
                 return ContentResult(updateResult, UsersContractResolver.Instance);
             });
@@ -99,9 +100,14 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                User? input = await Serializer.DeserializeAsync<User>(req.Body);
+                DeserializationResult<User> deserializationResult = await Serializer.DeserializeAsync<User>(req.Body, true);
                 OperationResult<User> updateResult =
-                    input != null ? await userService.UpdateAsync(id, input) : new OperationResult<User>();
+                    deserializationResult.Object != null
+                        ? await userService.UpdateAsync(
+                            id,
+                            deserializationResult.Object,
+                            deserializationResult.PropertyKeys)
+                        : new OperationResult<User>();
                 return ContentResult(updateResult, UsersContractResolver.Instance);
             });
         }
