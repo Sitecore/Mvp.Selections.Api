@@ -1,4 +1,6 @@
-﻿namespace Mvp.Selections.Client.Extensions
+﻿using System.Web;
+
+namespace Mvp.Selections.Client.Extensions
 {
     public static class ObjectExtensions
     {
@@ -8,7 +10,7 @@
             if (!string.IsNullOrEmpty(obj?.ToString()))
             {
                 string start = isFirst ? "?" : "&";
-                result = $"{start}{key}={obj}";
+                result = $"{start}{key}={HttpUtility.UrlEncode(obj.ToString())}";
             }
 
             return result;

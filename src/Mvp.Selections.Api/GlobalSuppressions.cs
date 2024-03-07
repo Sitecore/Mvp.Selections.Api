@@ -13,3 +13,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:File should have header", Justification = "Not required.")]
 [assembly: SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1010:Opening square brackets should be spaced correctly", Justification = "New collection expression.")]
 [assembly: SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1011:Closing square brackets should be spaced correctly", Justification = "Nullability information.")]
+[assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1312:Variable names must begin with lower case letter", Justification = "Discard variable is single _ and private variables can start with _.")]

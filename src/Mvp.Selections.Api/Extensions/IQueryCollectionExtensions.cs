@@ -32,6 +32,18 @@ namespace Mvp.Selections.Api.Extensions
             return result;
         }
 
+        public static IList<T?>? GetValuesOrNull<T>(this IQueryCollection queryCollection, string key)
+        {
+            List<T?>? result = null;
+            if (queryCollection.TryGetValue(key, out StringValues values))
+            {
+                result = [];
+                result.AddRange(values.Select(value => ConvertOrDefault<T>(value)));
+            }
+
+            return result;
+        }
+
         private static T? ConvertOrDefault<T>(string? value, T? defaultValue = default)
         {
             T? result;

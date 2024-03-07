@@ -17,10 +17,10 @@ namespace Mvp.Selections.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.7")
+                .HasAnnotation("ProductVersion", "8.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("ContributionProduct", b =>
                 {
@@ -109,7 +109,8 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
@@ -131,6 +132,8 @@ namespace Mvp.Selections.Data.Migrations
                     b.ToTable("Comments");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Comment");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Consent", b =>
@@ -223,7 +226,7 @@ namespace Mvp.Selections.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("smallint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<short>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<short>("Id"));
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -1940,7 +1943,7 @@ namespace Mvp.Selections.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("smallint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<short>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<short>("Id"));
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -1970,7 +1973,7 @@ namespace Mvp.Selections.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -2007,6 +2010,9 @@ namespace Mvp.Selections.Data.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ImageUri")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -2040,7 +2046,7 @@ namespace Mvp.Selections.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -2140,7 +2146,8 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(13)
+                        .HasColumnType("nvarchar(13)");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
@@ -2157,6 +2164,8 @@ namespace Mvp.Selections.Data.Migrations
                     b.ToTable("Roles");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Role");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.Score", b =>
