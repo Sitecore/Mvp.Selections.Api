@@ -10,6 +10,6 @@ namespace Mvp.Selections.Api.Model.Request
 
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
 
-        public IList<string> Messages { get; } = new List<string>();
+        public IList<string> Messages { get; } = [];
     }
 }

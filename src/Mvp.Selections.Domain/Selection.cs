@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class Selection : BaseEntity<Guid>
+    public class Selection(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public Selection(Guid id)
-            : base(id)
-        {
-        }
-
         public short Year { get; set; }
 
         public bool? ApplicationsActive { get; set; }

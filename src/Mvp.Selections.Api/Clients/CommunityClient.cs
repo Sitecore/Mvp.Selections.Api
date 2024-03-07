@@ -19,30 +19,43 @@ namespace Mvp.Selections.Api.Clients
             return HttpUtility.ParseQueryString(profileUri.Query).Get("user");
         }
 
+        public Uri? GetAbsolutePath(string relativePath)
+        {
+            if (!Uri.TryCreate(_options.BaseAddress, relativePath, out Uri? result))
+            {
+                result = null;
+            }
+
+            return result;
+        }
+
         public Task<Response<Profile>> GetProfile(string userId)
         {
             HttpRequestMessage req =
-                new (HttpMethod.Get, "api/sn_communities/v1/community/profiles/{userId}");
+                new (HttpMethod.Get, $"api/sn_communities/v1/community/profiles/{userId}");
             return SendAsync<Profile>(req);
         }
 
         private async Task<Response<T>> SendAsync<T>(HttpRequestMessage request)
         {
-            Response<T> result = new ();
+            Response<T>? result;
             HttpResponseMessage response = await client.SendAsync(request);
-
-            result.StatusCode = response.StatusCode;
             if (response.IsSuccessStatusCode)
             {
-                result.Result = await serializer.DeserializeAsync<T>(await response.Content.ReadAsStreamAsync());
+                result = await serializer.DeserializeAsync<Response<T>>(await response.Content.ReadAsStreamAsync());
             }
             else
             {
-                result.Message = "Unexpected issue while sending request.";
+                result = new Response<T>
+                {
+                    Message = "Unexpected issue while sending request."
+                };
                 log.LogCritical(
                     "Unexpected issue while sending request. Raw response: {Response}",
                     await response.Content.ReadAsStringAsync());
             }
+
+            result.StatusCode = response.StatusCode;
 
             return result;
         }

@@ -4,11 +4,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Extensions;
+using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Search;
@@ -16,8 +18,7 @@ using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Roles;
-using C = Mvp.Selections.Api.Model.Community;
-using X = Mvp.Selections.Api.Model.X;
+using Mvp.Selections.Domain.Utilities;
 
 namespace Mvp.Selections.Api.Services
 {
@@ -29,8 +30,9 @@ namespace Mvp.Selections.Api.Services
         IRoleRepository roleRepository,
         SearchIngestionClient searchIngestionClient,
         IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
-        XClient xClient,
-        CommunityClient cClient)
+        IMemoryCache cache,
+        IOptions<CacheOptions> cacheOptions,
+        AvatarUriHelper avatarUriHelper)
         : IUserService, IMvpProfileService
     {
         private readonly Expression<Func<User, object>>[] _standardIncludes =
@@ -41,6 +43,8 @@ namespace Mvp.Selections.Api.Services
         ];
 
         private readonly SearchIngestionClientOptions _searchIngestionClientOptions = searchIngestionClientOptions.Value;
+
+        private readonly CacheOptions _cacheOptions = cacheOptions.Value;
 
         public Task<User?> GetAsync(Guid id)
         {
@@ -63,7 +67,7 @@ namespace Mvp.Selections.Api.Services
                 ImageType = user.ImageType
             };
 
-            newUser.ImageUri = await GetImageUri(newUser);
+            newUser.ImageUri = await avatarUriHelper.GetImageUri(newUser);
 
             if (user.Country != null)
             {
@@ -114,7 +118,7 @@ namespace Mvp.Selections.Api.Services
                 if (propertyKeys.Any(key => key.Equals(nameof(User.ImageType), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     existingUser.ImageType = user.ImageType;
-                    existingUser.ImageUri = await GetImageUri(existingUser);
+                    existingUser.ImageUri = await avatarUriHelper.GetImageUri(existingUser);
                 }
 
                 if (propertyKeys.Any(key => key.Equals(nameof(User.Country), StringComparison.InvariantCultureIgnoreCase)))
@@ -215,6 +219,7 @@ namespace Mvp.Selections.Api.Services
             {
                 MvpProfile profile = new ()
                 {
+                    Id = user.Id,
                     Name = user.Name,
                     Country = user.Country,
                     ImageUri = user.ImageUri,
@@ -230,6 +235,40 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
+        public async Task<SearchOperationResult<MvpProfile>> SearchMvpProfileAsync(
+            string? text = null,
+            IList<short>? mvpTypeIds = null,
+            IList<short>? years = null,
+            IList<short>? countryIds = null,
+            int page = 1,
+            short pageSize = 100)
+        {
+            SearchOperationResult<MvpProfile> operationResult = new ();
+            IList<User> mvpUsers = await GetMvpUsers(text, mvpTypeIds, years, countryIds);
+            List<MvpProfile> profiles = mvpUsers.Select(u => new MvpProfile
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Country = u.Country,
+                ImageUri = u.ImageUri,
+                ProfileLinks = u.Links,
+                Titles = u.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList() !
+            }).ToList();
+
+            operationResult.Result.Facets.Add(CalculateYearFacet(profiles));
+            operationResult.Result.Facets.Add(CalculateTypeFacet(profiles));
+            operationResult.Result.Facets.Add(CalculateCountryFacet(profiles));
+
+            page--;
+            operationResult.Result.Results = profiles.Skip(page * pageSize).Take(pageSize).ToList();
+            operationResult.Result.TotalResults = mvpUsers.Count;
+            operationResult.Result.Page = page + 1;
+            operationResult.Result.PageSize = pageSize;
+            operationResult.StatusCode = HttpStatusCode.OK;
+
+            return operationResult;
+        }
+
         public async Task<OperationResult<object>> IndexAsync()
         {
             OperationResult<object> result = new ();
@@ -239,7 +278,7 @@ namespace Mvp.Selections.Api.Services
             Dictionary<Task, string> runningTasks = new ();
             do
             {
-                users = await userRepository.GetWithTitleReadOnlyAsync(null, null, page, 1000, u => u.Country!);
+                users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, page, 1000, u => u.Country!);
                 count += users.Count;
                 foreach (User user in users)
                 {
@@ -299,7 +338,7 @@ namespace Mvp.Selections.Api.Services
             Dictionary<Task, string> runningTasks = new ();
             do
             {
-                users = await userRepository.GetWithTitleReadOnlyAsync(null, null, page, 1000);
+                users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, page, 1000);
                 count += users.Count;
                 foreach (User user in users)
                 {
@@ -334,83 +373,73 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private static Uri? GetGravatarUri(string email)
+        private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)
         {
-            Uri? result = null;
-            if (!string.IsNullOrWhiteSpace(email))
+            SearchFacet result = new () { Identifier = "year" };
+            foreach (Title title in profiles.SelectMany(p => p.Titles))
             {
-                string hash = email.Trim().ToLowerInvariant().ToMD5Hash();
-                result = new Uri($"https://www.gravatar.com/avatar/{hash}");
-            }
-
-            return result;
-        }
-
-        private async Task<Uri?> GetImageUri(User user)
-        {
-            Uri? result;
-            switch (user.ImageType)
-            {
-                case ImageType.Community:
-                    result = await GetCommunityUri(user);
-                    break;
-                case ImageType.Gravatar:
-                    result = GetGravatarUri(user.Email);
-                    break;
-                case ImageType.Twitter:
-                    result = await GetTwitterUri(user);
-                    break;
-                case ImageType.Anonymous:
-                default:
-                    result = null;
-                    break;
-            }
-
-            return result;
-        }
-
-        private async Task<Uri?> GetCommunityUri(User user)
-        {
-            Uri? result = null;
-            ProfileLink? communityLink = user.Links.FirstOrDefault(l => l.Type == ProfileLinkType.Community);
-            if (communityLink != null)
-            {
-                string? userId = CommunityClient.GetUserId(communityLink.Uri);
-                if (userId != null)
+                string key = title.Application.Selection.Year.ToString();
+                if (!result.Options.TryAdd(key, new SearchFacetOption { Identifier = key, Display = key, Count = 1 }, o => o.Identifier))
                 {
-                    C.Response<C.Profile> profileResponse = await cClient.GetProfile(userId);
-                    if (profileResponse.StatusCode == HttpStatusCode.OK && !string.IsNullOrWhiteSpace(profileResponse.Result?.Photo?.Value))
-                    {
-                        communityLink.ImageUri = new Uri(profileResponse.Result.Photo.Value);
-                        result = communityLink.ImageUri;
-                    }
+                    result.Options.Single(o => o.Identifier == key).Count++;
                 }
             }
 
             return result;
         }
 
-        private async Task<Uri?> GetTwitterUri(User user)
+        private static SearchFacet CalculateTypeFacet(IReadOnlyCollection<MvpProfile> profiles)
         {
-            Uri? result = null;
-            ProfileLink? twitterLink = user.Links.FirstOrDefault(l => l.Type == ProfileLinkType.Twitter);
-            if (twitterLink != null)
+            SearchFacet result = new () { Identifier = "type" };
+            List<MvpType> distinctTypes = profiles
+                .SelectMany(p => p.Titles.Select(t => t.MvpType))
+                .Distinct(new IdEqualityComparer<MvpType, short>())
+                .ToList();
+            IEnumerable<MvpType> countedTypes =
+                from type in distinctTypes
+                from _ in profiles
+                    .Where(profile => profile.Titles.Any(t => t.MvpType.Id == type.Id))
+                    .Where(_ => !result.Options.TryAdd(type.Id.ToString(), new SearchFacetOption { Identifier = type.Id.ToString(), Display = type.Name, Count = 1 }, o => o.Identifier))
+                select type;
+            foreach (MvpType type in countedTypes)
             {
-                // We only want to look up each user once a day to stay in Free tier
-                if (twitterLink.ModifiedOn != null ? twitterLink.ModifiedOn < DateTime.UtcNow.AddDays(-1) : twitterLink.CreatedOn < DateTime.UtcNow.AddDays(-1))
+                result.Options.Single(o => o.Identifier == type.Id.ToString()).Count++;
+            }
+
+            return result;
+        }
+
+        private static SearchFacet CalculateCountryFacet(IEnumerable<MvpProfile> profiles)
+        {
+            SearchFacet result = new () { Identifier = "country" };
+            foreach (Country? country in profiles.Select(p => p.Country))
+            {
+                if (country != null && !result.Options.TryAdd(country.Id.ToString(), new SearchFacetOption { Identifier = country.Id.ToString(), Display = country.Name, Count = 1 }, o => o.Identifier))
                 {
-                    string username = twitterLink.Uri.Segments.Last();
-                    X.Response<X.Profile> profileResponse = await xClient.GetProfile(username);
-                    if (profileResponse.StatusCode == HttpStatusCode.OK && !string.IsNullOrWhiteSpace(profileResponse.Result?.Data?.ProfileImage))
-                    {
-                        twitterLink.ImageUri = new Uri(profileResponse.Result.Data.ProfileImage);
-                        result = twitterLink.ImageUri;
-                    }
+                    result.Options.Single(o => o.Identifier == country.Id.ToString()).Count++;
                 }
-                else
-                {
-                    result = twitterLink.ImageUri;
-                }
+            }
+
+            return result;
+        }
+
+        private async Task<IList<User>> GetMvpUsers(
+            string? text = null,
+            IList<short>? mvpTypeIds = null,
+            IList<short>? years = null,
+            IList<short>? countryIds = null)
+        {
+            IList<User> result;
+            string cacheKey =
+                $"{_cacheOptions.MvpUsersCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}";
+            if (cache.TryGetValue(cacheKey, out IList<User>? mvpUsers) && mvpUsers != null)
+            {
+                result = mvpUsers;
+            }
+            else
+            {
+                result = await userRepository.GetWithTitleReadOnlyAsync(text, mvpTypeIds, years, countryIds, 1, short.MaxValue, u => u.Country!);
+                cache.Set(cacheKey, result);
             }
 
             return result;

@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class Consent : BaseEntity<Guid>
+    public class Consent(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public Consent(Guid id)
-            : base(id)
-        {
-        }
-
         public DateTime? RejectedOn { get; set; }
 
         public User User { get; set; } = null!;

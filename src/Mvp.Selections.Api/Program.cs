@@ -45,8 +45,11 @@ namespace Mvp.Selections.Api
                         configuration.GetSection(XClientOptions.XClient).Bind(options));
                     services.AddOptions<CommunityClientOptions>().Configure<IConfiguration>((options, configuration) =>
                         configuration.GetSection(CommunityClientOptions.CommunityClient).Bind(options));
+                    services.AddOptions<CacheOptions>().Configure<IConfiguration>((options, configuration) =>
+                        configuration.GetSection(CacheOptions.Cache).Bind(options));
 
                     // Helpers
+                    services.AddSingleton<AvatarUriHelper, AvatarUriHelper>();
                     services.AddScoped<ISerializer, JsonSerializer>();
                     services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
                     services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());

@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class Review : BaseEntity<Guid>
+    public class Review(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public Review(Guid id)
-            : base(id)
-        {
-        }
-
         public string Comment { get; set; } = string.Empty;
 
         public ReviewStatus Status { get; set; }

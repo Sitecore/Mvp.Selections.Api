@@ -3,7 +3,8 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Domain
 {
-    public class User(Guid id) : BaseEntity<Guid>(id)
+    public class User(Guid id)
+        : BaseEntity<Guid>(id)
     {
         private Right? _rights;
 
