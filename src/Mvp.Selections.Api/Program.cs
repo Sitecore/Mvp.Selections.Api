@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Helpers;
@@ -40,8 +41,15 @@ namespace Mvp.Selections.Api
                         configuration.GetSection(JsonOptions.Json).Bind(options));
                     services.AddOptions<SearchIngestionClientOptions>().Configure<IConfiguration>((options, configuration) =>
                         configuration.GetSection(SearchIngestionClientOptions.SearchIngestionClient).Bind(options));
+                    services.AddOptions<XClientOptions>().Configure<IConfiguration>((options, configuration) =>
+                        configuration.GetSection(XClientOptions.XClient).Bind(options));
+                    services.AddOptions<CommunityClientOptions>().Configure<IConfiguration>((options, configuration) =>
+                        configuration.GetSection(CommunityClientOptions.CommunityClient).Bind(options));
+                    services.AddOptions<CacheOptions>().Configure<IConfiguration>((options, configuration) =>
+                        configuration.GetSection(CacheOptions.Cache).Bind(options));
 
                     // Helpers
+                    services.AddSingleton<AvatarUriHelper, AvatarUriHelper>();
                     services.AddScoped<ISerializer, JsonSerializer>();
                     services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
                     services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
@@ -94,7 +102,24 @@ namespace Mvp.Selections.Api
 
                     // HttpClients
                     services.AddHttpClient<OktaClient>();
-                    services.AddHttpClient<SearchIngestionClient>();
+                    services.AddHttpClient<SearchIngestionClient>((provider, client) =>
+                    {
+                        IOptions<SearchIngestionClientOptions> options =
+                            provider.GetRequiredService<IOptions<SearchIngestionClientOptions>>();
+                        client.BaseAddress = options.Value.BaseAddress;
+                    });
+                    services.AddHttpClient<XClient>((provider, client) =>
+                    {
+                        IOptions<XClientOptions> options =
+                            provider.GetRequiredService<IOptions<XClientOptions>>();
+                        client.BaseAddress = options.Value.BaseAddress;
+                    });
+                    services.AddHttpClient<CommunityClient>((provider, client) =>
+                    {
+                        IOptions<CommunityClientOptions> options =
+                            provider.GetRequiredService<IOptions<CommunityClientOptions>>();
+                        client.BaseAddress = options.Value.BaseAddress;
+                    });
                 })
                 .Build();
 

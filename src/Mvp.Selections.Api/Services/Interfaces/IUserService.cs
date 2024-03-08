@@ -14,7 +14,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<OperationResult<User>> AddAsync(User user);
 
-        Task<OperationResult<User>> UpdateAsync(Guid id, User user);
+        Task<OperationResult<User>> UpdateAsync(Guid id, User user, IList<string> propertyKeys);
 
         Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId);
 

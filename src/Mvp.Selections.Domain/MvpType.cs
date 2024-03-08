@@ -1,14 +1,10 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class MvpType : BaseEntity<short>
+    public class MvpType(short id)
+        : BaseEntity<short>(id)
     {
-        public MvpType(short id)
-            : base(id)
-        {
-        }
-
         public string Name { get; set; } = string.Empty;
 
-        public ICollection<Selection> Selections { get; init; } = new List<Selection>();
+        public ICollection<Selection> Selections { get; init; } = [];
     }
 }

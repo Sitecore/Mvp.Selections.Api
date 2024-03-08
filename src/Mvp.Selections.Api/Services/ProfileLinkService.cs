@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -12,7 +13,8 @@ namespace Mvp.Selections.Api.Services
     public class ProfileLinkService(
         ILogger<ProfileLinkService> logger,
         IProfileLinkRepository profileLinkRepository,
-        IUserService userService)
+        IUserService userService,
+        AvatarUriHelper avatarUriHelper)
         : IProfileLinkService
     {
         public async Task<OperationResult<ProfileLink>> AddAsync(User user, Guid userId, ProfileLink profileLink)
@@ -30,6 +32,7 @@ namespace Mvp.Selections.Api.Services
                         Type = profileLink.Type,
                         User = updateUser
                     };
+                    newProfileLink.ImageUri = await avatarUriHelper.GetImageUri(newProfileLink);
                     result.Result = profileLinkRepository.Add(newProfileLink);
                     await profileLinkRepository.SaveChangesAsync();
                     result.StatusCode = HttpStatusCode.Created;

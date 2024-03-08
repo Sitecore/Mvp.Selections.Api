@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class ScoreCategory : BaseEntity<Guid>
+    public class ScoreCategory(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public ScoreCategory(Guid id)
-            : base(id)
-        {
-        }
-
         public string Name { get; set; } = string.Empty;
 
         public decimal Weight { get; set; } = 1;

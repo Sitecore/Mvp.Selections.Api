@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class Application : BaseEntity<Guid>
+    public class Application(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public Application(Guid id)
-            : base(id)
-        {
-        }
-
         public string? Eligibility { get; set; }
 
         public string? Objectives { get; set; }
@@ -25,8 +21,8 @@
 
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Open;
 
-        public ICollection<Contribution> Contributions { get; init; } = new List<Contribution>();
+        public ICollection<Contribution> Contributions { get; init; } = [];
 
-        public ICollection<Review> Reviews { get; init; } = new List<Review>();
+        public ICollection<Review> Reviews { get; init; } = [];
     }
 }

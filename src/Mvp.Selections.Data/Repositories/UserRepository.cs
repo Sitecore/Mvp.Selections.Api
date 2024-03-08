@@ -8,13 +8,9 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class UserRepository : BaseRepository<User, Guid>, IUserRepository
+    public class UserRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<User, Guid>(context, currentUserNameProvider), IUserRepository
     {
-        public UserRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<User>> GetAllAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
         {
             return await GetAllQuery(name, email, countryId, page, pageSize, includes).ToListAsync();
@@ -64,34 +60,16 @@ namespace Mvp.Selections.Data.Repositories
             return Context.Users.Any(u => u.Identifier == identifier);
         }
 
-        public async Task<IList<User>> GetWithTitleReadOnlyAsync(MvpType? type = null, short? year = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
+        public async Task<IList<User>> GetWithTitleReadOnlyAsync(
+            string? text = null,
+            IList<short>? mvpTypeIds = null,
+            IList<short>? years = null,
+            IList<short>? countryIds = null,
+            int page = 1,
+            short pageSize = 100,
+            params Expression<Func<User, object>>[] includes)
         {
-            page--;
-            IQueryable<User> query = Context.Users.Where(u => u.Applications.Any(a => a.Title != null));
-            if (type != null)
-            {
-                query = query.Where(u => u.Applications.Any(a => a.Title!.MvpType == type));
-            }
-
-            if (year != null)
-            {
-                query = query.Where(u => u.Applications.Any(a => a.Selection.Year == year));
-            }
-
-            return await query
-                .OrderBy(u => u.Name)
-                .ThenBy(u => u.CreatedOn)
-                .ThenBy(u => u.Id)
-                .Skip(page * pageSize)
-                .Take(pageSize)
-                .Include(u => u.Applications.Where(a => a.Title != null))
-                .ThenInclude(a => a.Title)
-                .ThenInclude(t => t!.MvpType)
-                .Include(u => u.Applications)
-                .ThenInclude(a => a.Selection)
-                .Includes(includes)
-                .AsNoTracking()
-                .ToListAsync();
+            return await GetWithTitleQuery(text, mvpTypeIds, years, countryIds, page, pageSize, includes).AsNoTracking().ToListAsync();
         }
 
         public async Task MergeAsync(User old, User merged)
@@ -180,6 +158,53 @@ namespace Mvp.Selections.Data.Repositories
                 .ThenBy(u => u.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
+                .Includes(includes);
+        }
+
+        private IQueryable<User> GetWithTitleQuery(
+            string? text,
+            IEnumerable<short>? mvpTypeIds,
+            IEnumerable<short>? years,
+            IEnumerable<short>? countryIds,
+            int page,
+            short pageSize,
+            params Expression<Func<User, object>>[] includes)
+        {
+            page--;
+            IQueryable<User> query = Context.Users.Where(u => u.Applications.Any(a => a.Title != null));
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                query = query.Where(u => EF.Functions.Like(u.Name, $"%{text}%"));
+            }
+
+            if (mvpTypeIds != null)
+            {
+                query = mvpTypeIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Any(a => a.Title!.MvpType.Id == id)));
+            }
+
+            if (years != null)
+            {
+                query = years.Aggregate(query, (current, year) => current.Where(u => u.Applications.Where(a => a.Title != null).Any(a => a.Selection.Year == year)));
+            }
+
+            if (countryIds != null)
+            {
+                query = countryIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Where(a => a.Title != null).Any(a => a.Country.Id == id)));
+            }
+
+            return query
+                .OrderBy(u => u.Name)
+                .ThenBy(u => u.CreatedOn)
+                .ThenBy(u => u.Id)
+                .Skip(page * pageSize)
+                .Take(pageSize)
+                .Include(u => u.Applications.Where(a => a.Title != null))
+                .ThenInclude(a => a.Title)
+                .ThenInclude(t => t!.MvpType)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Selection)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Country)
                 .Includes(includes);
         }
     }

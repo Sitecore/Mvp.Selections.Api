@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class Title : BaseEntity<Guid>
+    public class Title(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public Title(Guid id)
-            : base(id)
-        {
-        }
-
         public string? Warning { get; set; }
 
         public MvpType MvpType { get; set; } = null!;

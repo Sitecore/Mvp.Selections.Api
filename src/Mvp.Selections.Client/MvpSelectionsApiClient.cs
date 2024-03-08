@@ -663,9 +663,9 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Title>>> GetTitlesAsync(
             string? name = null,
-            IList<short>? mvpTypeIds = null,
-            IList<short>? years = null,
-            IList<short>? countryIds = null,
+            IEnumerable<short>? mvpTypeIds = null,
+            IEnumerable<short>? years = null,
+            IEnumerable<short>? countryIds = null,
             int page = 1,
             short pageSize = 100)
         {
@@ -675,17 +675,13 @@ namespace Mvp.Selections.Client
 
         public Task<Response<IList<Title>>> GetTitlesAsync(
             string? name,
-            IList<short>? mvpTypeIds,
-            IList<short>? years,
-            IList<short>? countryIds,
+            IEnumerable<short>? mvpTypeIds,
+            IEnumerable<short>? years,
+            IEnumerable<short>? countryIds,
             ListParameters listParameters)
         {
-            string nameQueryString = string.IsNullOrWhiteSpace(name) ? string.Empty : $"&name={name}";
-            string mvpTypeIdsQueryString = (mvpTypeIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, mvpTypeId) => current + $"&mvptypeid={mvpTypeId}");
-            string yearsQueryString = (years ?? Array.Empty<short>()).Aggregate(string.Empty, (current, year) => current + $"&year={year}");
-            string countryIdsQueryString = (countryIds ?? Array.Empty<short>()).Aggregate(string.Empty, (current, countryId) => current + $"&countryid={countryId}");
-
-            return GetAsync<IList<Title>>($"/api/v1/titles{listParameters.ToQueryString(true)}{nameQueryString}{mvpTypeIdsQueryString}{yearsQueryString}{countryIdsQueryString}");
+            return GetAsync<IList<Title>>(
+                $"/api/v1/titles{listParameters.ToQueryString(true)}{name.ToQueryString("name")}{mvpTypeIds.ToQueryString("mvpTypeId")}{years.ToQueryString("year")}{countryIds.ToQueryString("countryId")}");
         }
 
         public Task<Response<Title>> AddTitleAsync(Title title)
@@ -710,6 +706,29 @@ namespace Mvp.Selections.Client
         public Task<Response<MvpProfile>> GetMvpProfileAsync(Guid userId)
         {
             return GetAsync<MvpProfile>($"/api/v1/mvpprofiles/{userId}");
+        }
+
+        public Task<Response<SearchResult<MvpProfile>>> SearchMvpProfileAsync(
+            string? text = null,
+            IEnumerable<short>? mvpTypeIds = null,
+            IEnumerable<short>? years = null,
+            IEnumerable<short>? countryIds = null,
+            int page = 1,
+            short pageSize = 100)
+        {
+            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            return SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, listParameters);
+        }
+
+        public Task<Response<SearchResult<MvpProfile>>> SearchMvpProfileAsync(
+            string? text,
+            IEnumerable<short>? mvpTypeIds,
+            IEnumerable<short>? years,
+            IEnumerable<short>? countryIds,
+            ListParameters listParameters)
+        {
+            return GetAsync<SearchResult<MvpProfile>>(
+                $"/api/v1/mvpprofiles/search{listParameters.ToQueryString(true)}{text.ToQueryString("text")}{mvpTypeIds.ToQueryString("mvpTypeId")}{years.ToQueryString("year")}{countryIds.ToQueryString("countryId")}");
         }
 
         #endregion MvpProfile

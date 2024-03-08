@@ -13,5 +13,11 @@ namespace Mvp.Selections.Api.Extensions
 
             return Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
+
+        public static string ToBase64(this string input, Encoding? encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+            return Convert.ToBase64String(encoding.GetBytes(input));
+        }
     }
 }

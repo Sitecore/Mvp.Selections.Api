@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Mvp.Selections.Api.Extensions
 {
@@ -18,6 +20,23 @@ namespace Mvp.Selections.Api.Extensions
                     list.Add(item);
                 }
             }
+        }
+
+        public static string ToCommaSeparatedStringOrNullLiteral<T>(this IList<T>? list)
+        {
+            return list != null ? string.Join(',', list) : "null";
+        }
+
+        public static bool TryAdd<T, TKey>(this IList<T> list, TKey key, T addition, Func<T, TKey> keySelector)
+        {
+            bool result = false;
+            if (list.All(t => !(keySelector(t)?.Equals(key) ?? false)))
+            {
+                list.Add(addition);
+                result = true;
+            }
+
+            return result;
         }
     }
 }

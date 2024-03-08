@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain
 {
-    public class Contribution : BaseEntity<Guid>
+    public class Contribution(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        public Contribution(Guid id)
-            : base(id)
-        {
-        }
-
         public string Name { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;

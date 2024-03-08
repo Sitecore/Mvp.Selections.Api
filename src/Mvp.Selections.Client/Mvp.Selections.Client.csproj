@@ -20,6 +20,9 @@
     <Compile Include="..\Mvp.Selections.Api\Model\Applicant.cs" Link="Models\Applicant.cs" />
     <Compile Include="..\Mvp.Selections.Api\Model\ScoreCard.cs" Link="Models\ScoreCard.cs" />
     <Compile Include="..\Mvp.Selections.Api\Model\MvpProfile.cs" Link="Models\MvpProfile.cs" />
+    <Compile Include="..\Mvp.Selections.Api\Model\SearchResult.cs" Link="Models\SearchResult.cs" />
+    <Compile Include="..\Mvp.Selections.Api\Model\SearchFacet.cs" Link="Models\SearchFacet.cs" />
+    <Compile Include="..\Mvp.Selections.Api\Model\SearchFacetOption.cs" Link="Models\SearchFacetOption.cs" />
   </ItemGroup>
 
   <ItemGroup>
