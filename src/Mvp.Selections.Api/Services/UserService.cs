@@ -4,9 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Extensions;
@@ -30,8 +30,7 @@ namespace Mvp.Selections.Api.Services
         IRoleRepository roleRepository,
         SearchIngestionClient searchIngestionClient,
         IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
-        IMemoryCache cache,
-        IOptions<CacheOptions> cacheOptions,
+        ICacheManager cache,
         AvatarUriHelper avatarUriHelper)
         : IUserService, IMvpProfileService
     {
@@ -43,8 +42,6 @@ namespace Mvp.Selections.Api.Services
         ];
 
         private readonly SearchIngestionClientOptions _searchIngestionClientOptions = searchIngestionClientOptions.Value;
-
-        private readonly CacheOptions _cacheOptions = cacheOptions.Value;
 
         public Task<User?> GetAsync(Guid id)
         {
@@ -148,6 +145,7 @@ namespace Mvp.Selections.Api.Services
                 await userRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.OK;
                 result.Result = existingUser;
+                cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
             }
 
             return result;
@@ -190,6 +188,7 @@ namespace Mvp.Selections.Api.Services
                 merged = await userRepository.GetAsync(newId, _standardIncludes);
                 result.StatusCode = HttpStatusCode.OK;
                 result.Result = merged;
+                cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
             }
             else if (merged == null)
             {
@@ -244,24 +243,28 @@ namespace Mvp.Selections.Api.Services
             short pageSize = 100)
         {
             SearchOperationResult<MvpProfile> operationResult = new ();
-            IList<User> mvpUsers = await GetMvpUsers(text, mvpTypeIds, years, countryIds);
-            List<MvpProfile> profiles = mvpUsers.Select(u => new MvpProfile
+            string cacheKey = cache.GetMvpProfileSearchResultsKey(text, mvpTypeIds, years, countryIds, page, pageSize);
+            if (!cache.TryGet(cacheKey, out List<MvpProfile>? profiles))
             {
-                Id = u.Id,
-                Name = u.Name,
-                Country = u.Country,
-                ImageUri = u.ImageUri,
-                ProfileLinks = u.Links,
-                Titles = u.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList() !
-            }).ToList();
+                IList<User> mvpUsers = await userRepository.GetWithTitleReadOnlyAsync(text, mvpTypeIds, years, countryIds, 1, short.MaxValue, u => u.Country!);
+                profiles = mvpUsers.Select(u => new MvpProfile
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Country = u.Country,
+                    ImageUri = u.ImageUri,
+                    ProfileLinks = u.Links,
+                    Titles = u.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList() !
+                }).ToList();
+                cache.Set(CacheManager.CacheCollection.MvpProfileSearchResults, cacheKey, profiles);
+            }
 
-            operationResult.Result.Facets.Add(CalculateYearFacet(profiles));
-            operationResult.Result.Facets.Add(CalculateTypeFacet(profiles));
-            operationResult.Result.Facets.Add(CalculateCountryFacet(profiles));
+            profiles ??= [];
+            operationResult.Result.Facets.AddRange(CalculateFacets(cacheKey, profiles));
 
             page--;
             operationResult.Result.Results = profiles.Skip(page * pageSize).Take(pageSize).ToList();
-            operationResult.Result.TotalResults = mvpUsers.Count;
+            operationResult.Result.TotalResults = profiles.Count;
             operationResult.Result.Page = page + 1;
             operationResult.Result.PageSize = pageSize;
             operationResult.StatusCode = HttpStatusCode.OK;
@@ -423,26 +426,23 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        private async Task<IList<User>> GetMvpUsers(
-            string? text = null,
-            IList<short>? mvpTypeIds = null,
-            IList<short>? years = null,
-            IList<short>? countryIds = null)
+        // ReSharper disable once ReturnTypeCanBeEnumerable.Local - Concrete return type is more performant.
+        private List<SearchFacet> CalculateFacets(string cacheKey, IReadOnlyCollection<MvpProfile> profiles)
         {
-            IList<User> result;
-            string cacheKey =
-                $"{_cacheOptions.MvpUsersCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}";
-            if (cache.TryGetValue(cacheKey, out IList<User>? mvpUsers) && mvpUsers != null)
+            string facetsCacheKey = $"{cacheKey}_facets";
+            if (!cache.TryGet(facetsCacheKey, out List<SearchFacet>? facets))
             {
-                result = mvpUsers;
-            }
-            else
-            {
-                result = await userRepository.GetWithTitleReadOnlyAsync(text, mvpTypeIds, years, countryIds, 1, short.MaxValue, u => u.Country!);
-                cache.Set(cacheKey, result);
+                facets ??= [];
+                facets.Add(CalculateYearFacet(profiles));
+                facets.Add(CalculateTypeFacet(profiles));
+                facets.Add(CalculateCountryFacet(profiles));
+                cache.Set(
+                    CacheManager.CacheCollection.MvpProfileSearchResults,
+                    facetsCacheKey,
+                    facets);
             }
 
-            return result;
+            return facets ?? [];
         }
     }
 }

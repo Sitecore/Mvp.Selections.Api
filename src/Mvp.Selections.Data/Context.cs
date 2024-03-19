@@ -141,6 +141,9 @@ namespace Mvp.Selections.Data
             modelBuilder.Entity<ScoreCategory>()
                 .HasOne(sc => sc.CalculationScore)
                 .WithMany();
+            modelBuilder.Entity<ScoreCategory>()
+                .Property(sc => sc.Weight)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<Comment>()
                 .Navigation(c => c.User)

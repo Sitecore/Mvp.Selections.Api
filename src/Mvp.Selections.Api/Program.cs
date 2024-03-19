@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Helpers;
@@ -49,6 +50,7 @@ namespace Mvp.Selections.Api
                         configuration.GetSection(CacheOptions.Cache).Bind(options));
 
                     // Helpers
+                    services.AddSingleton<ICacheManager, CacheManager>();
                     services.AddSingleton<AvatarUriHelper, AvatarUriHelper>();
                     services.AddScoped<ISerializer, JsonSerializer>();
                     services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();

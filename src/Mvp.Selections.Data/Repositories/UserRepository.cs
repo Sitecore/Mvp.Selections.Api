@@ -51,6 +51,10 @@ namespace Mvp.Selections.Data.Repositories
                 .Include(u => u.Applications)
                 .ThenInclude(a => a.Contributions)
                 .ThenInclude(c => c.RelatedProducts)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Selection)
+                .Include(u => u.Applications)
+                .ThenInclude(a => a.Country)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.Id == id);
         }
