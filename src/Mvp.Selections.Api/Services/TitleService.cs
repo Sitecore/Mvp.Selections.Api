@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -16,7 +17,8 @@ namespace Mvp.Selections.Api.Services
         ILogger<TitleService> logger,
         ITitleRepository titleRepository,
         IMvpTypeService mvpTypeService,
-        IApplicationService applicationService)
+        IApplicationService applicationService,
+        ICacheManager cache)
         : ITitleService
     {
         private readonly Expression<Func<Title, object>>[] _standardIncludes =
@@ -78,6 +80,7 @@ namespace Mvp.Selections.Api.Services
                 result.Result = titleRepository.Add(newTitle);
                 await titleRepository.SaveChangesAsync();
                 result.StatusCode = HttpStatusCode.Created;
+                cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
             }
 
             return result;
@@ -110,6 +113,7 @@ namespace Mvp.Selections.Api.Services
             if (await titleRepository.RemoveAsync(id))
             {
                 await titleRepository.SaveChangesAsync();
+                cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
             }
         }
 
