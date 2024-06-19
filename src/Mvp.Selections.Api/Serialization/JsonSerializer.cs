@@ -13,7 +13,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization
 {
-    public class JsonSerializer(ILogger<JsonSerializer> logger, IOptions<JsonOptions> options)
+    public class JsonSerializer(ILogger<JsonSerializer> logger, IOptionsSnapshot<JsonOptions> options)
         : ISerializer
     {
         private readonly JsonOptions _options = options.Value;
