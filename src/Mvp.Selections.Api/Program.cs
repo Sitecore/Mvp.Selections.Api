@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Functions.Worker;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ namespace Mvp.Selections.Api
 {
     public class Program
     {
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Clean main implementation.")]
         public static void Main(string[] args)
         {
             IHost host = new HostBuilder()

@@ -17,6 +17,6 @@
 
         public Application Application { get; set; } = null!;
 
-        public ICollection<Product> RelatedProducts { get; init; } = new List<Product>();
+        public ICollection<Product> RelatedProducts { get; init; } = [];
     }
 }

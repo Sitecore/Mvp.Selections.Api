@@ -5,9 +5,22 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Client.Serialization
 {
-    // NOTE [ILs] https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-6-0#support-polymorphic-deserialization
+    /// <summary>
+    /// JSON Converter for <see cref="Role"/>.
+    /// </summary>
+    /// <remarks>
+    /// https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-6-0#support-polymorphic-deserialization.
+    /// </remarks>
     public class RoleConverter : JsonConverter<Role>
     {
+        /// <summary>
+        /// Read a <see cref="Role"/> from a <see cref="Utf8JsonReader"/>.
+        /// </summary>
+        /// <param name="reader">The <see cref="Utf8JsonReader"/> to read from.</param>
+        /// <param name="typeToConvert">Target <see cref="Type"/> of <see cref="Role"/>.</param>
+        /// <param name="options">Serialization options.</param>
+        /// <returns>The deserialized <see cref="Role"/> or null.</returns>
+        /// <exception cref="JsonException">When any unexpected tokens are encountered.</exception>
         public override Role? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Utf8JsonReader discriminatorReader = reader;
@@ -44,6 +57,13 @@ namespace Mvp.Selections.Client.Serialization
             return JsonSerializer.Deserialize(ref reader, t, options) as Role;
         }
 
+        /// <summary>
+        /// Write a <see cref="Role"/> to a <see cref="Utf8JsonWriter"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="Utf8JsonWriter"/> to use.</param>
+        /// <param name="value">The <see cref="Role"/> to serialize.</param>
+        /// <param name="options">The serialization options.</param>
+        /// <exception cref="JsonException">When the type is incorrect.</exception>
         public override void Write(Utf8JsonWriter writer, Role value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();

@@ -76,7 +76,7 @@ namespace Mvp.Selections.Api.Services
                 else
                 {
                     string message = $"Country '{user.Country?.Id}' not found.";
-                    logger.LogInformation(message);
+                    logger.LogInformation("{Message}", message);
                     result.Messages.Add(message);
                 }
             }
@@ -129,7 +129,7 @@ namespace Mvp.Selections.Api.Services
                     {
                         string message = $"Could not find Country '{user.Country?.Id}'.";
                         result.Messages.Add(message);
-                        logger.LogInformation(message);
+                        logger.LogInformation("{Message}", message);
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace Mvp.Selections.Api.Services
             {
                 string message = $"Could not find User '{id}'.";
                 result.Messages.Add(message);
-                logger.LogInformation(message);
+                logger.LogInformation("{Message}", message);
             }
 
             if (result.Messages.Count == 0)
@@ -193,13 +193,13 @@ namespace Mvp.Selections.Api.Services
             else if (merged == null)
             {
                 string message = $"Could not find target User '{newId}' to merge User '{oldId}' into.";
-                logger.LogInformation(message);
+                logger.LogInformation("{Message}", message);
                 result.Messages.Add(message);
             }
             else
             {
                 string message = $"Could not find old User '{oldId}' to merge.";
-                logger.LogInformation(message);
+                logger.LogInformation("{Message}", message);
                 result.Messages.Add(message);
             }
 
@@ -224,7 +224,7 @@ namespace Mvp.Selections.Api.Services
                     ImageUri = user.ImageUri,
                     ProfileLinks = user.Links,
                     Titles = user.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList() !,
-                    PublicContributions = user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date).ToList()
+                    PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)]
                 };
 
                 result.Result = profile;
@@ -263,7 +263,7 @@ namespace Mvp.Selections.Api.Services
             operationResult.Result.Facets.AddRange(CalculateFacets(cacheKey, profiles));
 
             page--;
-            operationResult.Result.Results = profiles.Skip(page * pageSize).Take(pageSize).ToList();
+            operationResult.Result.Results.AddRange(profiles.Skip(page * pageSize).Take(pageSize));
             operationResult.Result.TotalResults = profiles.Count;
             operationResult.Result.Page = page + 1;
             operationResult.Result.PageSize = pageSize;
@@ -278,7 +278,7 @@ namespace Mvp.Selections.Api.Services
             int count = 0;
             int page = 1;
             IList<User> users;
-            Dictionary<Task, string> runningTasks = new ();
+            Dictionary<Task, string> runningTasks = [];
             do
             {
                 users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, page, 1000, u => u.Country!);
@@ -338,7 +338,7 @@ namespace Mvp.Selections.Api.Services
             int count = 0;
             int page = 1;
             IList<User> users;
-            Dictionary<Task, string> runningTasks = new ();
+            Dictionary<Task, string> runningTasks = [];
             do
             {
                 users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, page, 1000);
