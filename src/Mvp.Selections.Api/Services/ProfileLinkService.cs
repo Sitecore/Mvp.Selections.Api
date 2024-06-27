@@ -58,13 +58,19 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<ProfileLink>> RemoveAsync(User user, Guid userId, Guid id)
         {
             OperationResult<ProfileLink> result = new ();
-            if (user.Id == userId || user.HasRight(Right.Admin))
+            ProfileLink? existingProfileLink = await profileLinkRepository.GetAsync(id, pl => pl.User);
+            if ((user.Id == userId && existingProfileLink?.User.Id == userId) || user.HasRight(Right.Admin))
             {
-                if (await profileLinkRepository.RemoveAsync(id))
+                if (profileLinkRepository.RemoveAsync(existingProfileLink))
                 {
                     await profileLinkRepository.SaveChangesAsync();
                 }
 
+                result.StatusCode = HttpStatusCode.NoContent;
+            }
+            else if (existingProfileLink == null)
+            {
+                logger.LogInformation("ProfileLink '{id}' was not found.", id);
                 result.StatusCode = HttpStatusCode.NoContent;
             }
             else

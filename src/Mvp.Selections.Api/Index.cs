@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,7 @@ namespace Mvp.Selections.Api
         : Base<Index>(logger, serializer, authService)
     {
         [Function("Titles")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required as per contract.")]
         public async Task<IActionResult> Titles(
             [HttpTrigger(AuthorizationLevel.Admin, PostMethod, Route = "index/titles")]
             HttpRequest req)
@@ -31,7 +33,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                Logger.LogError(e, e.Message);
+                Logger.LogError(e, "{Message}", e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
@@ -39,6 +41,7 @@ namespace Mvp.Selections.Api
         }
 
         [Function("ClearTitles")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required as per contract.")]
         public async Task<IActionResult> ClearTitles(
             [HttpTrigger(AuthorizationLevel.Admin, DeleteMethod, Route = "index/titles")]
             HttpRequest req)
@@ -51,7 +54,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                Logger.LogError(e, e.Message);
+                Logger.LogError(e, "{Message}", e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

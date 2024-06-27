@@ -55,9 +55,12 @@ namespace Mvp.Selections.Api.Clients
                     await response.Content.ReadAsStringAsync());
             }
 
-            result.StatusCode = response.StatusCode;
+            if (result != null)
+            {
+                result.StatusCode = response.StatusCode;
+            }
 
-            return result;
+            return result ?? new Response<T>();
         }
     }
 }

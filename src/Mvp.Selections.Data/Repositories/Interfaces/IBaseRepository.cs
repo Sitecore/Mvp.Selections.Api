@@ -19,6 +19,8 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
 
         Task<bool> RemoveAsync(TId id);
 
+        bool RemoveAsync(TEntity? entity);
+
         void SaveChanges();
 
         Task SaveChangesAsync();

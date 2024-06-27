@@ -313,7 +313,7 @@ namespace Mvp.Selections.Api.Services
             OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, true);
             if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null } && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
             {
-                if (await applicationRepository.RemoveAsync(id))
+                if (applicationRepository.RemoveAsync(getResult.Result))
                 {
                     await applicationRepository.SaveChangesAsync();
                     result.StatusCode = HttpStatusCode.NoContent;
@@ -365,7 +365,7 @@ namespace Mvp.Selections.Api.Services
                         ApplicationId = a.Id,
                         Country = a.Country,
                         MvpType = a.MvpType,
-                        IsReviewed = a.Reviews.Any()
+                        IsReviewed = a.Reviews.Count != 0
                     })
                 .ToList();
         }
@@ -476,7 +476,7 @@ namespace Mvp.Selections.Api.Services
             }
             else
             {
-                result = new List<Application>(0);
+                result = [];
             }
 
             return result;
