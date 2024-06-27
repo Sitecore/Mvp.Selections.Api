@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -27,6 +28,7 @@ namespace Mvp.Selections.Api
         private readonly OktaClientOptions _oktaClientOptions = oktaClientOptions.Value;
 
         [Function("Status")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required as per contract.")]
         public async Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "status")]
             HttpRequest req)
@@ -71,7 +73,7 @@ namespace Mvp.Selections.Api
                 catch (Exception ex)
                 {
                     messages.Add(ex.Message);
-                    Logger.LogCritical(ex, ex.Message);
+                    Logger.LogCritical(ex, "{Message}", ex.Message);
                 }
 
                 if (messages.Count > 0)
@@ -90,7 +92,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                Logger.LogError(e, e.Message);
+                Logger.LogError(e, "{Message}", e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 
@@ -98,6 +100,7 @@ namespace Mvp.Selections.Api
         }
 
         [Function("Init")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required as per contract.")]
         public async Task<IActionResult> GetInit(
             [HttpTrigger(AuthorizationLevel.Admin, GetMethod, Route = "init")]
             HttpRequest req)
@@ -110,7 +113,7 @@ namespace Mvp.Selections.Api
             }
             catch (Exception e)
             {
-                Logger.LogError(e, e.Message);
+                Logger.LogError(e, "{Message}", e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

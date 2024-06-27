@@ -41,8 +41,13 @@ namespace Mvp.Selections.Data.Repositories
 
         public async Task<bool> RemoveAsync(TId id)
         {
-            bool result = false;
             T? entity = await GetAsync(id);
+            return RemoveAsync(entity);
+        }
+
+        public bool RemoveAsync(T? entity)
+        {
+            bool result = false;
             if (entity != null)
             {
                 Context.Set<T>().Remove(entity);

@@ -279,7 +279,7 @@ namespace Mvp.Selections.Api.Services
             if (existingReview != null && (user.HasRight(Right.Admin) || (existingReview.Reviewer.Id == user.Id && existingReview.Status != ReviewStatus.Finished)))
             {
                 bool removedReviewScoreCategories = await reviewRepository.RemoveReviewScoreCategoriesAsync(id);
-                bool removedReview = await reviewRepository.RemoveAsync(id);
+                bool removedReview = reviewRepository.RemoveAsync(existingReview);
                 if (removedReviewScoreCategories || removedReview)
                 {
                     await reviewRepository.SaveChangesAsync();

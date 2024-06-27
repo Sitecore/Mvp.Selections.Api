@@ -10,29 +10,27 @@ using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
+// ReSharper disable StringLiteralTypo - Routes
 namespace Mvp.Selections.Api
 {
-    public class ProfileLinks : Base<ProfileLinks>
+    public class ProfileLinks(
+        ILogger<ProfileLinks> logger,
+        ISerializer serializer,
+        IAuthService authService,
+        IProfileLinkService profileLinkService)
+        : Base<ProfileLinks>(logger, serializer, authService)
     {
-        private readonly IProfileLinkService _profileLinkService;
-
-        public ProfileLinks(ILogger<ProfileLinks> logger, ISerializer serializer, IAuthService authService, IProfileLinkService profileLinkService)
-            : base(logger, serializer, authService)
-        {
-            _profileLinkService = profileLinkService;
-        }
-
         [Function("AddProfileLink")]
         public Task<IActionResult> Add(
             [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/users/{userId:Guid}/profilelinks")]
             HttpRequest req,
             Guid userId)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply], async authResult =>
             {
                 ProfileLink? input = await Serializer.DeserializeAsync<ProfileLink>(req.Body);
                 OperationResult<ProfileLink> addResult = input != null
-                    ? await _profileLinkService.AddAsync(authResult.User!, userId, input)
+                    ? await profileLinkService.AddAsync(authResult.User!, userId, input)
                     : new OperationResult<ProfileLink>();
                 return ContentResult(addResult, ProfileLinksContractResolver.Instance);
             });
@@ -45,9 +43,9 @@ namespace Mvp.Selections.Api
             Guid userId,
             Guid id)
         {
-            return ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin, Right.Apply }, async authResult =>
+            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply], async authResult =>
             {
-                OperationResult<ProfileLink> removeResult = await _profileLinkService.RemoveAsync(authResult.User!, userId, id);
+                OperationResult<ProfileLink> removeResult = await profileLinkService.RemoveAsync(authResult.User!, userId, id);
                 return ContentResult(removeResult);
             });
         }

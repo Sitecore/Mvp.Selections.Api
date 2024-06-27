@@ -353,7 +353,7 @@ namespace Mvp.Selections.Api.Services
             }
             else
             {
-                result = new List<Contribution>(0);
+                result = [];
             }
 
             return result;
