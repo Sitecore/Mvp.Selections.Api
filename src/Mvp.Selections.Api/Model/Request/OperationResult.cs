@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Model.Request
     {
         public T? Result { get; set; }
 
-        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
+        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.NotImplemented;
 
         public IList<string> Messages { get; } = [];
     }

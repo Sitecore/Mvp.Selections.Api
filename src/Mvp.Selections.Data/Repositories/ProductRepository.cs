@@ -4,11 +4,8 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ProductRepository : BaseRepository<Product, int>, IProductRepository
+    public class ProductRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Product, int>(context, currentUserNameProvider), IProductRepository
     {
-        public ProductRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
     }
 }

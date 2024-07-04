@@ -51,7 +51,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply, Right.Review], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
                 string? userName = req.Query.GetFirstValueOrDefault<string>(ApplicantNameQueryStringKey);
                 Guid? selectionId = req.Query.GetFirstValueOrDefault<Guid?>(SelectionIdQueryStringKey);
@@ -70,7 +70,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply, Right.Review], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
                 string? userName = req.Query.GetFirstValueOrDefault<string>(ApplicantNameQueryStringKey);
                 short? countryId = req.Query.GetFirstValueOrDefault<short?>(CountryIdQueryStringKey);
@@ -89,7 +89,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Review], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
                 string? userName = req.Query.GetFirstValueOrDefault<string>(ApplicantNameQueryStringKey);
                 ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>(StatusQueryStringKey);
@@ -106,7 +106,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply, Right.Review], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 ApplicationStatus? status = req.Query.GetFirstValueOrDefault<ApplicationStatus?>("status");
                 IList<Application> applications = await applicationService.GetAllAsync(authResult.User!, userId, null, null, null, status, lp.Page, lp.PageSize);
                 return ContentResult(applications, ApplicationsContractResolver.Instance);

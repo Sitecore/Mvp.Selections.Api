@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +41,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Review], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 OperationResult<IList<Review>> getResult = await reviewService.GetAllAsync(authResult.User!, applicationId, lp.Page, lp.PageSize);
                 return ContentResult(getResult, ReviewsContractResolver.Instance);
             });

@@ -55,8 +55,8 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<User>> AddAsync(User user)
         {
-            OperationResult<User> result = new ();
-            User newUser = new (Guid.Empty)
+            OperationResult<User> result = new();
+            User newUser = new(Guid.Empty)
             {
                 Name = user.Name,
                 Email = user.Email,
@@ -93,7 +93,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<User>> UpdateAsync(Guid id, User user, IList<string> propertyKeys)
         {
-            OperationResult<User> result = new ();
+            OperationResult<User> result = new();
             User? existingUser = await GetAsync(id);
             if (existingUser != null)
             {
@@ -153,7 +153,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId)
         {
-            OperationResult<IList<User>> result = new ();
+            OperationResult<IList<User>> result = new();
             Application? application = await applicationRepository.GetAsync(applicationId, a => a.Country.Region!, a => a.MvpType, a => a.Selection);
             if (application != null)
             {
@@ -178,7 +178,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId)
         {
-            OperationResult<User> result = new ();
+            OperationResult<User> result = new();
             User? old = await userRepository.GetAsync(oldId, u => u.Roles);
             User? merged = await userRepository.GetAsync(newId, u => u.Consents, u => u.Roles);
             if (old != null && merged != null)
@@ -208,7 +208,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id)
         {
-            OperationResult<MvpProfile> result = new ();
+            OperationResult<MvpProfile> result = new();
             User? user = await userRepository.GetForMvpProfileReadOnlyAsync(id);
             if (user?.Applications.All(a => a.Title == null) ?? true)
             {
@@ -216,14 +216,14 @@ namespace Mvp.Selections.Api.Services
             }
             else
             {
-                MvpProfile profile = new ()
+                MvpProfile profile = new()
                 {
                     Id = user.Id,
                     Name = user.Name,
                     Country = user.Country,
                     ImageUri = user.ImageUri,
                     ProfileLinks = user.Links,
-                    Titles = user.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList() !,
+                    Titles = user.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList()!,
                     PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)]
                 };
 
@@ -242,7 +242,7 @@ namespace Mvp.Selections.Api.Services
             int page = 1,
             short pageSize = 100)
         {
-            SearchOperationResult<MvpProfile> operationResult = new ();
+            SearchOperationResult<MvpProfile> operationResult = new();
             string cacheKey = cache.GetMvpProfileSearchResultsKey(text, mvpTypeIds, years, countryIds, page, pageSize);
             if (!cache.TryGet(cacheKey, out List<MvpProfile>? profiles))
             {
@@ -254,7 +254,7 @@ namespace Mvp.Selections.Api.Services
                     Country = u.Country,
                     ImageUri = u.ImageUri,
                     ProfileLinks = u.Links,
-                    Titles = u.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList() !
+                    Titles = u.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList()!
                 }).ToList();
                 cache.Set(CacheManager.CacheCollection.MvpProfileSearchResults, cacheKey, profiles);
             }
@@ -274,7 +274,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<object>> IndexAsync()
         {
-            OperationResult<object> result = new ();
+            OperationResult<object> result = new();
             int count = 0;
             int page = 1;
             IList<User> users;
@@ -286,7 +286,7 @@ namespace Mvp.Selections.Api.Services
                 foreach (User user in users)
                 {
                     List<Application> awardedApplications = user.Applications.Where(a => a.Title != null).ToList();
-                    Document document = new ()
+                    Document document = new()
                     {
                         Id = user.Id.ToString(),
                         Fields = new
@@ -334,7 +334,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<object>> ClearIndexAsync()
         {
-            OperationResult<object> result = new ();
+            OperationResult<object> result = new();
             int count = 0;
             int page = 1;
             IList<User> users;
@@ -378,7 +378,7 @@ namespace Mvp.Selections.Api.Services
 
         private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)
         {
-            SearchFacet result = new () { Identifier = "year" };
+            SearchFacet result = new() { Identifier = "year" };
             foreach (Title title in profiles.SelectMany(p => p.Titles))
             {
                 string key = title.Application.Selection.Year.ToString();
@@ -393,7 +393,7 @@ namespace Mvp.Selections.Api.Services
 
         private static SearchFacet CalculateTypeFacet(IReadOnlyCollection<MvpProfile> profiles)
         {
-            SearchFacet result = new () { Identifier = "type" };
+            SearchFacet result = new() { Identifier = "type" };
             List<MvpType> distinctTypes = profiles
                 .SelectMany(p => p.Titles.Select(t => t.MvpType))
                 .Distinct(new IdEqualityComparer<MvpType, short>())
@@ -414,7 +414,7 @@ namespace Mvp.Selections.Api.Services
 
         private static SearchFacet CalculateCountryFacet(IEnumerable<MvpProfile> profiles)
         {
-            SearchFacet result = new () { Identifier = "country" };
+            SearchFacet result = new() { Identifier = "country" };
             foreach (Country? country in profiles.Select(p => p.Country))
             {
                 if (country != null && !result.Options.TryAdd(country.Id.ToString(), new SearchFacetOption { Identifier = country.Id.ToString(), Display = country.Name, Count = 1 }, o => o.Identifier))

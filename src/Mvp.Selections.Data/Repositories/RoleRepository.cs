@@ -7,13 +7,9 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class RoleRepository : BaseRepository<Role, Guid>, IRoleRepository
+    public class RoleRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Role, Guid>(context, currentUserNameProvider), IRoleRepository
     {
-        public RoleRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100, params Expression<Func<T, object>>[] includes)
             where T : Role
         {

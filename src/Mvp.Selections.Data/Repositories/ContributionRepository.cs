@@ -7,13 +7,9 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ContributionRepository : BaseRepository<Contribution, Guid>, IContributionRepository
+    public class ContributionRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Contribution, Guid>(context, currentUserNameProvider), IContributionRepository
     {
-        public ContributionRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<Contribution>> GetAllAsync(Guid? userId = null, int? selectionYear = null, bool? isPublic = null, int page = 1, short pageSize = 100, params Expression<Func<Contribution, object>>[] includes)
         {
             return await GetAllQuery(userId, selectionYear, isPublic, page, pageSize, includes).ToListAsync();

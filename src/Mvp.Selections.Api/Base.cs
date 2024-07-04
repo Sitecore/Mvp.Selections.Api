@@ -48,13 +48,14 @@ namespace Mvp.Selections.Api
                         ? await anonymousOperation(authResult)
                         : new ContentResult
                         {
-                            Content = authResult.Message, ContentType = PlainTextContentType,
+                            Content = authResult.Message,
+                            ContentType = PlainTextContentType,
                             StatusCode = (int)authResult.StatusCode
                         };
             }
             catch (Exception e)
             {
-                Logger.LogError(e, e.Message);
+                Logger.LogError(e, "{Message}", e.Message);
                 result = new ContentResult { Content = e.Message, ContentType = PlainTextContentType, StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

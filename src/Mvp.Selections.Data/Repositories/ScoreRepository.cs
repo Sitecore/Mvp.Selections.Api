@@ -4,11 +4,8 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ScoreRepository : BaseRepository<Score, Guid>, IScoreRepository
+    public class ScoreRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Score, Guid>(context, currentUserNameProvider), IScoreRepository
     {
-        public ScoreRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
     }
 }

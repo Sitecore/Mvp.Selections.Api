@@ -41,7 +41,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<SystemRole> systemRoles = await roleService.GetAllAsync<SystemRole>(lp.Page, lp.PageSize);
                 return ContentResult(systemRoles, RolesContractResolver.Instance);
             });
@@ -123,7 +123,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 Guid? applicationId = req.Query.GetFirstValueOrDefault<Guid?>(ApplicationIdQueryStringKey);
                 short? countryId = req.Query.GetFirstValueOrDefault<short?>(CountryIdQueryStringKey);
                 short? mvpTypeId = req.Query.GetFirstValueOrDefault<short?>(MvpTypeIdQueryStringKey);

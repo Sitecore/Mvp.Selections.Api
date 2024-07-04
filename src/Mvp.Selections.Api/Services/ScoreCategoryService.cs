@@ -33,7 +33,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<IList<ScoreCategory>>> GetAllAsync(Guid selectionId, short mvpTypeId)
         {
-            OperationResult<IList<ScoreCategory>> result = new ();
+            OperationResult<IList<ScoreCategory>> result = new();
             Selection? selection = await selectionService.GetAsync(selectionId);
             if (selection != null)
             {
@@ -62,14 +62,14 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<ScoreCategory>> AddAsync(Guid selectionId, short mvpTypeId, ScoreCategory scoreCategory)
         {
-            OperationResult<ScoreCategory> result = new ();
+            OperationResult<ScoreCategory> result = new();
             Selection? selection = await selectionService.GetAsync(selectionId);
             if (selection != null)
             {
                 MvpType? mvpType = await mvpTypeService.GetAsync(mvpTypeId);
                 if (mvpType != null)
                 {
-                    ScoreCategory newScoreCategory = new (Guid.Empty)
+                    ScoreCategory newScoreCategory = new(Guid.Empty)
                     {
                         Selection = selection,
                         MvpType = mvpType,
@@ -157,7 +157,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<ScoreCategory>> UpdateAsync(Guid id, ScoreCategory scoreCategory)
         {
-            OperationResult<ScoreCategory> result = new ();
+            OperationResult<ScoreCategory> result = new();
             ScoreCategory? existingCategory = await GetAsync(id);
             if (existingCategory != null)
             {

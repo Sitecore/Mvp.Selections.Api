@@ -1,25 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="1.2.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.4" />
-    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="1.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
@@ -36,5 +29,23 @@
   <ItemGroup>
     <ProjectReference Include="..\Mvp.Selections.Data\Mvp.Selections.Data.csproj" />
     <ProjectReference Include="..\Mvp.Selections.Domain\Mvp.Selections.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mvp.Selections.Api.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

@@ -31,7 +31,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Contribution>> AddAsync(User user, Guid applicationId, Contribution contribution)
         {
-            OperationResult<Contribution> result = new ();
+            OperationResult<Contribution> result = new();
             OperationResult<Application> applicationResult = await applicationService.GetAsync(user, applicationId, false);
             if (
                 applicationResult is { StatusCode: HttpStatusCode.OK, Result: not null }
@@ -42,7 +42,7 @@ namespace Mvp.Selections.Api.Services
                     || user.HasRight(Right.Admin)))
             {
                 Application application = applicationResult.Result;
-                Contribution newContribution = new (Guid.Empty)
+                Contribution newContribution = new(Guid.Empty)
                 {
                     Type = contribution.Type,
                     Date = contribution.Date,
@@ -111,7 +111,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Contribution>> RemoveAsync(User user, Guid applicationId, Guid id)
         {
-            OperationResult<Contribution> result = new ();
+            OperationResult<Contribution> result = new();
             OperationResult<Application> applicationResult = await applicationService.GetAsync(user, applicationId);
             if (applicationResult.StatusCode == HttpStatusCode.OK && (applicationResult.Result?.Status == ApplicationStatus.Open || user.HasRight(Right.Admin)))
             {
@@ -141,7 +141,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Contribution>> UpdateAsync(User user, Guid id, Contribution contribution, IList<string> propertyKeys)
         {
-            OperationResult<Contribution> result = new ();
+            OperationResult<Contribution> result = new();
             Contribution? existingContribution = await contributionRepository.GetAsync(id, c => c.Application.Selection, c => c.Application.Applicant);
             if (existingContribution != null
                 && (existingContribution.Application.Selection.AreApplicationsOpen() || user.HasRight(Right.Admin))
@@ -236,7 +236,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Contribution>> GetAsync(User user, Guid id)
         {
-            OperationResult<Contribution> result = new ();
+            OperationResult<Contribution> result = new();
             Contribution? contribution = await contributionRepository.GetReadOnlyAsync(id, _standardIncludes);
             if (CanSeeContribution(user, contribution))
             {
@@ -254,7 +254,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Contribution>> GetPublicAsync(Guid id)
         {
-            OperationResult<Contribution> result = new ();
+            OperationResult<Contribution> result = new();
             Contribution? contribution = await contributionRepository.GetReadOnlyAsync(id, _standardIncludes);
             if (contribution is { IsPublic: true })
             {
@@ -276,7 +276,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Contribution>> TogglePublicAsync(User user, Guid id)
         {
-            OperationResult<Contribution> result = new ();
+            OperationResult<Contribution> result = new();
             Contribution? existingContribution = await contributionRepository.GetAsync(id, _standardIncludes);
             if (existingContribution != null && CanSeeContribution(user, existingContribution, true))
             {

@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Review>> GetAsync(User user, Guid id)
         {
-            OperationResult<Review> result = new ();
+            OperationResult<Review> result = new();
             Review? review = await reviewRepository.GetAsync(id, _standardIncludes);
             if (user.HasRight(Right.Admin))
             {
@@ -59,7 +59,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<IList<Review>>> GetAllAsync(User user, Guid applicationId, int page, short pageSize)
         {
-            OperationResult<IList<Review>> result = new ();
+            OperationResult<IList<Review>> result = new();
             if (user.HasRight(Right.Admin))
             {
                 result.Result = await reviewRepository.GetAllAsync(applicationId, page, pageSize, _standardIncludes);
@@ -104,7 +104,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Review>> AddAsync(User user, Guid applicationId, Review review)
         {
-            OperationResult<Review> result = new ();
+            OperationResult<Review> result = new();
             OperationResult<Application> getApplicationResult = await applicationService.GetAsync(user, applicationId, false);
             if (
                 getApplicationResult is { StatusCode: HttpStatusCode.OK, Result: not null }
@@ -115,7 +115,7 @@ namespace Mvp.Selections.Api.Services
                 OperationResult<IList<Review>> getAllReviewsResult = await GetAllAsync(user, applicationId, 1, short.MaxValue);
                 if (getAllReviewsResult.StatusCode == HttpStatusCode.OK && (getAllReviewsResult.Result?.All(r => r.Reviewer.Id != user.Id) ?? false))
                 {
-                    Review newReview = new (Guid.Empty)
+                    Review newReview = new(Guid.Empty)
                     {
                         Application = getApplicationResult.Result,
                         Reviewer = user,
@@ -213,7 +213,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Review>> UpdateAsync(User user, Guid id, Review review)
         {
-            OperationResult<Review> result = new ();
+            OperationResult<Review> result = new();
             Review? existingReview = await reviewRepository.GetAsync(id, _standardIncludes);
             if (existingReview != null && (user.HasRight(Right.Admin) || (existingReview.Reviewer.Id == user.Id && existingReview.Status != ReviewStatus.Finished)))
             {
@@ -274,7 +274,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Review>> RemoveAsync(User user, Guid id)
         {
-            OperationResult<Review> result = new ();
+            OperationResult<Review> result = new();
             Review? existingReview = await reviewRepository.GetAsync(id, _standardIncludes);
             if (existingReview != null && (user.HasRight(Right.Admin) || (existingReview.Reviewer.Id == user.Id && existingReview.Status != ReviewStatus.Finished)))
             {

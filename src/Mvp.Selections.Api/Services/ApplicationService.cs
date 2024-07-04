@@ -45,8 +45,8 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Application>> AddAsync(User user, Guid selectionId, Application application)
         {
-            OperationResult<Application> result = new ();
-            Application newApplication = new (Guid.Empty)
+            OperationResult<Application> result = new();
+            Application newApplication = new(Guid.Empty)
             {
                 Eligibility = application.Eligibility,
                 Mentor = application.Mentor,
@@ -178,7 +178,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Application>> UpdateAsync(User user, Guid id, Application application)
         {
-            OperationResult<Application> result = new ();
+            OperationResult<Application> result = new();
             OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, false);
             Application? updatedApplication = null;
             if (
@@ -309,7 +309,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Application>> RemoveAsync(User user, Guid id)
         {
-            OperationResult<Application> result = new ();
+            OperationResult<Application> result = new();
             OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, true);
             if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null } && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
             {
@@ -434,7 +434,7 @@ namespace Mvp.Selections.Api.Services
 
         private async Task<OperationResult<Application>> GetInternalAsync(User user, Guid id, Expression<Func<Application, object>>[]? includes, bool isReadOnly)
         {
-            OperationResult<Application> result = new ();
+            OperationResult<Application> result = new();
             Application? application = isReadOnly ?
                 await applicationRepository.GetReadOnlyAsync(id, includes ?? _standardIncludes) :
                 await applicationRepository.GetAsync(id, includes ?? _standardIncludes);

@@ -1,14 +1,10 @@
 ﻿namespace Mvp.Selections.Domain.Roles
 {
-    public abstract class Role : BaseEntity<Guid>
+    public abstract class Role(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        protected Role(Guid id)
-            : base(id)
-        {
-        }
-
         public string Name { get; set; } = string.Empty;
 
-        public ICollection<User> Users { get; init; } = new List<User>();
+        public ICollection<User> Users { get; init; } = [];
     }
 }
