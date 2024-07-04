@@ -1,4 +1,6 @@
-﻿namespace Mvp.Selections.Domain
+﻿using System.Net;
+
+namespace Mvp.Selections.Domain
 {
     public class ProfileLink(Guid id)
         : BaseEntity<Guid>(id)
@@ -15,7 +17,7 @@
 
         public override string ToString()
         {
-            return $"{{{nameof(Name)}={Name},{nameof(Uri)}={Uri},{nameof(ImageUri)}={ImageUri},{nameof(Type)}={Type}}}";
+            return $"{{{nameof(Name)}={WebUtility.HtmlEncode(Name.ReplaceLineEndings(" "))},{nameof(Uri)}={Uri},{nameof(ImageUri)}={ImageUri},{nameof(Type)}={Type}}}";
         }
     }
 }
