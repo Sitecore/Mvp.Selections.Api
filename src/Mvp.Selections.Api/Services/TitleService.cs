@@ -36,8 +36,8 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Title>> AddAsync(User user, Title title)
         {
-            OperationResult<Title> result = new ();
-            Title newTitle = new (Guid.Empty)
+            OperationResult<Title> result = new();
+            Title newTitle = new(Guid.Empty)
             {
                 Warning = title.Warning
             };
@@ -88,7 +88,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Title>> UpdateAsync(Guid id, Title title)
         {
-            OperationResult<Title> result = new ();
+            OperationResult<Title> result = new();
             Title? existingTitle = await titleRepository.GetAsync(id, _standardIncludes);
             if (existingTitle != null)
             {

@@ -7,13 +7,9 @@ using Mvp.Selections.Domain.Comments;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class CommentRepository : BaseRepository<Comment, Guid>, ICommentRepository
+    public class CommentRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Comment, Guid>(context, currentUserNameProvider), ICommentRepository
     {
-        public CommentRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<T>> GetAllAsync<T>(int page = 1, short pageSize = 100)
             where T : Comment
         {

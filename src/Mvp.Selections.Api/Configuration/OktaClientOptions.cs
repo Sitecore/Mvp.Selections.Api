@@ -12,7 +12,7 @@ namespace Mvp.Selections.Api.Configuration
 
         public string ClientSecret { get; set; } = string.Empty;
 
-        public Uri ValidationEndpoint { get; set; } = new (InvalidEndpoint);
+        public Uri ValidationEndpoint { get; set; } = new(InvalidEndpoint);
 
         public string ValidIssuer { get; set; } = string.Empty;
 

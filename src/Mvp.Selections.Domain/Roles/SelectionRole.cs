@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain.Roles
 {
-    public class SelectionRole : Role
+    public class SelectionRole(Guid id)
+        : Role(id)
     {
-        public SelectionRole(Guid id)
-            : base(id)
-        {
-        }
-
         public Guid? ApplicationId { get; set; }
 
         public Application? Application { get; set; }

@@ -13,6 +13,6 @@
         /// <summary>
         /// Gets or sets the <see cref="Uri"/> base address to use for the <see cref="HttpClient"/> used to connect to the API.
         /// </summary>
-        public Uri BaseAddress { get; set; } = new ("http://localhost");
+        public Uri BaseAddress { get; set; } = new("http://localhost");
     }
 }

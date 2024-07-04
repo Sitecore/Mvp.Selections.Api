@@ -19,7 +19,7 @@ namespace Mvp.Selections.Api.Services
     {
         public async Task<OperationResult<IList<ScoreCard>>> GetScoreCardsAsync(User user, Guid selectionId, short mvpTypeId)
         {
-            OperationResult<IList<ScoreCard>> result = new ()
+            OperationResult<IList<ScoreCard>> result = new()
             {
                 Result = new List<ScoreCard>()
             };
@@ -72,7 +72,7 @@ namespace Mvp.Selections.Api.Services
 
         private async Task CalculateScoreCardsAsync(OperationResult<IList<ScoreCard>> result, User user, Applicant applicant, IList<ScoreCategory> scoreCategories, decimal totalCategoryScoreValue)
         {
-            Dictionary<Guid, int> scores = new ();
+            Dictionary<Guid, int> scores = new();
             OperationResult<IList<Review>> reviewsResult = await reviewService.GetAllAsync(user, applicant.ApplicationId, 1, short.MaxValue);
             if (reviewsResult is { StatusCode: HttpStatusCode.OK, Result.Count: > 0 })
             {
@@ -83,7 +83,7 @@ namespace Mvp.Selections.Api.Services
 
                 KeyValuePair<Guid, int> max = scores.MaxBy(s => s.Value);
                 KeyValuePair<Guid, int> min = scores.MinBy(s => s.Value);
-                ScoreCard card = new ()
+                ScoreCard card = new()
                 {
                     Applicant = applicant,
                     Average = (int)Math.Round(scores.Values.Average(), 0),
@@ -99,7 +99,7 @@ namespace Mvp.Selections.Api.Services
             }
             else if (reviewsResult.StatusCode == HttpStatusCode.OK)
             {
-                ScoreCard card = new ()
+                ScoreCard card = new()
                 {
                     Applicant = applicant,
                     Average = 0,

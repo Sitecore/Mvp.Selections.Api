@@ -19,7 +19,7 @@ namespace Mvp.Selections.Api.Clients
 
         public Task<Response<Profile>> GetProfile(string username)
         {
-            HttpRequestMessage req = new (
+            HttpRequestMessage req = new(
                 HttpMethod.Get,
                 $"2/users/by/username/{username}?user.fields=id,name,username,description,profile_image_url,created_at");
 
@@ -28,7 +28,7 @@ namespace Mvp.Selections.Api.Clients
 
         private async Task<Response<T>> SendAsync<T>(HttpRequestMessage request)
         {
-            Response<T> result = new ();
+            Response<T> result = new();
             await AddAuthorization(request);
             HttpResponseMessage response = await client.SendAsync(request);
 
@@ -71,7 +71,7 @@ namespace Mvp.Selections.Api.Clients
         {
             if (!cache.TryGetValue(_options.BearerCacheKey, out string? result))
             {
-                HttpRequestMessage req = new (HttpMethod.Post, _options.TokenEndpoint);
+                HttpRequestMessage req = new(HttpMethod.Post, _options.TokenEndpoint);
                 req.Headers.Authorization =
                     new AuthenticationHeaderValue("Basic", $"{_options.ApiKey}:{_options.ApiSecret}".ToBase64());
                 req.Content =

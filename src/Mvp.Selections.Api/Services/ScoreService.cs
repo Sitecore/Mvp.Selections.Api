@@ -25,7 +25,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Score> AddAsync(Score score)
         {
-            Score newScore = new (Guid.Empty)
+            Score newScore = new(Guid.Empty)
             {
                 Name = score.Name,
                 Value = score.Value,
@@ -38,7 +38,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Score>> UpdateAsync(Guid id, Score score)
         {
-            OperationResult<Score> result = new ();
+            OperationResult<Score> result = new();
             Score? existingScore = await scoreRepository.GetAsync(id);
             if (existingScore != null)
             {

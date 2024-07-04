@@ -30,7 +30,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Review], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<Applicant> applicants = await applicantService.GetApplicantsAsync(authResult.User!, selectionId, lp.Page, lp.PageSize);
                 return ContentResult(applicants, ApplicantsContractResolver.Instance);
             });

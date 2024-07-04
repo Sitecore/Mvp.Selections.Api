@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain.Comments
 {
-    public class ApplicationComment : Comment
+    public class ApplicationComment(Guid id)
+        : Comment(id)
     {
-        public ApplicationComment(Guid id)
-            : base(id)
-        {
-        }
-
         public Application Application { get; set; } = null!;
     }
 }

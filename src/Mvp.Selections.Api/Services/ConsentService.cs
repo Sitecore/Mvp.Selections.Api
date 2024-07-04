@@ -33,7 +33,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Consent>> GiveAsync(User user, Guid userId, Consent consent)
         {
-            OperationResult<Consent> result = new ();
+            OperationResult<Consent> result = new();
             if (user.HasRight(Right.Admin) || user.Id == userId)
             {
                 Consent? existingConsent = await consentRepository.GetForUserAsync(userId, consent.Type);
@@ -46,7 +46,7 @@ namespace Mvp.Selections.Api.Services
                 }
                 else
                 {
-                    Consent newConsent = new (Guid.Empty)
+                    Consent newConsent = new(Guid.Empty)
                     {
                         Type = consent.Type
                     };

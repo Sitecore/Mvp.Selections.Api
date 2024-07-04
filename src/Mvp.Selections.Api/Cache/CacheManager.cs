@@ -12,13 +12,13 @@ namespace Mvp.Selections.Api.Cache
         : ICacheManager
     {
         private readonly Dictionary<CacheCollection, CacheInvalidationToken> _tokens =
-            new ()
+            new()
             {
                 { CacheCollection.MvpProfileSearchResults, new CacheInvalidationToken() }
             };
 
         private readonly Dictionary<CacheCollection, TimeSpan> _expirations =
-            new ()
+            new()
             {
                 { CacheCollection.MvpProfileSearchResults, TimeSpan.FromSeconds(options.Value.MvpProfilesCacheDurationInSeconds) }
             };
@@ -66,7 +66,7 @@ namespace Mvp.Selections.Api.Cache
         private class CacheInvalidationToken
             : IChangeToken
         {
-            private CancellationTokenSource _cts = new ();
+            private CancellationTokenSource _cts = new();
 
             public bool HasChanged => _cts.Token.IsCancellationRequested;
 

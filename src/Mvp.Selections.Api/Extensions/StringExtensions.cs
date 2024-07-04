@@ -19,5 +19,10 @@ namespace Mvp.Selections.Api.Extensions
             encoding ??= Encoding.UTF8;
             return Convert.ToBase64String(encoding.GetBytes(input));
         }
+
+        public static string Format(this string input, params object?[] args)
+        {
+            return string.Format(input, args);
+        }
     }
 }

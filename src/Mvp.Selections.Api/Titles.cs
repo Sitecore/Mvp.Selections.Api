@@ -91,7 +91,7 @@ namespace Mvp.Selections.Api
 
         private async Task<IActionResult> GetAllInternal(HttpRequest req, User? user)
         {
-            ListParameters lp = new (req);
+            ListParameters lp = new(req);
             string? name = req.Query.GetFirstValueOrDefault<string>("name");
             IList<short> mvpTypeIds = req.Query.GetValuesOrEmpty<short>("mvpTypeId");
             IList<short> years = req.Query.GetValuesOrEmpty<short>("year");

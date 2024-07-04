@@ -23,7 +23,7 @@ namespace Mvp.Selections.Api.Clients
             }
             else
             {
-                FormUrlEncodedContent reqContent = new (
+                FormUrlEncodedContent reqContent = new(
                 [
                     new KeyValuePair<string, string>("token", token),
                     new KeyValuePair<string, string>("token_type_hint", "id_token"),

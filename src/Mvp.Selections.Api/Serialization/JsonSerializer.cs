@@ -22,15 +22,15 @@ namespace Mvp.Selections.Api.Serialization
 
         public async Task<T?> DeserializeAsync<T>(Stream stream)
         {
-            using StreamReader reader = new (stream);
+            using StreamReader reader = new(stream);
             string streamContent = await reader.ReadToEndAsync();
             return JsonConvert.DeserializeObject<T>(streamContent, _options.JsonSerializerSettings);
         }
 
         public async Task<DeserializationResult<T>> DeserializeAsync<T>(Stream stream, bool extractPropertyKeys)
         {
-            DeserializationResult<T> result = new ();
-            using StreamReader reader = new (stream);
+            DeserializationResult<T> result = new();
+            using StreamReader reader = new(stream);
             string streamContent = await reader.ReadToEndAsync();
             if (extractPropertyKeys)
             {

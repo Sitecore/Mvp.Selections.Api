@@ -7,7 +7,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
     public class MvpTypesContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly MvpTypesContractResolver Instance = new ();
+        public static readonly MvpTypesContractResolver Instance = new();
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {

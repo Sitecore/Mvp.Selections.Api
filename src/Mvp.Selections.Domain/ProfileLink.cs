@@ -12,5 +12,10 @@
         public ProfileLinkType Type { get; set; }
 
         public User User { get; set; } = null!;
+
+        public override string ToString()
+        {
+            return $"{{{nameof(Name)}={Name},{nameof(Uri)}={Uri},{nameof(ImageUri)}={ImageUri},{nameof(Type)}={Type}}}";
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Product> AddAsync(Product product)
         {
-            Product result = new (0)
+            Product result = new(0)
             {
                 Name = product.Name
             };

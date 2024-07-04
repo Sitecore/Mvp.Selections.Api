@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain.Comments
 {
-    public abstract class Comment : BaseEntity<Guid>
+    public abstract class Comment(Guid id)
+        : BaseEntity<Guid>(id)
     {
-        protected Comment(Guid id)
-            : base(id)
-        {
-        }
-
         public string Value { get; set; } = string.Empty;
 
         public User User { get; set; } = null!;

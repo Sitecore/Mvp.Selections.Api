@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Mvp.Selections.Data.Extensions;
 using Mvp.Selections.Data.Interfaces;
@@ -8,13 +7,9 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ReviewRepository : BaseRepository<Review, Guid>, IReviewRepository
+    public class ReviewRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Review, Guid>(context, currentUserNameProvider), IReviewRepository
     {
-        public ReviewRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<Review>> GetAllAsync(Guid applicationId, int page = 1, short pageSize = 100, params Expression<Func<Review, object>>[] includes)
         {
             page--;

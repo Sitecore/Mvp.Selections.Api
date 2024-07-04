@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
     public class MvpProfileContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly MvpProfileContractResolver Instance = new ();
+        public static readonly MvpProfileContractResolver Instance = new();
 
         private readonly string[] _userExcludedMembers = [nameof(User.Consents), nameof(User.Applications), nameof(User.Mentors), nameof(User.Reviews), nameof(User.Email), nameof(User.Roles), nameof(User.Rights)];
 
