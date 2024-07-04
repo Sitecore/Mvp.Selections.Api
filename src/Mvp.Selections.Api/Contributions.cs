@@ -56,14 +56,14 @@ namespace Mvp.Selections.Api
                 [Right.Any],
                 async authResult =>
                 {
-                    ListParameters lp = new (req);
+                    ListParameters lp = new(req);
                     int? year = req.Query.GetFirstValueOrDefault<int?>(SelectionYearQueryStringKey);
                     IList<Contribution> contributions = await contributionService.GetAllAsync(authResult.User, userId, year, null, lp.Page, lp.PageSize);
                     return ContentResult(contributions, ContributionsContractResolver.Instance);
                 },
                 async _ =>
                 {
-                    ListParameters lp = new (req);
+                    ListParameters lp = new(req);
                     int? year = req.Query.GetFirstValueOrDefault<int?>(SelectionYearQueryStringKey);
                     IList<Contribution> contributions = await contributionService.GetAllAsync(null, userId, year, true, lp.Page, lp.PageSize);
                     return ContentResult(contributions, ContributionsContractResolver.Instance);

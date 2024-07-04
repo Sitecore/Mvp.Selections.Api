@@ -14,8 +14,8 @@ namespace Mvp.Selections.Api.Configuration
 
         public TimeSpan BearerCacheSlidingExpirationTime { get; set; } = TimeSpan.FromHours(1);
 
-        public Uri TokenEndpoint { get; set; } = new ("https://api.twitter.com/oauth2/token");
+        public Uri TokenEndpoint { get; set; } = new("https://api.twitter.com/oauth2/token");
 
-        public Uri BaseAddress { get; set; } = new ("https://api.twitter.com/");
+        public Uri BaseAddress { get; set; } = new("https://api.twitter.com/");
     }
 }

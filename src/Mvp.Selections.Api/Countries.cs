@@ -26,7 +26,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<Country> countries = await countryService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(countries, CountriesContractResolver.Instance);
             });

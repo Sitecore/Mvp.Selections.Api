@@ -35,7 +35,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Region> AddAsync(Region region)
         {
-            Region result = new (0)
+            Region result = new(0)
             {
                 Name = region.Name
             };
@@ -46,7 +46,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<AssignCountryToRegionRequestBody>> AssignCountryAsync(int regionId, AssignCountryToRegionRequestBody? body)
         {
-            OperationResult<AssignCountryToRegionRequestBody> result = new ();
+            OperationResult<AssignCountryToRegionRequestBody> result = new();
             if (body != null)
             {
                 Region? region = await regionRepository.GetAsync(regionId);
@@ -103,7 +103,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<object>> RemoveCountryAsync(int regionId, short countryId)
         {
-            OperationResult<object> result = new ();
+            OperationResult<object> result = new();
             Region? region = await regionRepository.GetAsync(regionId);
             Country? country = await countryRepository.GetAsync(countryId);
             if (region != null && country != null)

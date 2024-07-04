@@ -32,7 +32,7 @@ namespace Mvp.Selections.Api.Clients
         public Task<Response<Profile>> GetProfile(string userId)
         {
             HttpRequestMessage req =
-                new (HttpMethod.Get, $"api/sn_communities/v1/community/profiles/{userId}");
+                new(HttpMethod.Get, $"api/sn_communities/v1/community/profiles/{userId}");
             return SendAsync<Profile>(req);
         }
 

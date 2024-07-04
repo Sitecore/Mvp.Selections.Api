@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
     public class RegionsContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly RegionsContractResolver Instance = new ();
+        public static readonly RegionsContractResolver Instance = new();
 
         private readonly string[] _countryExcludedMembers = { nameof(Country.Region), nameof(Country.Users) };
 

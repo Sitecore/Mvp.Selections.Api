@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Serialization.ContractResolvers
 {
     public class ScoreCategoriesAdminContractResolver : CamelCasePropertyNamesContractResolver
     {
-        public static readonly ScoreCategoriesAdminContractResolver Instance = new ();
+        public static readonly ScoreCategoriesAdminContractResolver Instance = new();
 
         private readonly string[] _scoreCategoryExcludedMembers = [nameof(ScoreCategory.Selection), nameof(ScoreCategory.MvpType)];
 

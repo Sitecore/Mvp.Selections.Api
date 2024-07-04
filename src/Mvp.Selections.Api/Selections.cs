@@ -53,7 +53,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<Selection> selections = await selectionService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(selections);
             });

@@ -20,11 +20,11 @@ namespace Mvp.Selections.Api.Services
     {
         public async Task<OperationResult<ApplicationComment>> AddToApplicationAsync(User user, Guid applicationId, Comment comment)
         {
-            OperationResult<ApplicationComment> result = new ();
+            OperationResult<ApplicationComment> result = new();
             OperationResult<Application> applicationResult = await applicationService.GetAsync(user, applicationId, false);
             if (applicationResult is { StatusCode: HttpStatusCode.OK, Result: not null })
             {
-                ApplicationComment newComment = new (Guid.Empty)
+                ApplicationComment newComment = new(Guid.Empty)
                 {
                     Application = applicationResult.Result,
                     User = user,
@@ -44,7 +44,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Comment>> UpdateCommentAsync(User user, Guid id, Comment comment)
         {
-            OperationResult<Comment> result = new ();
+            OperationResult<Comment> result = new();
             Comment? existingComment = await commentRepository.GetAsync(id);
             if (existingComment != null && (existingComment.User.Id == user.Id || user.HasRight(Right.Admin)))
             {
@@ -73,7 +73,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<object>> RemoveCommentAsync(User user, Guid id)
         {
-            OperationResult<object> result = new ();
+            OperationResult<object> result = new();
             Comment? comment = await commentRepository.GetAsync(id);
             if (comment != null && (comment.User.Id == user.Id || user.HasRight(Right.Admin)))
             {
@@ -99,7 +99,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<IList<ApplicationComment>>> GetAllForApplicationAsync(User user, Guid applicationId, int page = 1, short pageSize = 100)
         {
-            OperationResult<IList<ApplicationComment>> result = new ();
+            OperationResult<IList<ApplicationComment>> result = new();
             OperationResult<Application> applicationResult = await applicationService.GetAsync(user, applicationId);
             if (applicationResult is { StatusCode: HttpStatusCode.OK, Result: not null })
             {

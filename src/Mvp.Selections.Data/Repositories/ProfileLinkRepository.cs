@@ -4,11 +4,8 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ProfileLinkRepository : BaseRepository<ProfileLink, Guid>, IProfileLinkRepository
+    public class ProfileLinkRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<ProfileLink, Guid>(context, currentUserNameProvider), IProfileLinkRepository
     {
-        public ProfileLinkRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
     }
 }

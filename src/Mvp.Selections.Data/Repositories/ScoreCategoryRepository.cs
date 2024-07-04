@@ -7,13 +7,9 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ScoreCategoryRepository : BaseRepository<ScoreCategory, Guid>, IScoreCategoryRepository
+    public class ScoreCategoryRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<ScoreCategory, Guid>(context, currentUserNameProvider), IScoreCategoryRepository
     {
-        public ScoreCategoryRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<ScoreCategory>> GetAllTopCategoriesAsync(Guid selectionId, short mvpTypeId, params Expression<Func<ScoreCategory, object>>[] includes)
         {
             return await Context.ScoreCategories

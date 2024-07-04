@@ -101,7 +101,7 @@ namespace Mvp.Selections.Api
                     // Database
                     services.AddDbContextPool<Context>(options =>
                         options.UseSqlServer(
-                            host.Configuration.GetConnectionString("MvpSelectionsData") !,
+                            host.Configuration.GetConnectionString("MvpSelectionsData")!,
                             o => o.EnableRetryOnFailure().UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)));
 
                     // HttpClients

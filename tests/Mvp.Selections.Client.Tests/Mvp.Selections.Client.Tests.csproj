@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mvp.Selections.Client\Mvp.Selections.Client.csproj" />
+    <ProjectReference Include="..\Mvp.Selections.Tests\Mvp.Selections.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

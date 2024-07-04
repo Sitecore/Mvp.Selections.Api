@@ -39,7 +39,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<Product> products = await productService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(products, ProductsContractResolver.Instance);
             });

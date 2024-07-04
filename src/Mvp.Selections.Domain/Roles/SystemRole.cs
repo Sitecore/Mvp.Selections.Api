@@ -1,12 +1,8 @@
 ﻿namespace Mvp.Selections.Domain.Roles
 {
-    public class SystemRole : Role
+    public class SystemRole(Guid id)
+        : Role(id)
     {
-        public SystemRole(Guid id)
-            : base(id)
-        {
-        }
-
         public Right Rights { get; set; }
     }
 }

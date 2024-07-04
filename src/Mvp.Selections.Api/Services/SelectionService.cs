@@ -37,7 +37,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Selection> AddAsync(Selection selection)
         {
-            Selection result = new (Guid.Empty)
+            Selection result = new(Guid.Empty)
             {
                 Year = selection.Year,
                 ApplicationsActive = selection.ApplicationsActive,
@@ -60,7 +60,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<Selection>> UpdateAsync(Guid id, Selection selection, IList<string> propertyKeys)
         {
-            OperationResult<Selection> result = new ();
+            OperationResult<Selection> result = new();
             Selection? existingSelection = await GetAsync(id);
             if (existingSelection != null)
             {

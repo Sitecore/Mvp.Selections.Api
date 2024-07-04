@@ -41,7 +41,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<Region> regions = await regionService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(regions, RegionsContractResolver.Instance);
             });

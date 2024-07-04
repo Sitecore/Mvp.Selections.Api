@@ -9,13 +9,9 @@ using Mvp.Selections.Domain.Roles;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ApplicationRepository : BaseRepository<Application, Guid>, IApplicationRepository
+    public class ApplicationRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Application, Guid>(context, currentUserNameProvider), IApplicationRepository
     {
-        public ApplicationRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<Application>> GetAllAsync(Guid? userId = null, string? userName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100, params Expression<Func<Application, object>>[] includes)
         {
             return await GetAllQuery(userId, userName, selectionId, countryId, status, page, pageSize, includes).ToListAsync();
@@ -51,7 +47,7 @@ namespace Mvp.Selections.Data.Repositories
             ExpressionStarter<Application> result = PredicateBuilder.New<Application>();
             foreach (SelectionRole role in selectionRoles)
             {
-                IList<short> countryIds = role.Region?.Countries.Select(c => c.Id).ToList() ?? new List<short>();
+                List<short> countryIds = role.Region?.Countries.Select(c => c.Id).ToList() ?? [];
                 result = result.Or(a =>
                     (role.CountryId == null || role.CountryId == a.Country.Id) &&
                     (role.MvpTypeId == null || role.MvpTypeId == a.MvpType.Id) &&

@@ -11,14 +11,37 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Data", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Client", "src\Mvp.Selections.Client\Mvp.Selections.Client.csproj", "{6F2CA521-59C0-4C32-BD75-84872141B041}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Client.Tests", "src\Mvp.Selections.Client.Tests\Mvp.Selections.Client.Tests.csproj", "{2E61EE99-219F-4244-BF74-471432C290D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Client.Tests", "tests\Mvp.Selections.Client.Tests\Mvp.Selections.Client.Tests.csproj", "{2E61EE99-219F-4244-BF74-471432C290D2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{44AD4EFD-07A6-4019-BD62-15AB92B8EE27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mvp.Selections.Api.Tests", "tests\Mvp.Selections.Api.Tests\Mvp.Selections.Api.Tests.csproj", "{F99BD677-34A3-4581-B170-BEFC39F6EB4D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D94E8EAB-0B65-4DF5-98FA-DEDA6632748D}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
+		CODEOWNERS = CODEOWNERS
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		Directory.Packages.props = Directory.Packages.props
+		LICENSE = LICENSE
 		Mvp.Selections.sln.DotSettings = Mvp.Selections.sln.DotSettings
 		nuget.config = nuget.config
+		README.MD = README.MD
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{810BB955-EF99-40E4-8B33-C5763DB5C2BA}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+		src\GlobalSuppressions.cs = src\GlobalSuppressions.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{46CA5BC3-AB6D-4A7F-A9E7-5C05575326C3}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+		tests\Tests.GlobalSuppressions.cs = tests\Tests.GlobalSuppressions.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvp.Selections.Tests", "tests\Mvp.Selections.Tests\Mvp.Selections.Tests.csproj", "{81F18073-C2DC-408A-B0DE-C1553D1A0572}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,9 +69,26 @@ Global
 		{2E61EE99-219F-4244-BF74-471432C290D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E61EE99-219F-4244-BF74-471432C290D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E61EE99-219F-4244-BF74-471432C290D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F99BD677-34A3-4581-B170-BEFC39F6EB4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F99BD677-34A3-4581-B170-BEFC39F6EB4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F99BD677-34A3-4581-B170-BEFC39F6EB4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F99BD677-34A3-4581-B170-BEFC39F6EB4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81F18073-C2DC-408A-B0DE-C1553D1A0572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81F18073-C2DC-408A-B0DE-C1553D1A0572}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81F18073-C2DC-408A-B0DE-C1553D1A0572}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81F18073-C2DC-408A-B0DE-C1553D1A0572}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C5523733-D713-4E1B-A39E-740173E5B254} = {810BB955-EF99-40E4-8B33-C5763DB5C2BA}
+		{A9C3A0C5-DE71-4C34-9690-2C4BBFD18422} = {810BB955-EF99-40E4-8B33-C5763DB5C2BA}
+		{EFFE2B80-B96F-45AC-83E1-82C5FBAFE8BE} = {810BB955-EF99-40E4-8B33-C5763DB5C2BA}
+		{6F2CA521-59C0-4C32-BD75-84872141B041} = {810BB955-EF99-40E4-8B33-C5763DB5C2BA}
+		{2E61EE99-219F-4244-BF74-471432C290D2} = {46CA5BC3-AB6D-4A7F-A9E7-5C05575326C3}
+		{F99BD677-34A3-4581-B170-BEFC39F6EB4D} = {46CA5BC3-AB6D-4A7F-A9E7-5C05575326C3}
+		{81F18073-C2DC-408A-B0DE-C1553D1A0572} = {46CA5BC3-AB6D-4A7F-A9E7-5C05575326C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A4289E92-B572-42B5-AD90-A1620E797AC5}

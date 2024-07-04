@@ -4,11 +4,8 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class CountryRepository : BaseRepository<Country, short>, ICountryRepository
+    public class CountryRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Country, short>(context, currentUserNameProvider), ICountryRepository
     {
-        public CountryRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
     }
 }
