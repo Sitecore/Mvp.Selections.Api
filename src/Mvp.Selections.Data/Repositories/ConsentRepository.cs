@@ -5,13 +5,9 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class ConsentRepository : BaseRepository<Consent, Guid>, IConsentRepository
+    public class ConsentRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Consent, Guid>(context, currentUserNameProvider), IConsentRepository
     {
-        public ConsentRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<Consent>> GetAllForUserAsync(Guid userId)
         {
             return await Context.Consents.Where(c => c.User.Id == userId).ToListAsync();

@@ -57,7 +57,7 @@ namespace Mvp.Selections.Api
 
         private async Task<IActionResult> SearchInternal(HttpRequest req)
         {
-            ListParameters lp = new (req);
+            ListParameters lp = new(req);
             string? text = req.Query.GetFirstValueOrDefault<string>(TextQueryStringKey);
             IList<short>? mvpTypeIds = req.Query.GetValuesOrNull<short>(MvpTypeIdQueryStringKey);
             IList<short>? years = req.Query.GetValuesOrNull<short>(YearQueryStringKey);

@@ -14,7 +14,7 @@ namespace Mvp.Selections.Api.Clients
 
         public Task<Response<bool>> CreateDocumentAsync(SearchIngestionClientOptions.SearchIngestionSourceEntity sourceEntity, Document document, params string[] locales)
         {
-            HttpRequestMessage request = new ()
+            HttpRequestMessage request = new()
             {
                 Content = JsonContent.Create(new DocumentRequest { Document = document }),
                 Method = HttpMethod.Post,
@@ -29,7 +29,7 @@ namespace Mvp.Selections.Api.Clients
 
         public Task<Response<bool>> UpdateDocumentAsync(SearchIngestionClientOptions.SearchIngestionSourceEntity sourceEntity, Document document, params string[] locales)
         {
-            HttpRequestMessage request = new ()
+            HttpRequestMessage request = new()
             {
                 Content = JsonContent.Create(new DocumentRequest { Document = document }),
                 Method = HttpMethod.Put,
@@ -44,7 +44,7 @@ namespace Mvp.Selections.Api.Clients
 
         public Task<Response<bool>> PartialUpdateDocumentAsync(SearchIngestionClientOptions.SearchIngestionSourceEntity sourceEntity, Document document, params string[] locales)
         {
-            HttpRequestMessage request = new ()
+            HttpRequestMessage request = new()
             {
                 Content = JsonContent.Create(new DocumentRequest { Document = document }),
                 Method = HttpMethod.Patch,
@@ -59,7 +59,7 @@ namespace Mvp.Selections.Api.Clients
 
         public Task<Response<bool>> DeleteDocumentAsync(SearchIngestionClientOptions.SearchIngestionSourceEntity sourceEntity, string documentId, params string[] locales)
         {
-            HttpRequestMessage request = new ()
+            HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Delete,
                 RequestUri =
@@ -78,7 +78,7 @@ namespace Mvp.Selections.Api.Clients
 
         private async Task<Response<bool>> SendAsync(HttpRequestMessage request)
         {
-            Response<bool> result = new () { Result = false };
+            Response<bool> result = new() { Result = false };
             AddAuthorization(request);
             HttpResponseMessage response = await client.SendAsync(request);
 

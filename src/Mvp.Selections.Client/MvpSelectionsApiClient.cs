@@ -101,7 +101,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="User"/>.</returns>
         public Task<Response<IList<User>>> GetUsersAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetUsersAsync(name, email, countryId, listParameters);
         }
 
@@ -182,7 +182,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Region"/>.</returns>
         public Task<Response<IList<Region>>> GetRegionsAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetRegionsAsync(listParameters);
         }
 
@@ -234,7 +234,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="AssignCountryToRegion"/>. The result is not relevant, only the status code.</returns>
         public Task<Response<AssignCountryToRegion>> AssignCountryToRegionAsync(int regionId, short countryId)
         {
-            AssignCountryToRegion content = new () { CountryId = countryId };
+            AssignCountryToRegion content = new() { CountryId = countryId };
             return PostAsync<AssignCountryToRegion>($"/api/v1/regions/{regionId}/countries", content);
         }
 
@@ -271,7 +271,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="SystemRole"/>.</returns>
         public Task<Response<IList<SystemRole>>> GetSystemRolesAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetSystemRolesAsync(listParameters);
         }
 
@@ -313,7 +313,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="AssignUserToRole"/>. The result is not relevant, only the status code.</returns>
         public Task<Response<AssignUserToRole>> AssignUserToRoleAsync(Guid roleId, Guid userId)
         {
-            AssignUserToRole content = new () { UserId = userId };
+            AssignUserToRole content = new() { UserId = userId };
             return PostAsync<AssignUserToRole>($"/api/v1/roles/{roleId}/users", content);
         }
 
@@ -358,7 +358,7 @@ namespace Mvp.Selections.Client
             int page = 1,
             short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetSelectionRolesAsync(applicationId, countryId, mvpTypeId, regionId, selectionId, listParameters);
         }
 
@@ -405,7 +405,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Country"/>.</returns>
         public Task<Response<IList<Country>>> GetCountriesAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetCountriesAsync(listParameters);
         }
 
@@ -441,7 +441,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Selection"/>.</returns>
         public Task<Response<IList<Selection>>> GetSelectionsAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetSelectionsAsync(listParameters);
         }
 
@@ -519,7 +519,7 @@ namespace Mvp.Selections.Client
         [Obsolete("Use the override with additional parameters")]
         public Task<Response<IList<Application>>> GetApplicationsAsync(ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetApplicationsAsync(status, listParameters);
         }
 
@@ -548,7 +548,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Application"/>.</returns>
         public Task<Response<IList<Application>>> GetApplicationsAsync(Guid? userId = null, string? applicantName = null, Guid? selectionId = null, short? countryId = null, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetApplicationsAsync(userId, applicantName, selectionId, countryId, status, listParameters);
         }
 
@@ -577,7 +577,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Application"/>.</returns>
         public Task<Response<IList<Application>>> GetApplicationsForSelectionAsync(Guid selectionId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetApplicationsForSelectionAsync(selectionId, status, listParameters);
         }
 
@@ -604,7 +604,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Application"/>.</returns>
         public Task<Response<IList<Application>>> GetApplicationsForCountryAsync(Guid selectionId, short countryId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetApplicationsForCountryAsync(selectionId, countryId, status, listParameters);
         }
 
@@ -631,7 +631,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Application"/>.</returns>
         public Task<Response<IList<Application>>> GetApplicationsForUserAsync(Guid userId, ApplicationStatus? status = null, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetApplicationsForUserAsync(userId, status, listParameters);
         }
 
@@ -710,7 +710,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="MvpType"/>.</returns>
         public Task<Response<IList<MvpType>>> GetMvpTypesAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetMvpTypesAsync(listParameters);
         }
 
@@ -776,7 +776,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Product"/>.</returns>
         public Task<Response<IList<Product>>> GetProductsAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetProductsAsync(listParameters);
         }
 
@@ -888,7 +888,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Product"/>.</returns>
         public Task<Response<IList<Contribution>>> GetContributionsForUserAsync(Guid userId, int? selectionYear, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetContributionsForUserAsync(userId, selectionYear, listParameters);
         }
 
@@ -1002,7 +1002,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Review"/>.</returns>
         public Task<Response<IList<Review>>> GetReviewsAsync(Guid applicationId, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetReviewsAsync(applicationId, listParameters);
         }
 
@@ -1117,7 +1117,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Score"/>.</returns>
         public Task<Response<IList<Score>>> GetScoresAsync(int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetScoresAsync(listParameters);
         }
 
@@ -1174,7 +1174,7 @@ namespace Mvp.Selections.Client
         /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Applicant"/>.</returns>
         public Task<Response<IList<Applicant>>> GetApplicantsAsync(Guid selectionId, int page = 1, short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetApplicantsAsync(selectionId, listParameters);
         }
 
@@ -1281,7 +1281,7 @@ namespace Mvp.Selections.Client
             int page = 1,
             short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return GetTitlesAsync(name, mvpTypeIds, years, countryIds, listParameters);
         }
 
@@ -1367,7 +1367,7 @@ namespace Mvp.Selections.Client
             int page = 1,
             short pageSize = 100)
         {
-            ListParameters listParameters = new () { Page = page, PageSize = pageSize };
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
             return SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, listParameters);
         }
 
@@ -1397,8 +1397,8 @@ namespace Mvp.Selections.Client
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)
         {
-            Response<T> result = new ();
-            HttpRequestMessage request = new ()
+            Response<T> result = new();
+            HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(requestUri, UriKind.Relative)
@@ -1420,9 +1420,9 @@ namespace Mvp.Selections.Client
 
         private async Task<Response<T>> PostAsync<T>(string requestUri, object? content)
         {
-            Response<T> result = new ();
+            Response<T> result = new();
             JsonContent? jsonContent = content != null ? JsonContent.Create(content, null, _JsonSerializerOptions) : null;
-            HttpRequestMessage request = new ()
+            HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(requestUri, UriKind.Relative),
@@ -1445,9 +1445,9 @@ namespace Mvp.Selections.Client
 
         private async Task<Response<T>> PatchAsync<T>(string requestUri, object content)
         {
-            Response<T> result = new ();
+            Response<T> result = new();
             JsonContent jsonContent = JsonContent.Create(content, null, _JsonSerializerOptions);
-            HttpRequestMessage request = new ()
+            HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Patch,
                 RequestUri = new Uri(requestUri, UriKind.Relative),
@@ -1470,8 +1470,8 @@ namespace Mvp.Selections.Client
 
         private async Task<Response<bool>> DeleteAsync(string requestUri)
         {
-            Response<bool> result = new ();
-            HttpRequestMessage request = new ()
+            Response<bool> result = new();
+            HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Delete,
                 RequestUri = new Uri(requestUri, UriKind.Relative)

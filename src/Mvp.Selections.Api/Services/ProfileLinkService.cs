@@ -2,8 +2,10 @@
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Properties;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -19,37 +21,21 @@ namespace Mvp.Selections.Api.Services
     {
         public async Task<OperationResult<ProfileLink>> AddAsync(User user, Guid userId, ProfileLink profileLink)
         {
-            OperationResult<ProfileLink> result = new ();
-            if (user.Id == userId || user.HasRight(Right.Admin))
+            OperationResult<ProfileLink> result = new();
+            Tuple<bool, User?> validationResult = await ValidateAdd(result, user, userId, profileLink);
+            if (validationResult.Item1)
             {
-                User? updateUser = await userService.GetAsync(userId);
-                if (updateUser != null)
+                ProfileLink newProfileLink = new(Guid.Empty)
                 {
-                    ProfileLink newProfileLink = new (Guid.Empty)
-                    {
-                        Name = profileLink.Name,
-                        Uri = profileLink.Uri,
-                        Type = profileLink.Type,
-                        User = updateUser
-                    };
-                    newProfileLink.ImageUri = await avatarUriHelper.GetImageUri(newProfileLink);
-                    result.Result = profileLinkRepository.Add(newProfileLink);
-                    await profileLinkRepository.SaveChangesAsync();
-                    result.StatusCode = HttpStatusCode.Created;
-                }
-                else
-                {
-                    string message = $"User '{userId}' was not found.";
-                    logger.LogInformation(message);
-                    result.Messages.Add(message);
-                }
-            }
-            else
-            {
-                string message = $"User '{user.Id}' attempted to add ProfileLink '{profileLink.Id}' to User '{userId}' but isn't authorized.";
-                logger.LogWarning(message);
-                result.Messages.Add(message);
-                result.StatusCode = HttpStatusCode.Forbidden;
+                    Name = profileLink.Name,
+                    Uri = profileLink.Uri,
+                    Type = profileLink.Type,
+                    User = validationResult.Item2!
+                };
+                newProfileLink.ImageUri = await avatarUriHelper.GetImageUri(newProfileLink);
+                result.Result = profileLinkRepository.Add(newProfileLink);
+                await profileLinkRepository.SaveChangesAsync();
+                result.StatusCode = HttpStatusCode.Created;
             }
 
             return result;
@@ -57,9 +43,9 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<ProfileLink>> RemoveAsync(User user, Guid userId, Guid id)
         {
-            OperationResult<ProfileLink> result = new ();
+            OperationResult<ProfileLink> result = new();
             ProfileLink? existingProfileLink = await profileLinkRepository.GetAsync(id, pl => pl.User);
-            if ((user.Id == userId && existingProfileLink?.User.Id == userId) || user.HasRight(Right.Admin))
+            if (ValidateRemove(result, user, userId, id, existingProfileLink))
             {
                 if (profileLinkRepository.RemoveAsync(existingProfileLink))
                 {
@@ -68,17 +54,54 @@ namespace Mvp.Selections.Api.Services
 
                 result.StatusCode = HttpStatusCode.NoContent;
             }
-            else if (existingProfileLink == null)
+
+            return result;
+        }
+
+        private async Task<Tuple<bool, User?>> ValidateAdd(OperationResult<ProfileLink> operation, User user, Guid userId, ProfileLink profileLink)
+        {
+            bool result = true;
+            User? updateUser = null;
+            if (user.Id != userId && !user.HasRight(Right.Admin))
+            {
+                logger.LogWarning("User '{Id}' attempted to add ProfileLink '{ProfileLink}' to User '{UserId}' but isn't authorized.", user.Id, profileLink, userId);
+                operation.Messages.Add(Resources.ProfileLink_Add_ForbiddenFormat.Format(profileLink, userId));
+                operation.StatusCode = HttpStatusCode.Forbidden;
+                result = false;
+            }
+            else if (profileLink.Uri.Scheme != "https")
+            {
+                logger.LogInformation("User '{Id}' submitted an invalid ProfileLink.Uri '{Uri}'.", user.Id, profileLink.Uri);
+                operation.Messages.Add(Resources.ProfileLink_Add_InvalidUriScheme);
+                operation.StatusCode = HttpStatusCode.BadRequest;
+                result = false;
+            }
+            else if ((updateUser = await userService.GetAsync(userId)) == null)
+            {
+                logger.LogInformation("User '{userId}' was not found.", userId);
+                operation.Messages.Add(Resources.ProfileLink_Add_UserNotFoundFormat.Format(userId));
+                operation.StatusCode = HttpStatusCode.BadRequest;
+                result = false;
+            }
+
+            return new Tuple<bool, User?>(result, updateUser);
+        }
+
+        private bool ValidateRemove(OperationResult<ProfileLink> operation, User user, Guid userId, Guid id, ProfileLink? profileLink)
+        {
+            bool result = true;
+            if (profileLink == null)
             {
                 logger.LogInformation("ProfileLink '{id}' was not found.", id);
-                result.StatusCode = HttpStatusCode.NoContent;
+                operation.StatusCode = HttpStatusCode.NoContent;
+                result = false;
             }
-            else
+            else if ((user.Id != userId || profileLink.User.Id != userId) && !user.HasRight(Right.Admin))
             {
-                string message = $"User '{user.Id}' attempted to remove ProfileLink '{id}' of User '{userId}' but isn't authorized.";
-                logger.LogWarning(message);
-                result.Messages.Add(message);
-                result.StatusCode = HttpStatusCode.Forbidden;
+                logger.LogWarning("User '{Id}' attempted to remove ProfileLink '{ProfileLinkId}' of User '{UserId}' but isn't authorized.", user.Id, id, userId);
+                operation.Messages.Add(Resources.ProfileLink_Remove_ForbiddenFormat.Format(id, userId));
+                operation.StatusCode = HttpStatusCode.Forbidden;
+                result = false;
             }
 
             return result;

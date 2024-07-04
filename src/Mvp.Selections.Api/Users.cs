@@ -69,7 +69,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 string? name = req.Query.GetFirstValueOrDefault<string>("name");
                 string? email = req.Query.GetFirstValueOrDefault<string>("email");
                 short? countryId = req.Query.GetFirstValueOrDefault<short?>("countryId");

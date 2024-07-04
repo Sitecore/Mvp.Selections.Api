@@ -7,13 +7,9 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class TitleRepository : BaseRepository<Title, Guid>, ITitleRepository
+    public class TitleRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Title, Guid>(context, currentUserNameProvider), ITitleRepository
     {
-        public TitleRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public async Task<IList<Title>> GetAllAsync(
             string? name = null,
             IList<short>? mvpTypeIds = null,

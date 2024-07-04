@@ -28,7 +28,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply, Right.Review], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<MvpType> mvpTypes = await mvpTypeService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(mvpTypes, MvpTypesContractResolver.Instance);
             });

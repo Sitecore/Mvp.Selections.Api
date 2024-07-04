@@ -30,7 +30,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Comment], async authResult =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 OperationResult<IList<ApplicationComment>> getResult = await commentService.GetAllForApplicationAsync(authResult.User!, applicationId, lp.Page, lp.PageSize);
                 return ContentResult(getResult, CommentsContractResolver.Instance);
             });

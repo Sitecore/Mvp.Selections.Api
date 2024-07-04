@@ -8,11 +8,11 @@ namespace Mvp.Selections.Api.Configuration
 
         public string ApiKey { get; set; } = string.Empty;
 
-        public Uri BaseAddress { get; set; } = new ("https://discover.sitecorecloud.io");
+        public Uri BaseAddress { get; set; } = new("https://discover.sitecorecloud.io");
 
         public string Domain { get; set; } = string.Empty;
 
-        public SearchIngestionSourceEntity MvpSourceEntity { get; set; } = new ();
+        public SearchIngestionSourceEntity MvpSourceEntity { get; set; } = new();
 
         public string MvpDefaultImage { get; set; } = "https://mvp.sitecore.com/images/mvp-base-user-grey.png";
 

@@ -17,7 +17,7 @@ namespace Mvp.Selections.Api.Services
     {
         public async Task<Role> AddSystemRoleAsync(SystemRole systemRole)
         {
-            SystemRole result = new (Guid.Empty)
+            SystemRole result = new(Guid.Empty)
             {
                 Name = systemRole.Name,
                 Rights = systemRole.Rights
@@ -41,7 +41,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<AssignUserToRoleRequestBody>> AssignUserAsync(Guid roleId, AssignUserToRoleRequestBody? body)
         {
-            OperationResult<AssignUserToRoleRequestBody> result = new ();
+            OperationResult<AssignUserToRoleRequestBody> result = new();
             if (body != null)
             {
                 Role? role = await roleRepository.GetAsync(roleId);
@@ -78,7 +78,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<OperationResult<User>> RemoveUserAsync(Guid roleId, Guid userId)
         {
-            OperationResult<User> result = new ();
+            OperationResult<User> result = new();
             Role? role = await roleRepository.GetAsync(roleId);
             User? user = await userService.GetAsync(userId);
             if (role != null && user != null)
@@ -109,7 +109,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<Role> AddSelectionRoleAsync(SelectionRole selectionRole)
         {
-            SelectionRole result = new (Guid.Empty)
+            SelectionRole result = new(Guid.Empty)
             {
                 Name = selectionRole.Name,
                 CountryId = selectionRole.CountryId,

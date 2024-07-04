@@ -7,13 +7,9 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Data.Repositories
 {
-    public class SelectionRepository : BaseRepository<Selection, Guid>, ISelectionRepository
+    public class SelectionRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+        : BaseRepository<Selection, Guid>(context, currentUserNameProvider), ISelectionRepository
     {
-        public SelectionRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-            : base(context, currentUserNameProvider)
-        {
-        }
-
         public Task<IList<Selection>> GetAllActiveAsync(params Expression<Func<Selection, object>>[] includes)
         {
             return GetAllActiveAsync(DateTime.UtcNow, includes);

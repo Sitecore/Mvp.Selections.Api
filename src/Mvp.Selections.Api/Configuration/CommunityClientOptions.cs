@@ -6,6 +6,6 @@ namespace Mvp.Selections.Api.Configuration
     {
         public const string CommunityClient = "CommunityClient";
 
-        public Uri BaseAddress { get; set; } = new ("https://community.sitecore.com/");
+        public Uri BaseAddress { get; set; } = new("https://community.sitecore.com/");
     }
 }

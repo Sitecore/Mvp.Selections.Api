@@ -1,6 +1,6 @@
-﻿using Mvp.Selections.Client.Serialization;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json;
+using Mvp.Selections.Client.Serialization;
 
 namespace Mvp.Selections.Client.Tests.Serialization
 {
@@ -8,7 +8,7 @@ namespace Mvp.Selections.Client.Tests.Serialization
     {
         public static JsonSerializerOptions GetOptions()
         {
-            JsonSerializerOptions result = new ()
+            JsonSerializerOptions result = new()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles,

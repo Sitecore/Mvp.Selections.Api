@@ -28,15 +28,15 @@ namespace Mvp.Selections.Api.Services
         ICurrentUserNameProvider currentUserNameProvider)
         : IAuthService
     {
-        private static readonly object _NewUserLock = new ();
+        private static readonly object _NewUserLock = new();
 
-        private readonly JwtSecurityTokenHandler _tokenHandler = new ();
+        private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
         private readonly TokenOptions _tokenOptions = tokenOptions.Value;
 
         public async Task<AuthResult> ValidateAsync(HttpRequest request, params Right[] rights)
         {
-            AuthResult result = new ();
+            AuthResult result = new();
             AuthorizationHeader? authHeader = AuthorizationHeader.ParseFrom(request.Headers);
             if (authHeader != null)
             {
@@ -88,7 +88,7 @@ namespace Mvp.Selections.Api.Services
                             if (!userRepository.DoesUserExist(result.TokenUser.Identifier))
                             {
                                 currentUserNameProvider.UserName = result.TokenUser.Identifier;
-                                User newUser = new (Guid.Empty)
+                                User newUser = new(Guid.Empty)
                                 {
                                     Identifier = result.TokenUser.Identifier,
                                     Name = result.TokenUser?.Name ?? string.Empty,

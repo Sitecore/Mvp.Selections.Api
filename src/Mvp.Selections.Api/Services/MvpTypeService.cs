@@ -16,7 +16,7 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<MvpType> AddAsync(MvpType mvpType)
         {
-            MvpType result = new (0)
+            MvpType result = new(0)
             {
                 Name = mvpType.Name
             };

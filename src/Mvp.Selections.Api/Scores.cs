@@ -41,7 +41,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Score], async _ =>
             {
-                ListParameters lp = new (req);
+                ListParameters lp = new(req);
                 IList<Score> scores = await scoreService.GetAllAsync(lp.Page, lp.PageSize);
                 return ContentResult(scores, ScoresContractResolver.Instance);
             });
