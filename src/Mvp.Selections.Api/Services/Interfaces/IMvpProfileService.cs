@@ -8,6 +8,12 @@ namespace Mvp.Selections.Api.Services.Interfaces
 {
     public interface IMvpProfileService
     {
+        public const string TypeFacetIdentifier = "type";
+
+        public const string YearFacetIdentifier = "year";
+
+        public const string CountryFacetIdentifier = "country";
+
         Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id);
 
         Task<SearchOperationResult<MvpProfile>> SearchMvpProfileAsync(
