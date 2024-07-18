@@ -193,7 +193,7 @@ namespace Mvp.Selections.Data.Repositories
 
             if (countryIds != null)
             {
-                query = countryIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Where(a => a.Title != null).Any(a => a.Country.Id == id)));
+                query = countryIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Where(a => a.Title != null).Any(a => a.Country.Id == id) || u.Country!.Id == id));
             }
 
             return query
