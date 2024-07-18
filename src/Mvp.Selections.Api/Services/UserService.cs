@@ -378,7 +378,7 @@ namespace Mvp.Selections.Api.Services
 
         private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)
         {
-            SearchFacet result = new() { Identifier = "year" };
+            SearchFacet result = new() { Identifier = IMvpProfileService.YearFacetIdentifier };
             foreach (Title title in profiles.SelectMany(p => p.Titles))
             {
                 string key = title.Application.Selection.Year.ToString();
@@ -393,7 +393,7 @@ namespace Mvp.Selections.Api.Services
 
         private static SearchFacet CalculateTypeFacet(IReadOnlyCollection<MvpProfile> profiles)
         {
-            SearchFacet result = new() { Identifier = "type" };
+            SearchFacet result = new() { Identifier = IMvpProfileService.TypeFacetIdentifier };
             List<MvpType> distinctTypes = profiles
                 .SelectMany(p => p.Titles.Select(t => t.MvpType))
                 .Distinct(new IdEqualityComparer<MvpType, short>())
@@ -414,7 +414,7 @@ namespace Mvp.Selections.Api.Services
 
         private static SearchFacet CalculateCountryFacet(IEnumerable<MvpProfile> profiles)
         {
-            SearchFacet result = new() { Identifier = "country" };
+            SearchFacet result = new() { Identifier = IMvpProfileService.CountryFacetIdentifier };
             foreach (Country? country in profiles.Select(p => p.Country))
             {
                 if (country != null && !result.Options.TryAdd(country.Id.ToString(), new SearchFacetOption { Identifier = country.Id.ToString(), Display = country.Name, Count = 1 }, o => o.Identifier))
