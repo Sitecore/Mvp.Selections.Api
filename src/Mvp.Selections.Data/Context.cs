@@ -121,10 +121,6 @@ namespace Mvp.Selections.Data
                 .WithMany()
                 .OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<Title>()
-                .HasOne(t => t.Application)
-                .WithOne(a => a.Title)
-                .HasForeignKey<Title>("ApplicationId");
-            modelBuilder.Entity<Title>()
                 .HasIndex("ApplicationId")
                 .IsUnique();
 

@@ -46,8 +46,8 @@ namespace Mvp.Selections.Data.Repositories
                 .Include(u => u.Country!.Region)
                 .Include(u => u.Links)
                 .Include(u => u.Applications)
-                .ThenInclude(a => a.Title)
-                .ThenInclude(t => t!.MvpType)
+                .ThenInclude(a => a.Titles)
+                .ThenInclude(t => t.MvpType)
                 .Include(u => u.Applications)
                 .ThenInclude(a => a.Contributions)
                 .ThenInclude(c => c.RelatedProducts)
@@ -175,7 +175,7 @@ namespace Mvp.Selections.Data.Repositories
             params Expression<Func<User, object>>[] includes)
         {
             page--;
-            IQueryable<User> query = Context.Users.Where(u => u.Applications.Any(a => a.Title != null));
+            IQueryable<User> query = Context.Users.Where(u => u.Applications.Any(a => a.Titles.Count > 0));
             if (!string.IsNullOrWhiteSpace(text))
             {
                 query = query.Where(u => EF.Functions.Like(u.Name, $"%{text}%"));
@@ -183,17 +183,17 @@ namespace Mvp.Selections.Data.Repositories
 
             if (mvpTypeIds != null)
             {
-                query = mvpTypeIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Any(a => a.Title!.MvpType.Id == id)));
+                query = mvpTypeIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Any(a => a.Titles.Any(t => t.MvpType.Id == id))));
             }
 
             if (years != null)
             {
-                query = years.Aggregate(query, (current, year) => current.Where(u => u.Applications.Where(a => a.Title != null).Any(a => a.Selection.Year == year)));
+                query = years.Aggregate(query, (current, year) => current.Where(u => u.Applications.Where(a => a.Titles.Count > 0).Any(a => a.Selection.Year == year)));
             }
 
             if (countryIds != null)
             {
-                query = countryIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Where(a => a.Title != null).Any(a => a.Country.Id == id) || u.Country!.Id == id));
+                query = countryIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Where(a => a.Titles.Count > 0).Any(a => a.Country.Id == id) || u.Country!.Id == id));
             }
 
             return query
@@ -202,8 +202,8 @@ namespace Mvp.Selections.Data.Repositories
                 .ThenBy(u => u.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
-                .Include(u => u.Applications.Where(a => a.Title != null))
-                .ThenInclude(a => a.Title)
+                .Include(u => u.Applications.Where(a => a.Titles.Count > 0))
+                .ThenInclude(a => a.Titles)
                 .ThenInclude(t => t!.MvpType)
                 .Include(u => u.Applications)
                 .ThenInclude(a => a.Selection)
