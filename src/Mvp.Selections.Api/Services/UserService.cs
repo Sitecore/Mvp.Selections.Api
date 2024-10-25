@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Cache;
@@ -210,7 +206,7 @@ namespace Mvp.Selections.Api.Services
         {
             OperationResult<MvpProfile> result = new();
             User? user = await userRepository.GetForMvpProfileReadOnlyAsync(id);
-            if (user?.Applications.All(a => a.Title == null) ?? true)
+            if (user?.Applications.All(a => a.Titles.Count == 0) ?? true)
             {
                 result.StatusCode = HttpStatusCode.NotFound;
             }
@@ -223,7 +219,13 @@ namespace Mvp.Selections.Api.Services
                     Country = user.Country,
                     ImageUri = user.ImageUri,
                     ProfileLinks = user.Links,
-                    Titles = user.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList()!,
+                    Titles = user.Applications.Where(a => a.Titles.Count > 0).Aggregate(
+                        new List<Title>(),
+                        (list, a) =>
+                        {
+                            list.AddRange(a.Titles);
+                            return list;
+                        }),
                     PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)]
                 };
 
@@ -254,7 +256,13 @@ namespace Mvp.Selections.Api.Services
                     Country = u.Country,
                     ImageUri = u.ImageUri,
                     ProfileLinks = u.Links,
-                    Titles = u.Applications.Where(a => a.Title != null).Select(a => a.Title).ToList()!
+                    Titles = u.Applications.Where(a => a.Titles.Count > 0).Aggregate(
+                        new List<Title>(),
+                        (list, a) =>
+                        {
+                            list.AddRange(a.Titles);
+                            return list;
+                        }),
                 }).ToList();
                 cache.Set(CacheManager.CacheCollection.MvpProfileSearchResults, cacheKey, profiles);
             }
@@ -285,7 +293,7 @@ namespace Mvp.Selections.Api.Services
                 count += users.Count;
                 foreach (User user in users)
                 {
-                    List<Application> awardedApplications = user.Applications.Where(a => a.Title != null).ToList();
+                    List<Application> awardedApplications = user.Applications.Where(a => a.Titles.Count > 0).ToList();
                     Document document = new()
                     {
                         Id = user.Id.ToString(),
@@ -296,10 +304,28 @@ namespace Mvp.Selections.Api.Services
                             name = user.Name,
                             url = string.Format(_searchIngestionClientOptions.MvpUrlFormat, user.Id),
                             country = user.Country?.Name,
-                            mvp_titles = awardedApplications.Select(a => new { year = a.Selection.Year, type = a.Title!.MvpType.Name }),
-                            mvp_type_collection = awardedApplications.Select(a => a.Title!.MvpType.Name),
+                            mvp_titles = awardedApplications.Select(a => a.Titles.Aggregate(
+                                new List<object>(),
+                                (list, t) =>
+                                {
+                                    list.Add(new { year = a.Selection.Year, type = t.MvpType.Name });
+                                    return list;
+                                })),
+                            mvp_type_collection = awardedApplications.Select(a => a.Titles.Aggregate(
+                                new List<string>(),
+                                (list, t) =>
+                                {
+                                    list.Add(t.MvpType.Name);
+                                    return list;
+                                })),
                             mvp_year_collection = awardedApplications.Select(a => a.Selection.Year),
-                            mvp_year_type_collection = awardedApplications.Select(a => $"{a.Selection.Year}_{a.Title!.MvpType.Name}")
+                            mvp_year_type_collection = awardedApplications.Select(a => a.Titles.Aggregate(
+                                new List<string>(),
+                                (list, t) =>
+                                {
+                                    list.Add($"{a.Selection.Year}_{t.MvpType.Name}");
+                                    return list;
+                                }))
                         }
                     };
                     Task<Response<bool>> updateDocumentTask = searchIngestionClient.UpdateDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, document);
