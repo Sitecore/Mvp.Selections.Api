@@ -17,7 +17,7 @@
 
         public Selection Selection { get; set; } = null!;
 
-        public Title? Title { get; set; } = null;
+        public ICollection<Title> Titles { get; init; } = [];
 
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Open;
 

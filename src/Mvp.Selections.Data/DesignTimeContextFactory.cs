@@ -10,7 +10,7 @@ namespace Mvp.Selections.Data
         {
             DbContextOptionsBuilder<Context> optionsBuilder = new();
             optionsBuilder.UseSqlServer(
-                "Server=(LocalDB)\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName=C:\\Code\\Mvp.Selections\\data\\Temp.mdf");
+                "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName=C:\\\\Code\\\\Mvp.Selections\\\\data\\\\Temp.mdf");
 
             return new Context(optionsBuilder.Options);
         }

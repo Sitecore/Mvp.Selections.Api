@@ -120,13 +120,6 @@ namespace Mvp.Selections.Data
                 .HasOne(t => t.MvpType)
                 .WithMany()
                 .OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<Title>()
-                .HasOne(t => t.Application)
-                .WithOne(a => a.Title)
-                .HasForeignKey<Title>("ApplicationId");
-            modelBuilder.Entity<Title>()
-                .HasIndex("ApplicationId")
-                .IsUnique();
 
             modelBuilder.Entity<Selection>()
                 .HasAlternateKey(s => s.Year);
