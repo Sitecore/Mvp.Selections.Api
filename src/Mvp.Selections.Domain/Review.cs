@@ -12,5 +12,7 @@
         public User Reviewer { get; set; } = null!;
 
         public ICollection<ReviewCategoryScore> CategoryScores { get; init; } = new List<ReviewCategoryScore>();
+
+        public ReviewSentiment? Sentiment { get; set; }
     }
 }
