@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
@@ -176,7 +172,7 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task<OperationResult<Application>> UpdateAsync(User user, Guid id, Application application)
+        public async Task<OperationResult<Application>> UpdateAsync(User user, Guid id, Application application, IList<string> propertyKeys)
         {
             OperationResult<Application> result = new();
             OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, false);
@@ -186,26 +182,28 @@ namespace Mvp.Selections.Api.Services
                 && (user.HasRight(Right.Admin) || getResult.Result.Selection.AreApplicationsOpen()))
             {
                 updatedApplication = getResult.Result;
-                if (application.Eligibility != null)
+                if (propertyKeys.Any(key => key.Equals(nameof(Application.Eligibility), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     updatedApplication.Eligibility = application.Eligibility;
                 }
 
-                if (application.Mentor != null)
+                if (propertyKeys.Any(key => key.Equals(nameof(Application.Mentor), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     updatedApplication.Mentor = application.Mentor;
                 }
 
-                if (application.Objectives != null)
+                if (propertyKeys.Any(key => key.Equals(nameof(Application.Objectives), StringComparison.InvariantCultureIgnoreCase)))
                 {
                     updatedApplication.Objectives = application.Objectives;
                 }
 
-                updatedApplication.Status = application.Status;
+                if (propertyKeys.Any(key => key.Equals(nameof(Application.Status), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    updatedApplication.Status = application.Status;
+                }
 
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse - MvpType can be null after deserialization
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - MvpType can be null after deserialization
-                if (application.MvpType != null)
+                if (propertyKeys.Any(key => key.Equals(nameof(Application.MvpType), StringComparison.InvariantCultureIgnoreCase)) && application.MvpType != null)
                 {
                     MvpType? mvpType = await mvpTypeService.GetAsync(application.MvpType.Id);
                     if (mvpType != null)
@@ -214,9 +212,7 @@ namespace Mvp.Selections.Api.Services
                     }
                     else
                     {
-                        // ReSharper disable once ConstantConditionalAccessQualifier - MvpType can be null after deserialization
-                        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract - MvpType can be null after deserialization
-                        string message = $"Could not find MvpType '{application.MvpType?.Id}'.";
+                        string message = $"Could not find MvpType '{application.MvpType.Id}'.";
                         result.Messages.Add(message);
                         logger.LogInformation(message);
                     }
