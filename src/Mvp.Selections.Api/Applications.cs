@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Serialization;
 using Mvp.Selections.Api.Serialization.ContractResolvers;
 using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -138,9 +139,9 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply], async authResult =>
             {
-                Application? input = await Serializer.DeserializeAsync<Application>(req.Body);
-                OperationResult<Application> updateResult = input != null
-                    ? await applicationService.UpdateAsync(authResult.User!, id, input)
+                DeserializationResult<Application> input = await Serializer.DeserializeAsync<Application>(req.Body, true);
+                OperationResult<Application> updateResult = input.Object != null
+                    ? await applicationService.UpdateAsync(authResult.User!, id, input.Object, input.PropertyKeys)
                     : new OperationResult<Application>();
                 return ContentResult(updateResult, ApplicationsContractResolver.Instance);
             });
