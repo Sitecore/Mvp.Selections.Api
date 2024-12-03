@@ -120,7 +120,8 @@ namespace Mvp.Selections.Api.Services
                         Application = getApplicationResult.Result,
                         Reviewer = user,
                         Comment = review.Comment,
-                        Status = review.Status
+                        Status = review.Status,
+                        Sentiment = review.Sentiment
                     };
 
                     OperationResult<IList<ScoreCategory>> getScoreCategoriesResult =
@@ -223,6 +224,7 @@ namespace Mvp.Selections.Api.Services
                 }
 
                 existingReview.Status = review.Status;
+                existingReview.Sentiment = review.Sentiment;
 
                 foreach (ReviewCategoryScore reviewCategoryScore in review.CategoryScores)
                 {
