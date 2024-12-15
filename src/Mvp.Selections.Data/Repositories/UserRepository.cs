@@ -118,6 +118,11 @@ namespace Mvp.Selections.Data.Repositories
                 }
             }
 
+            if (merged.Country == null && old.Country != null)
+            {
+                merged.Country = old.Country;
+            }
+
             await RemoveAsync(old.Id);
         }
 
