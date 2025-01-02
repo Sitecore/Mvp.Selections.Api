@@ -76,24 +76,30 @@ namespace Mvp.Selections.Api.Services
             OperationResult<IList<Review>> reviewsResult = await reviewService.GetAllAsync(user, applicant.ApplicationId, 1, short.MaxValue);
             if (reviewsResult is { StatusCode: HttpStatusCode.OK, Result.Count: > 0 })
             {
+                ScoreCard card = new()
+                {
+                    Applicant = applicant,
+                    ReviewCount = reviewsResult.Result.Count
+                };
+
                 foreach (Review review in reviewsResult.Result)
                 {
                     scores.Add(review.Id, CalculateReviewScore(scoreCategories, totalCategoryScoreValue, review));
+                    if (review.Sentiment.HasValue)
+                    {
+                        card.Sentiments[review.Sentiment.Value]++;
+                    }
                 }
 
                 KeyValuePair<Guid, int> max = scores.MaxBy(s => s.Value);
                 KeyValuePair<Guid, int> min = scores.MinBy(s => s.Value);
-                ScoreCard card = new()
-                {
-                    Applicant = applicant,
-                    Average = (int)Math.Round(scores.Values.Average(), 0),
-                    Median = scores.Values.Median(),
-                    Max = max.Value,
-                    MaxReviewId = max.Key,
-                    Min = min.Value,
-                    MinReviewId = min.Key,
-                    ReviewCount = reviewsResult.Result.Count
-                };
+
+                card.Average = (int)Math.Round(scores.Values.Average(), 0);
+                card.Median = scores.Values.Median();
+                card.Max = max.Value;
+                card.MaxReviewId = max.Key;
+                card.Min = min.Value;
+                card.MinReviewId = min.Key;
 
                 result.Result?.Add(card);
             }
@@ -101,13 +107,7 @@ namespace Mvp.Selections.Api.Services
             {
                 ScoreCard card = new()
                 {
-                    Applicant = applicant,
-                    Average = 0,
-                    Median = 0,
-                    Max = 0,
-                    MaxReviewId = Guid.Empty,
-                    Min = 0,
-                    MinReviewId = Guid.Empty
+                    Applicant = applicant
                 };
 
                 result.Result?.Add(card);

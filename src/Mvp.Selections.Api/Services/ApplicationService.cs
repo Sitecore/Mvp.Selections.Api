@@ -306,7 +306,7 @@ namespace Mvp.Selections.Api.Services
         public async Task<OperationResult<Application>> RemoveAsync(User user, Guid id)
         {
             OperationResult<Application> result = new();
-            OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, true);
+            OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, false);
             if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null } && (getResult.Result.Status != ApplicationStatus.Submitted || user.HasRight(Right.Admin)))
             {
                 if (applicationRepository.RemoveAsync(getResult.Result))
