@@ -1,4 +1,5 @@
 ﻿using System;
+using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Model
 {
@@ -46,5 +47,15 @@ namespace Mvp.Selections.Api.Model
         /// Gets or sets the review count.
         /// </summary>
         public int ReviewCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sentiment counts.
+        /// </summary>
+        public Dictionary<ReviewSentiment, int> Sentiments { get; set; } = new()
+        {
+            { ReviewSentiment.Yes, 0 },
+            { ReviewSentiment.Maybe, 0 },
+            { ReviewSentiment.No, 0 }
+        };
     }
 }
