@@ -62,6 +62,15 @@ namespace Mvp.Selections.Client
         #region Users
 
         /// <summary>
+        /// Check if the user is authenticated.
+        /// </summary>
+        /// <returns><see langword="true"/> when a token is provided by the <see cref="ITokenProvider"/>, <see langword="false"/> when <see langword="null"/> or empty.</returns>
+        public async Task<bool> IsAuthenticatedAsync()
+        {
+            return !string.IsNullOrWhiteSpace(await _tokenProvider.GetTokenAsync());
+        }
+
+        /// <summary>
         /// Get a <see cref="User"/> by id.
         /// </summary>
         /// <param name="userId">The id of the desired <see cref="User"/>.</param>
