@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -39,8 +36,8 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(
                 req,
                 [Right.Any],
-                _ => GetInternalAsync(id),
-                _ => GetInternalAsync(id));
+                authResult => GetInternalAsync(id, authResult.User),
+                _ => GetInternalAsync(id, null));
         }
 
         [Function("SearchMvpProfile")]
@@ -51,11 +48,11 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(
                 req,
                 [Right.Any],
-                _ => SearchInternal(req),
-                _ => SearchInternal(req));
+                authResult => SearchInternal(req, authResult.User),
+                _ => SearchInternal(req, null));
         }
 
-        private async Task<IActionResult> SearchInternal(HttpRequest req)
+        private async Task<IActionResult> SearchInternal(HttpRequest req, User? user)
         {
             ListParameters lp = new(req);
             string? text = req.Query.GetFirstValueOrDefault<string>(TextQueryStringKey);
@@ -63,13 +60,16 @@ namespace Mvp.Selections.Api
             IList<short>? years = req.Query.GetValuesOrNull<short>(YearQueryStringKey);
             IList<short>? countryIds = req.Query.GetValuesOrNull<short>(CountryIdQueryStringKey);
 
-            SearchOperationResult<MvpProfile> searchOperationResult = await mvpProfileService.SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, lp.Page, lp.PageSize);
+            bool isAdmin = user?.HasRight(Right.Admin) ?? false;
+            SearchOperationResult<MvpProfile> searchOperationResult =
+                await mvpProfileService.SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, !isAdmin, lp.Page, lp.PageSize);
             return ContentResult(searchOperationResult, MvpProfileContractResolver.Instance);
         }
 
-        private async Task<IActionResult> GetInternalAsync(Guid id)
+        private async Task<IActionResult> GetInternalAsync(Guid id, User? user)
         {
-            OperationResult<MvpProfile> getResult = await mvpProfileService.GetMvpProfileAsync(id);
+            bool isAdmin = user?.HasRight(Right.Admin) ?? false;
+            OperationResult<MvpProfile> getResult = await mvpProfileService.GetMvpProfileAsync(id, !isAdmin);
             return ContentResult(getResult, MvpProfileContractResolver.Instance);
         }
     }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Mvp.Selections.Api.Extensions;
@@ -56,11 +53,10 @@ namespace Mvp.Selections.Api.Cache
             IList<short>? mvpTypeIds = null,
             IList<short>? years = null,
             IList<short>? countryIds = null,
-            int page = 1,
-            short pageSize = 100)
+            bool onlyFinalized = true)
         {
             return
-                $"{options.Value.MvpProfilesCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}";
+                $"{options.Value.MvpProfilesCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}_{onlyFinalized}";
         }
 
         private class CacheInvalidationToken
