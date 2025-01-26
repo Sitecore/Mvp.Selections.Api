@@ -16,459 +16,466 @@ using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Roles;
 using Mvp.Selections.Domain.Utilities;
 
-namespace Mvp.Selections.Api.Services
+namespace Mvp.Selections.Api.Services;
+
+public class UserService(
+    ILogger<UserService> logger,
+    IUserRepository userRepository,
+    ICountryRepository countryRepository,
+    IApplicationRepository applicationRepository,
+    IRoleRepository roleRepository,
+    SearchIngestionClient searchIngestionClient,
+    IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
+    ICacheManager cache,
+    AvatarUriHelper avatarUriHelper)
+    : IUserService, IMvpProfileService
 {
-    public class UserService(
-        ILogger<UserService> logger,
-        IUserRepository userRepository,
-        ICountryRepository countryRepository,
-        IApplicationRepository applicationRepository,
-        IRoleRepository roleRepository,
-        SearchIngestionClient searchIngestionClient,
-        IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
-        ICacheManager cache,
-        AvatarUriHelper avatarUriHelper)
-        : IUserService, IMvpProfileService
+    private readonly Expression<Func<User, object>>[] _standardIncludes =
+    [
+        u => u.Country!.Region!,
+        u => u.Links,
+        u => u.Roles
+    ];
+
+    private readonly SearchIngestionClientOptions _searchIngestionClientOptions = searchIngestionClientOptions.Value;
+
+    public Task<User?> GetAsync(Guid id)
     {
-        private readonly Expression<Func<User, object>>[] _standardIncludes =
-        [
-            u => u.Country!.Region!,
-            u => u.Links,
-            u => u.Roles
-        ];
+        return userRepository.GetAsync(id, _standardIncludes);
+    }
 
-        private readonly SearchIngestionClientOptions _searchIngestionClientOptions = searchIngestionClientOptions.Value;
+    public Task<IList<User>> GetAllAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100)
+    {
+        return userRepository.GetAllAsync(name, email, countryId, page, pageSize, _standardIncludes);
+    }
 
-        public Task<User?> GetAsync(Guid id)
+    public async Task<OperationResult<User>> AddAsync(User user)
+    {
+        OperationResult<User> result = new();
+        User newUser = new(Guid.Empty)
         {
-            return userRepository.GetAsync(id, _standardIncludes);
+            Name = user.Name,
+            Email = user.Email,
+            Identifier = user.Identifier,
+            ImageType = user.ImageType
+        };
+
+        newUser.ImageUri = await avatarUriHelper.GetImageUri(newUser);
+
+        if (user.Country != null)
+        {
+            Country? country = await countryRepository.GetAsync(user.Country.Id);
+            if (country != null)
+            {
+                newUser.Country = country;
+            }
+            else
+            {
+                string message = $"Country '{user.Country?.Id}' not found.";
+                logger.LogInformation("{Message}", message);
+                result.Messages.Add(message);
+            }
         }
 
-        public Task<IList<User>> GetAllAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100)
+        if (result.Messages.Count == 0)
         {
-            return userRepository.GetAllAsync(name, email, countryId, page, pageSize, _standardIncludes);
+            result.Result = userRepository.Add(newUser);
+            await userRepository.SaveChangesAsync();
+            result.StatusCode = HttpStatusCode.Created;
         }
 
-        public async Task<OperationResult<User>> AddAsync(User user)
+        return result;
+    }
+
+    public async Task<OperationResult<User>> UpdateAsync(Guid id, User user, IList<string> propertyKeys)
+    {
+        OperationResult<User> result = new();
+        User? existingUser = await GetAsync(id);
+        if (existingUser != null)
         {
-            OperationResult<User> result = new();
-            User newUser = new(Guid.Empty)
+            if (user.HasRight(Right.Admin))
             {
-                Name = user.Name,
-                Email = user.Email,
-                Identifier = user.Identifier,
-                ImageType = user.ImageType
-            };
+                existingUser.Identifier = user.Identifier;
+            }
 
-            newUser.ImageUri = await avatarUriHelper.GetImageUri(newUser);
-
-            if (user.Country != null)
+            if (propertyKeys.Any(key => key.Equals(nameof(User.Name), StringComparison.InvariantCultureIgnoreCase)))
             {
-                Country? country = await countryRepository.GetAsync(user.Country.Id);
+                existingUser.Name = user.Name;
+            }
+
+            if (propertyKeys.Any(key => key.Equals(nameof(User.Email), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                existingUser.Email = user.Email;
+            }
+
+            if (propertyKeys.Any(key => key.Equals(nameof(User.ImageType), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                existingUser.ImageType = user.ImageType;
+                existingUser.ImageUri = await avatarUriHelper.GetImageUri(existingUser);
+            }
+
+            if (propertyKeys.Any(key => key.Equals(nameof(User.Country), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                Country? country = user.Country != null ? await countryRepository.GetAsync(user.Country.Id) : null;
                 if (country != null)
                 {
-                    newUser.Country = country;
+                    existingUser.Country = country;
                 }
                 else
                 {
-                    string message = $"Country '{user.Country?.Id}' not found.";
-                    logger.LogInformation("{Message}", message);
+                    string message = $"Could not find Country '{user.Country?.Id}'.";
                     result.Messages.Add(message);
+                    logger.LogInformation("{Message}", message);
                 }
             }
-
-            if (result.Messages.Count == 0)
-            {
-                result.Result = userRepository.Add(newUser);
-                await userRepository.SaveChangesAsync();
-                result.StatusCode = HttpStatusCode.Created;
-            }
-
-            return result;
+        }
+        else
+        {
+            string message = $"Could not find User '{id}'.";
+            result.Messages.Add(message);
+            logger.LogInformation("{Message}", message);
         }
 
-        public async Task<OperationResult<User>> UpdateAsync(Guid id, User user, IList<string> propertyKeys)
+        if (result.Messages.Count == 0)
         {
-            OperationResult<User> result = new();
-            User? existingUser = await GetAsync(id);
-            if (existingUser != null)
+            await userRepository.SaveChangesAsync();
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = existingUser;
+            cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId)
+    {
+        OperationResult<IList<User>> result = new();
+        Application? application = await applicationRepository.GetAsync(applicationId, a => a.Country.Region!, a => a.MvpType, a => a.Selection);
+        if (application != null)
+        {
+            IList<SelectionRole> selectionRoles = await roleRepository.GetAllSelectionRolesForApplicationReadOnlyAsync(
+                application.Country.Id,
+                application.MvpType.Id,
+                application.Country.Region?.Id,
+                application.Selection.Id,
+                applicationId);
+            result.Result = await userRepository.GetAllForRolesReadOnlyAsync(selectionRoles.Select(sr => sr.Id), u => u.Roles);
+            result.StatusCode = HttpStatusCode.OK;
+        }
+        else
+        {
+            string message = $"Could not find Application '{applicationId}'.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.NotFound;
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId)
+    {
+        OperationResult<User> result = new();
+        User? old = await userRepository.GetAsync(oldId, u => u.Roles);
+        User? merged = await userRepository.GetAsync(newId, u => u.Consents, u => u.Roles);
+        if (old != null && merged != null)
+        {
+            await userRepository.MergeAsync(old, merged);
+            await userRepository.SaveChangesAsync();
+            merged = await userRepository.GetAsync(newId, _standardIncludes);
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = merged;
+            cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
+        }
+        else if (merged == null)
+        {
+            string message = $"Could not find target User '{newId}' to merge User '{oldId}' into.";
+            logger.LogInformation("{Message}", message);
+            result.Messages.Add(message);
+        }
+        else
+        {
+            string message = $"Could not find old User '{oldId}' to merge.";
+            logger.LogInformation("{Message}", message);
+            result.Messages.Add(message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id, bool onlyFinalized = true)
+    {
+        OperationResult<MvpProfile> result = new();
+        User? user = await userRepository.GetForMvpProfileReadOnlyAsync(id);
+        if (user?.Applications.Where(a => !onlyFinalized || a.Selection.Finalized).All(a => a.Titles.Count == 0) ?? true)
+        {
+            result.StatusCode = HttpStatusCode.NotFound;
+        }
+        else
+        {
+            MvpProfile profile = new()
             {
-                if (user.HasRight(Right.Admin))
-                {
-                    existingUser.Identifier = user.Identifier;
-                }
-
-                if (propertyKeys.Any(key => key.Equals(nameof(User.Name), StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    existingUser.Name = user.Name;
-                }
-
-                if (propertyKeys.Any(key => key.Equals(nameof(User.Email), StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    existingUser.Email = user.Email;
-                }
-
-                if (propertyKeys.Any(key => key.Equals(nameof(User.ImageType), StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    existingUser.ImageType = user.ImageType;
-                    existingUser.ImageUri = await avatarUriHelper.GetImageUri(existingUser);
-                }
-
-                if (propertyKeys.Any(key => key.Equals(nameof(User.Country), StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    Country? country = user.Country != null ? await countryRepository.GetAsync(user.Country.Id) : null;
-                    if (country != null)
+                Id = user.Id,
+                Name = user.Name,
+                Country = user.Country,
+                ImageUri = user.ImageUri,
+                ProfileLinks = user.Links,
+                Titles = user.Applications.Where(a => (!onlyFinalized || a.Selection.Finalized) && a.Titles.Count > 0).Aggregate(
+                    new List<Title>(),
+                    (list, a) =>
                     {
-                        existingUser.Country = country;
-                    }
-                    else
+                        list.AddRange(a.Titles);
+                        return list;
+                    }),
+                PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)]
+            };
+
+            result.Result = profile;
+            result.StatusCode = HttpStatusCode.OK;
+        }
+
+        return result;
+    }
+
+    public async Task<SearchOperationResult<MvpProfile>> SearchMvpProfileAsync(
+        string? text = null,
+        IList<short>? mvpTypeIds = null,
+        IList<short>? years = null,
+        IList<short>? countryIds = null,
+        bool onlyFinalized = true,
+        int page = 1,
+        short pageSize = 100)
+    {
+        SearchOperationResult<MvpProfile> operationResult = new();
+        string cacheKey = cache.GetMvpProfileSearchResultsKey(text, mvpTypeIds, years, countryIds, onlyFinalized);
+        if (!cache.TryGet(cacheKey, out List<MvpProfile>? profiles))
+        {
+            IList<User> mvpUsers = await userRepository.GetWithTitleReadOnlyAsync(
+                text,
+                mvpTypeIds,
+                years,
+                countryIds,
+                onlyFinalized,
+                1,
+                short.MaxValue);
+            profiles = mvpUsers.Select(u => new MvpProfile
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Country = u.Country,
+                ImageUri = u.ImageUri,
+                ProfileLinks = u.Links,
+                Titles = u.Applications.Aggregate(
+                    new List<Title>(),
+                    (list, a) =>
                     {
-                        string message = $"Could not find Country '{user.Country?.Id}'.";
-                        result.Messages.Add(message);
-                        logger.LogInformation("{Message}", message);
-                    }
-                }
-            }
-            else
-            {
-                string message = $"Could not find User '{id}'.";
-                result.Messages.Add(message);
-                logger.LogInformation("{Message}", message);
-            }
-
-            if (result.Messages.Count == 0)
-            {
-                await userRepository.SaveChangesAsync();
-                result.StatusCode = HttpStatusCode.OK;
-                result.Result = existingUser;
-                cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
-            }
-
-            return result;
+                        list.AddRange(a.Titles);
+                        return list;
+                    }),
+            }).ToList();
+            cache.Set(CacheManager.CacheCollection.MvpProfileSearchResults, cacheKey, profiles);
         }
 
-        public async Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId)
+        profiles ??= [];
+        operationResult.Result.Facets.AddRange(CalculateFacets(cacheKey, profiles));
+
+        page--;
+        operationResult.Result.Results.AddRange(profiles.Skip(page * pageSize).Take(pageSize));
+        operationResult.Result.TotalResults = profiles.Count;
+        operationResult.Result.Page = page + 1;
+        operationResult.Result.PageSize = pageSize;
+        operationResult.StatusCode = HttpStatusCode.OK;
+
+        return operationResult;
+    }
+
+    public async Task<OperationResult<object>> IndexAsync()
+    {
+        OperationResult<object> result = new();
+        int count = 0;
+        int page = 1;
+        IList<User> users;
+        Dictionary<Task, string> runningTasks = [];
+        do
         {
-            OperationResult<IList<User>> result = new();
-            Application? application = await applicationRepository.GetAsync(applicationId, a => a.Country.Region!, a => a.MvpType, a => a.Selection);
-            if (application != null)
+            users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, true, page, 1000, u => u.Country!);
+            count += users.Count;
+            foreach (User user in users)
             {
-                IList<SelectionRole> selectionRoles = await roleRepository.GetAllSelectionRolesForApplicationReadOnlyAsync(
-                    application.Country.Id,
-                    application.MvpType.Id,
-                    application.Country.Region?.Id,
-                    application.Selection.Id,
-                    applicationId);
-                result.Result = await userRepository.GetAllForRolesReadOnlyAsync(selectionRoles.Select(sr => sr.Id), u => u.Roles);
-                result.StatusCode = HttpStatusCode.OK;
-            }
-            else
-            {
-                string message = $"Could not find Application '{applicationId}'.";
-                result.Messages.Add(message);
-                result.StatusCode = HttpStatusCode.NotFound;
-            }
-
-            return result;
-        }
-
-        public async Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId)
-        {
-            OperationResult<User> result = new();
-            User? old = await userRepository.GetAsync(oldId, u => u.Roles);
-            User? merged = await userRepository.GetAsync(newId, u => u.Consents, u => u.Roles);
-            if (old != null && merged != null)
-            {
-                await userRepository.MergeAsync(old, merged);
-                await userRepository.SaveChangesAsync();
-                merged = await userRepository.GetAsync(newId, _standardIncludes);
-                result.StatusCode = HttpStatusCode.OK;
-                result.Result = merged;
-                cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
-            }
-            else if (merged == null)
-            {
-                string message = $"Could not find target User '{newId}' to merge User '{oldId}' into.";
-                logger.LogInformation("{Message}", message);
-                result.Messages.Add(message);
-            }
-            else
-            {
-                string message = $"Could not find old User '{oldId}' to merge.";
-                logger.LogInformation("{Message}", message);
-                result.Messages.Add(message);
-            }
-
-            return result;
-        }
-
-        public async Task<OperationResult<MvpProfile>> GetMvpProfileAsync(Guid id)
-        {
-            OperationResult<MvpProfile> result = new();
-            User? user = await userRepository.GetForMvpProfileReadOnlyAsync(id);
-            if (user?.Applications.All(a => a.Titles.Count == 0) ?? true)
-            {
-                result.StatusCode = HttpStatusCode.NotFound;
-            }
-            else
-            {
-                MvpProfile profile = new()
+                List<Application> awardedApplications = user.Applications.Where(a => a.Titles.Count > 0).ToList();
+                Document document = new()
                 {
-                    Id = user.Id,
-                    Name = user.Name,
-                    Country = user.Country,
-                    ImageUri = user.ImageUri,
-                    ProfileLinks = user.Links,
-                    Titles = user.Applications.Where(a => a.Titles.Count > 0).Aggregate(
-                        new List<Title>(),
-                        (list, a) =>
-                        {
-                            list.AddRange(a.Titles);
-                            return list;
-                        }),
-                    PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)]
+                    Id = user.Id.ToString(),
+                    Fields = new
+                    {
+                        type = _searchIngestionClientOptions.MvpContentType,
+                        image_url = user.ImageUri?.ToString() ?? _searchIngestionClientOptions.MvpDefaultImage,
+                        name = user.Name,
+                        url = string.Format(_searchIngestionClientOptions.MvpUrlFormat, user.Id),
+                        country = user.Country?.Name,
+                        mvp_titles = awardedApplications.Select(a => a.Titles.Aggregate(
+                            new List<object>(),
+                            (list, t) =>
+                            {
+                                list.Add(new { year = a.Selection.Year, type = t.MvpType.Name });
+                                return list;
+                            })),
+                        mvp_type_collection = awardedApplications.Select(a => a.Titles.Aggregate(
+                            new List<string>(),
+                            (list, t) =>
+                            {
+                                list.Add(t.MvpType.Name);
+                                return list;
+                            })),
+                        mvp_year_collection = awardedApplications.Select(a => a.Selection.Year),
+                        mvp_year_type_collection = awardedApplications.Select(a => a.Titles.Aggregate(
+                            new List<string>(),
+                            (list, t) =>
+                            {
+                                list.Add($"{a.Selection.Year}_{t.MvpType.Name}");
+                                return list;
+                            }))
+                    }
                 };
-
-                result.Result = profile;
-                result.StatusCode = HttpStatusCode.OK;
+                Task<Response<bool>> updateDocumentTask = searchIngestionClient.UpdateDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, document);
+                runningTasks.Add(updateDocumentTask, document.Id);
             }
 
-            return result;
-        }
-
-        public async Task<SearchOperationResult<MvpProfile>> SearchMvpProfileAsync(
-            string? text = null,
-            IList<short>? mvpTypeIds = null,
-            IList<short>? years = null,
-            IList<short>? countryIds = null,
-            int page = 1,
-            short pageSize = 100)
-        {
-            SearchOperationResult<MvpProfile> operationResult = new();
-            string cacheKey = cache.GetMvpProfileSearchResultsKey(text, mvpTypeIds, years, countryIds, page, pageSize);
-            if (!cache.TryGet(cacheKey, out List<MvpProfile>? profiles))
+            while (runningTasks.Count > 0)
             {
-                IList<User> mvpUsers = await userRepository.GetWithTitleReadOnlyAsync(text, mvpTypeIds, years, countryIds, 1, short.MaxValue, u => u.Country!);
-                profiles = mvpUsers.Select(u => new MvpProfile
+                Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
+                Response<bool> response = await doneTask;
+                if (!response.Result)
                 {
-                    Id = u.Id,
-                    Name = u.Name,
-                    Country = u.Country,
-                    ImageUri = u.ImageUri,
-                    ProfileLinks = u.Links,
-                    Titles = u.Applications.Where(a => a.Titles.Count > 0).Aggregate(
-                        new List<Title>(),
-                        (list, a) =>
-                        {
-                            list.AddRange(a.Titles);
-                            return list;
-                        }),
-                }).ToList();
-                cache.Set(CacheManager.CacheCollection.MvpProfileSearchResults, cacheKey, profiles);
-            }
-
-            profiles ??= [];
-            operationResult.Result.Facets.AddRange(CalculateFacets(cacheKey, profiles));
-
-            page--;
-            operationResult.Result.Results.AddRange(profiles.Skip(page * pageSize).Take(pageSize));
-            operationResult.Result.TotalResults = profiles.Count;
-            operationResult.Result.Page = page + 1;
-            operationResult.Result.PageSize = pageSize;
-            operationResult.StatusCode = HttpStatusCode.OK;
-
-            return operationResult;
-        }
-
-        public async Task<OperationResult<object>> IndexAsync()
-        {
-            OperationResult<object> result = new();
-            int count = 0;
-            int page = 1;
-            IList<User> users;
-            Dictionary<Task, string> runningTasks = [];
-            do
-            {
-                users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, page, 1000, u => u.Country!);
-                count += users.Count;
-                foreach (User user in users)
-                {
-                    List<Application> awardedApplications = user.Applications.Where(a => a.Titles.Count > 0).ToList();
-                    Document document = new()
-                    {
-                        Id = user.Id.ToString(),
-                        Fields = new
-                        {
-                            type = _searchIngestionClientOptions.MvpContentType,
-                            image_url = user.ImageUri?.ToString() ?? _searchIngestionClientOptions.MvpDefaultImage,
-                            name = user.Name,
-                            url = string.Format(_searchIngestionClientOptions.MvpUrlFormat, user.Id),
-                            country = user.Country?.Name,
-                            mvp_titles = awardedApplications.Select(a => a.Titles.Aggregate(
-                                new List<object>(),
-                                (list, t) =>
-                                {
-                                    list.Add(new { year = a.Selection.Year, type = t.MvpType.Name });
-                                    return list;
-                                })),
-                            mvp_type_collection = awardedApplications.Select(a => a.Titles.Aggregate(
-                                new List<string>(),
-                                (list, t) =>
-                                {
-                                    list.Add(t.MvpType.Name);
-                                    return list;
-                                })),
-                            mvp_year_collection = awardedApplications.Select(a => a.Selection.Year),
-                            mvp_year_type_collection = awardedApplications.Select(a => a.Titles.Aggregate(
-                                new List<string>(),
-                                (list, t) =>
-                                {
-                                    list.Add($"{a.Selection.Year}_{t.MvpType.Name}");
-                                    return list;
-                                }))
-                        }
-                    };
-                    Task<Response<bool>> updateDocumentTask = searchIngestionClient.UpdateDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, document);
-                    runningTasks.Add(updateDocumentTask, document.Id);
+                    result.Messages.Add($"Failed to update {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
                 }
 
-                while (runningTasks.Count > 0)
-                {
-                    Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
-                    Response<bool> response = await doneTask;
-                    if (!response.Result)
-                    {
-                        result.Messages.Add($"Failed to update {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
-                    }
+                runningTasks.Remove(doneTask);
+            }
 
-                    runningTasks.Remove(doneTask);
+            page++;
+            runningTasks.Clear();
+        }
+        while (users.Count > 0);
+
+        if (result.Messages.Count == 0)
+        {
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = new { records = count };
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<object>> ClearIndexAsync()
+    {
+        OperationResult<object> result = new();
+        int count = 0;
+        int page = 1;
+        IList<User> users;
+        Dictionary<Task, string> runningTasks = [];
+        do
+        {
+            users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, true, page, 1000);
+            count += users.Count;
+            foreach (User user in users)
+            {
+                string id = user.Id.ToString();
+                Task<Response<bool>> deleteDocumentTask = searchIngestionClient.DeleteDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, id);
+                runningTasks.Add(deleteDocumentTask, id);
+            }
+
+            while (runningTasks.Count > 0)
+            {
+                Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
+                Response<bool> response = await doneTask;
+                if (!response.Result)
+                {
+                    result.Messages.Add($"Failed to delete {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
                 }
 
-                page++;
-                runningTasks.Clear();
-            }
-            while (users.Count > 0);
-
-            if (result.Messages.Count == 0)
-            {
-                result.StatusCode = HttpStatusCode.OK;
-                result.Result = new { records = count };
+                runningTasks.Remove(doneTask);
             }
 
-            return result;
+            page++;
+            runningTasks.Clear();
         }
+        while (users.Count > 0);
 
-        public async Task<OperationResult<object>> ClearIndexAsync()
+        if (result.Messages.Count == 0)
         {
-            OperationResult<object> result = new();
-            int count = 0;
-            int page = 1;
-            IList<User> users;
-            Dictionary<Task, string> runningTasks = [];
-            do
-            {
-                users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, page, 1000);
-                count += users.Count;
-                foreach (User user in users)
-                {
-                    string id = user.Id.ToString();
-                    Task<Response<bool>> deleteDocumentTask = searchIngestionClient.DeleteDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, id);
-                    runningTasks.Add(deleteDocumentTask, id);
-                }
-
-                while (runningTasks.Count > 0)
-                {
-                    Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
-                    Response<bool> response = await doneTask;
-                    if (!response.Result)
-                    {
-                        result.Messages.Add($"Failed to delete {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
-                    }
-
-                    runningTasks.Remove(doneTask);
-                }
-
-                page++;
-                runningTasks.Clear();
-            }
-            while (users.Count > 0);
-
-            if (result.Messages.Count == 0)
-            {
-                result.StatusCode = HttpStatusCode.OK;
-                result.Result = new { records = count };
-            }
-
-            return result;
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = new { records = count };
         }
 
-        private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)
+        return result;
+    }
+
+    private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)
+    {
+        SearchFacet result = new() { Identifier = IMvpProfileService.YearFacetIdentifier };
+        foreach (Title title in profiles.SelectMany(p => p.Titles))
         {
-            SearchFacet result = new() { Identifier = IMvpProfileService.YearFacetIdentifier };
-            foreach (Title title in profiles.SelectMany(p => p.Titles))
+            string key = title.Application.Selection.Year.ToString();
+            if (!result.Options.TryAdd(key, new SearchFacetOption { Identifier = key, Display = key, Count = 1 }, o => o.Identifier))
             {
-                string key = title.Application.Selection.Year.ToString();
-                if (!result.Options.TryAdd(key, new SearchFacetOption { Identifier = key, Display = key, Count = 1 }, o => o.Identifier))
-                {
-                    result.Options.Single(o => o.Identifier == key).Count++;
-                }
+                result.Options.Single(o => o.Identifier == key).Count++;
             }
-
-            return result;
         }
 
-        private static SearchFacet CalculateTypeFacet(IReadOnlyCollection<MvpProfile> profiles)
+        return result;
+    }
+
+    private static SearchFacet CalculateTypeFacet(IReadOnlyCollection<MvpProfile> profiles)
+    {
+        SearchFacet result = new() { Identifier = IMvpProfileService.TypeFacetIdentifier };
+        List<MvpType> distinctTypes = profiles
+            .SelectMany(p => p.Titles.Select(t => t.MvpType))
+            .Distinct(new IdEqualityComparer<MvpType, short>())
+            .ToList();
+        IEnumerable<MvpType> countedTypes =
+            from type in distinctTypes
+            from _ in profiles
+                .Where(profile => profile.Titles.Any(t => t.MvpType.Id == type.Id))
+                .Where(_ => !result.Options.TryAdd(type.Id.ToString(), new SearchFacetOption { Identifier = type.Id.ToString(), Display = type.Name, Count = 1 }, o => o.Identifier))
+            select type;
+        foreach (MvpType type in countedTypes)
         {
-            SearchFacet result = new() { Identifier = IMvpProfileService.TypeFacetIdentifier };
-            List<MvpType> distinctTypes = profiles
-                .SelectMany(p => p.Titles.Select(t => t.MvpType))
-                .Distinct(new IdEqualityComparer<MvpType, short>())
-                .ToList();
-            IEnumerable<MvpType> countedTypes =
-                from type in distinctTypes
-                from _ in profiles
-                    .Where(profile => profile.Titles.Any(t => t.MvpType.Id == type.Id))
-                    .Where(_ => !result.Options.TryAdd(type.Id.ToString(), new SearchFacetOption { Identifier = type.Id.ToString(), Display = type.Name, Count = 1 }, o => o.Identifier))
-                select type;
-            foreach (MvpType type in countedTypes)
-            {
-                result.Options.Single(o => o.Identifier == type.Id.ToString()).Count++;
-            }
-
-            return result;
+            result.Options.Single(o => o.Identifier == type.Id.ToString()).Count++;
         }
 
-        private static SearchFacet CalculateCountryFacet(IEnumerable<MvpProfile> profiles)
+        return result;
+    }
+
+    private static SearchFacet CalculateCountryFacet(IEnumerable<MvpProfile> profiles)
+    {
+        SearchFacet result = new() { Identifier = IMvpProfileService.CountryFacetIdentifier };
+        foreach (Country? country in profiles.Select(p => p.Country))
         {
-            SearchFacet result = new() { Identifier = IMvpProfileService.CountryFacetIdentifier };
-            foreach (Country? country in profiles.Select(p => p.Country))
+            if (country != null && !result.Options.TryAdd(country.Id.ToString(), new SearchFacetOption { Identifier = country.Id.ToString(), Display = country.Name, Count = 1 }, o => o.Identifier))
             {
-                if (country != null && !result.Options.TryAdd(country.Id.ToString(), new SearchFacetOption { Identifier = country.Id.ToString(), Display = country.Name, Count = 1 }, o => o.Identifier))
-                {
-                    result.Options.Single(o => o.Identifier == country.Id.ToString()).Count++;
-                }
+                result.Options.Single(o => o.Identifier == country.Id.ToString()).Count++;
             }
-
-            return result;
         }
 
-        // ReSharper disable once ReturnTypeCanBeEnumerable.Local - Concrete return type is more performant.
-        private List<SearchFacet> CalculateFacets(string cacheKey, IReadOnlyCollection<MvpProfile> profiles)
+        return result;
+    }
+
+    // ReSharper disable once ReturnTypeCanBeEnumerable.Local - Concrete return type is more performant.
+    private List<SearchFacet> CalculateFacets(string cacheKey, IReadOnlyCollection<MvpProfile> profiles)
+    {
+        string facetsCacheKey = $"{cacheKey}_facets";
+        if (!cache.TryGet(facetsCacheKey, out List<SearchFacet>? facets))
         {
-            string facetsCacheKey = $"{cacheKey}_facets";
-            if (!cache.TryGet(facetsCacheKey, out List<SearchFacet>? facets))
-            {
-                facets ??= [];
-                facets.Add(CalculateYearFacet(profiles));
-                facets.Add(CalculateTypeFacet(profiles));
-                facets.Add(CalculateCountryFacet(profiles));
-                cache.Set(
-                    CacheManager.CacheCollection.MvpProfileSearchResults,
-                    facetsCacheKey,
-                    facets);
-            }
-
-            return facets ?? [];
+            facets ??= [];
+            facets.Add(CalculateYearFacet(profiles));
+            facets.Add(CalculateTypeFacet(profiles));
+            facets.Add(CalculateCountryFacet(profiles));
+            cache.Set(
+                CacheManager.CacheCollection.MvpProfileSearchResults,
+                facetsCacheKey,
+                facets);
         }
+
+        return facets ?? [];
     }
 }

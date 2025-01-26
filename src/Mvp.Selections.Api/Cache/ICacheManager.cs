@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Mvp.Selections.Api.Cache;
+﻿namespace Mvp.Selections.Api.Cache;
 
 public interface ICacheManager
 {
@@ -15,6 +13,5 @@ public interface ICacheManager
         IList<short>? mvpTypeIds = null,
         IList<short>? years = null,
         IList<short>? countryIds = null,
-        int page = 1,
-        short pageSize = 100);
+        bool onlyFinalized = true);
 }

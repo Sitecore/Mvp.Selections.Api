@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -96,8 +93,9 @@ namespace Mvp.Selections.Api
             IList<short> mvpTypeIds = req.Query.GetValuesOrEmpty<short>("mvpTypeId");
             IList<short> years = req.Query.GetValuesOrEmpty<short>("year");
             IList<short> countryIds = req.Query.GetValuesOrEmpty<short>("countryId");
-            IList<Title> titles = await titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, lp.Page, lp.PageSize);
-            return ContentResult(titles, user?.HasRight(Right.Admin) ?? false ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
+            bool isAdmin = user?.HasRight(Right.Admin) ?? false;
+            IList<Title> titles = await titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, !isAdmin, lp.Page, lp.PageSize);
+            return ContentResult(titles, isAdmin ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
         }
     }
 }
