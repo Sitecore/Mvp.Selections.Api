@@ -216,6 +216,7 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             .ThenInclude(a => a.Selection)
             .Include(u => u.Applications)
             .ThenInclude(a => a.Country)
+            .Include(u => u.Country)
             .Includes(includes);
     }
 }
