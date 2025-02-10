@@ -1402,6 +1402,79 @@ namespace Mvp.Selections.Client
 
         #endregion MvpProfile
 
+        #region Mentor
+
+        /// <summary>
+        /// Get a <see cref="Mentor"/> by id.
+        /// </summary>
+        /// <param name="mentorId">The id of the desired <see cref="Mentor"/>.</param>
+        /// <returns>A <see cref="Response{T}"/> of type <see cref="Mentor"/>.</returns>
+        public Task<Response<Mentor>> GetMentorAsync(Guid mentorId)
+        {
+            return GetAsync<Mentor>($"/api/v1/mentors/{mentorId}");
+        }
+
+        /// <summary>
+        /// Get an <see cref="IList{T}"/> of <see cref="Mentor"/>s optionally filtered by the parameters.
+        /// </summary>
+        /// <param name="name">The name filter.</param>
+        /// <param name="email">The email filter.</param>
+        /// <param name="countryId"><see cref="Country"/> id filter.</param>
+        /// <param name="page">Page to retrieve. 1 by default.</param>
+        /// <param name="pageSize">Page size to retrieve. 100 by default.</param>
+        /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Mentor"/>.</returns>
+        public Task<Response<IList<Mentor>>> GetMentorsAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100)
+        {
+            ListParameters listParameters = new() { Page = page, PageSize = pageSize };
+            return GetMentorsAsync(name, email, countryId, listParameters);
+        }
+
+        /// <summary>
+        /// Get an <see cref="IList{T}"/> of <see cref="Mentor"/>s optionally filtered by the parameters.
+        /// </summary>
+        /// <param name="name">The name filter.</param>
+        /// <param name="email">The email filter.</param>
+        /// <param name="countryId">The id of the <see cref="Country"/> filter.</param>
+        /// <param name="listParameters">List parameters.</param>
+        /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="Mentor"/>.</returns>
+        public Task<Response<IList<Mentor>>> GetMentorsAsync(string? name, string? email, short? countryId, ListParameters listParameters)
+        {
+            return GetAsync<IList<Mentor>>(
+                $"/api/v1/mentors{listParameters.ToQueryString(true)}{name.ToQueryString("name")}{email.ToQueryString("email")}{countryId.ToQueryString("countryId")}");
+        }
+
+        /// <summary>
+        /// Add a <see cref="Mentor"/>.
+        /// </summary>
+        /// <param name="mentor">The <see cref="Mentor"/> data to add.</param>
+        /// <returns>A <see cref="Response{T}"/> of type <see cref="Mentor"/> representing the added data.</returns>
+        public Task<Response<Mentor>> AddMentorAsync(Mentor mentor)
+        {
+            return PostAsync<Mentor>("/api/v1/mentors", mentor);
+        }
+
+        /// <summary>
+        /// Update a <see cref="Mentor"/>.
+        /// </summary>
+        /// <param name="mentor">The <see cref="Mentor"/> data to update.</param>
+        /// <returns>A <see cref="Response{T}"/> of type <see cref="Mentor"/> representing the updated data.</returns>
+        public Task<Response<Mentor>> UpdateMentorAsync(Mentor mentor)
+        {
+            return PatchAsync<Mentor>($"/api/v1/mentors/{mentor.Id}", mentor);
+        }
+
+        /// <summary>
+        /// Remove a <see cref="Mentor"/>.
+        /// </summary>
+        /// <param name="mentorId">The id of the <see cref="Mentor"/>.</param>
+        /// <returns>A <see cref="Response{T}"/> of type <see cref="bool"/> where true means success.</returns>
+        public Task<Response<bool>> RemoveMentorAsync(int mentorId)
+        {
+            return DeleteAsync($"/api/v1/mentors/{mentorId}");
+        }
+
+        #endregion Mentor
+
         #region Private
 
         private async Task<Response<T>> GetAsync<T>(string requestUri)
