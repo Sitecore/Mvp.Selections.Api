@@ -21,6 +21,7 @@
     <Compile Include="..\Mvp.Selections.Api\Model\SearchResult.cs" Link="Models\SearchResult.cs" />
     <Compile Include="..\Mvp.Selections.Api\Model\SearchFacet.cs" Link="Models\SearchFacet.cs" />
     <Compile Include="..\Mvp.Selections.Api\Model\SearchFacetOption.cs" Link="Models\SearchFacetOption.cs" />
+    <Compile Include="..\Mvp.Selections.Api\Model\Mentor.cs" Link="Models\Mentor.cs" />
   </ItemGroup>
 
   <ItemGroup>

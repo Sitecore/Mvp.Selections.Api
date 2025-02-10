@@ -32,5 +32,7 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
             params Expression<Func<User, object>>[] includes);
 
         Task MergeAsync(User old, User merged);
+
+        Task<IList<User>> GetMentorsReadOnlyAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes);
     }
 }

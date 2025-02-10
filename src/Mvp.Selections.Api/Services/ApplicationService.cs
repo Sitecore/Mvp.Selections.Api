@@ -430,12 +430,16 @@ namespace Mvp.Selections.Api.Services
 
         private async Task<OperationResult<Application>> GetInternalAsync(User user, Guid id, Expression<Func<Application, object>>[]? includes, bool isReadOnly)
         {
-            OperationResult<Application> result = new();
+            OperationResult<Application> result = new() { StatusCode = HttpStatusCode.BadRequest };
             Application? application = isReadOnly ?
                 await applicationRepository.GetReadOnlyAsync(id, includes ?? _standardIncludes) :
                 await applicationRepository.GetAsync(id, includes ?? _standardIncludes);
 
-            if (CanSeeApplication(user, application))
+            if (application == null)
+            {
+                result.StatusCode = HttpStatusCode.NotFound;
+            }
+            else if (CanSeeApplication(user, application))
             {
                 result.Result = application;
                 result.StatusCode = HttpStatusCode.OK;
@@ -443,7 +447,7 @@ namespace Mvp.Selections.Api.Services
             else
             {
                 result.StatusCode = HttpStatusCode.Forbidden;
-                logger.LogWarning($"User '{user.Id}' tried to access Application '{id}' to which there is no access.");
+                logger.LogWarning("User '{UserId}' tried to access Application '{Id}' to which there is no access.", user.Id, id);
             }
 
             return result;

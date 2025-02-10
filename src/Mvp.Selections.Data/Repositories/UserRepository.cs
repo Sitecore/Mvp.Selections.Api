@@ -13,12 +13,12 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
 {
     public async Task<IList<User>> GetAllAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
     {
-        return await GetAllQuery(name, email, countryId, page, pageSize, includes).ToListAsync();
+        return await GetAllQuery(name, email, countryId, null, page, pageSize, includes).ToListAsync();
     }
 
     public async Task<IList<User>> GetAllReadOnlyAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes)
     {
-        return await GetAllQuery(name, email, countryId, page, pageSize, includes).AsNoTracking().ToListAsync();
+        return await GetAllQuery(name, email, countryId, null, page, pageSize, includes).AsNoTracking().ToListAsync();
     }
 
     public async Task<User?> GetAsync(string identifier, params Expression<Func<User, object>>[] includes)
@@ -124,7 +124,25 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             merged.Country = old.Country;
         }
 
+        if (!merged.IsMentor && old.IsMentor)
+        {
+            merged.IsMentor = old.IsMentor;
+            merged.IsOpenToNewMentees = old.IsOpenToNewMentees;
+            merged.MentorDescription = old.MentorDescription;
+        }
+
         await RemoveAsync(old.Id);
+    }
+
+    public async Task<IList<User>> GetMentorsReadOnlyAsync(
+        string? name = null,
+        string? email = null,
+        short? countryId = null,
+        int page = 1,
+        short pageSize = 100,
+        params Expression<Func<User, object>>[] includes)
+    {
+        return await GetAllQuery(name, email, countryId, true, page, pageSize, includes).AsNoTracking().ToListAsync();
     }
 
     public async Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes)
@@ -143,9 +161,8 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             .Includes(includes);
     }
 
-    private IQueryable<User> GetAllQuery(string? name, string? email, short? countryId, int page, short pageSize, params Expression<Func<User, object>>[] includes)
+    private IQueryable<User> GetAllQuery(string? name, string? email, short? countryId, bool? isMentor, int page, short pageSize, params Expression<Func<User, object>>[] includes)
     {
-        page--;
         IQueryable<User> query = Context.Users;
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -162,12 +179,16 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             query = query.Where(u => u.Country!.Id == countryId.Value);
         }
 
+        if (isMentor.HasValue)
+        {
+            query = query.Where(u => u.IsMentor == isMentor.Value);
+        }
+
         return query
             .OrderBy(u => u.Name)
             .ThenBy(u => u.CreatedOn)
             .ThenBy(u => u.Id)
-            .Skip(page * pageSize)
-            .Take(pageSize)
+            .Page(page, pageSize)
             .Includes(includes);
     }
 
