@@ -76,7 +76,7 @@ namespace Mvp.Selections.Data
                 .HasIndex(u => u.Identifier)
                 .IsUnique();
             modelBuilder.Entity<User>()
-                .HasData(new { Id = adminUserId, Identifier = "00uqyu5bxcffmH3xP0h7", Name = "Ivan Lieckens", Email = "ivan.lieckens@sitecore.com", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System" });
+                .HasData(new { Id = adminUserId, Identifier = "00uqyu5bxcffmH3xP0h7", Name = "Ivan Lieckens", Email = "ivan.lieckens@sitecore.com", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System", IsMentor = false, IsOpenToNewMentees = false });
 
             modelBuilder.Entity("RoleUser")
                 .HasData(new { UsersId = adminUserId, RolesId = DefaultAdminRoleId });

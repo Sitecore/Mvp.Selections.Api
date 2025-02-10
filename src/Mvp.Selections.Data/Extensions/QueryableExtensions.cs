@@ -10,5 +10,10 @@ namespace Mvp.Selections.Data.Extensions
         {
             return includes.Aggregate(query, (current, include) => current.Include(include));
         }
+
+        public static IQueryable<T> Page<T>(this IQueryable<T> query, int page = 1, short pageSize = 100)
+        {
+            return query.Skip((page - 1) * pageSize).Take(pageSize);
+        }
     }
 }

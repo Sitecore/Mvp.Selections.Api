@@ -28,7 +28,7 @@ public class UserService(
     IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
     ICacheManager cache,
     AvatarUriHelper avatarUriHelper)
-    : IUserService, IMvpProfileService
+    : IUserService, IMvpProfileService, IMentorService
 {
     private readonly Expression<Func<User, object>>[] _standardIncludes =
     [
@@ -226,7 +226,10 @@ public class UserService(
                         list.AddRange(a.Titles);
                         return list;
                     }),
-                PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)]
+                PublicContributions = [.. user.Applications.SelectMany(a => a.Contributions).Where(c => c.IsPublic).OrderByDescending(c => c.Date)],
+                IsMentor = user.IsMentor,
+                IsOpenToNewMentees = user.IsOpenToNewMentees,
+                MentorDescription = user.MentorDescription
             };
 
             result.Result = profile;
@@ -271,6 +274,9 @@ public class UserService(
                         list.AddRange(a.Titles);
                         return list;
                     }),
+                IsMentor = u.IsMentor,
+                IsOpenToNewMentees = u.IsOpenToNewMentees,
+                MentorDescription = u.MentorDescription
             }).ToList();
             cache.Set(CacheManager.CacheCollection.MvpProfileSearchResults, cacheKey, profiles);
         }
@@ -405,6 +411,185 @@ public class UserService(
         {
             result.StatusCode = HttpStatusCode.OK;
             result.Result = new { records = count };
+        }
+
+        return result;
+    }
+
+    public async Task<IList<Mentor>> GetMentorsAsync(
+        string? name = null,
+        string? email = null,
+        short? countryId = null,
+        int page = 1,
+        short pageSize = 100)
+    {
+        IList<User> users = await userRepository.GetMentorsReadOnlyAsync(name, email, countryId, page, pageSize, u => u.Country!);
+        return users.Select(u => new Mentor
+        {
+            Id = u.Id,
+            Name = u.Name,
+            Description = u.MentorDescription ?? string.Empty,
+            ImageUri = u.ImageUri,
+            IsOpenToNewMentees = u.IsOpenToNewMentees,
+            Country = u.Country
+        }).ToList();
+    }
+
+    public async Task<OperationResult<Mentor>> GetMentorAsync(Guid id)
+    {
+        OperationResult<Mentor> result = new() { StatusCode = HttpStatusCode.BadRequest };
+        User? user = await GetAsync(id);
+        if (user != null)
+        {
+            result.Result = new Mentor
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Description = user.MentorDescription ?? string.Empty,
+                ImageUri = user.ImageUri,
+                IsOpenToNewMentees = user.IsOpenToNewMentees,
+                Country = user.Country
+            };
+            result.StatusCode = HttpStatusCode.OK;
+        }
+        else
+        {
+            string message = $"Could not find Mentor '{id}'.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.NotFound;
+            logger.LogInformation("{Message}", message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<Mentor>> UpdateAsync(User user, Guid id, Mentor mentor, IList<string> propertyKeys)
+    {
+        OperationResult<Mentor> result = new() { StatusCode = HttpStatusCode.BadRequest };
+        User? existingUser = await GetAsync(id);
+        if (existingUser is { IsMentor: true } && (user.HasRight(Right.Admin) || existingUser.Id == user.Id))
+        {
+            if (propertyKeys.Any(key => key.Equals(nameof(Mentor.IsOpenToNewMentees), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                existingUser.IsOpenToNewMentees = mentor.IsOpenToNewMentees;
+            }
+
+            if (propertyKeys.Any(key => key.Equals(nameof(Mentor.Description), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                existingUser.MentorDescription = mentor.Description;
+            }
+        }
+        else if (existingUser is { IsMentor: true })
+        {
+            string message = $"User '{user.Id}' does not have permissions to alter Mentor '{id}'.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.Forbidden;
+            logger.LogWarning("{Message}", message);
+        }
+        else
+        {
+            string message = $"Could not find Mentor '{id}'.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.NotFound;
+            logger.LogInformation("{Message}", message);
+        }
+
+        if (result.Messages.Count == 0)
+        {
+            await userRepository.SaveChangesAsync();
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = existingUser != null
+                ? new Mentor
+                {
+                    Id = existingUser.Id,
+                    Name = existingUser.Name,
+                    Description = existingUser.MentorDescription ?? string.Empty,
+                    ImageUri = existingUser.ImageUri,
+                    IsOpenToNewMentees = existingUser.IsOpenToNewMentees,
+                    Country = existingUser.Country
+                }
+                : null;
+            cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<Mentor>> AddAsync(User user, Mentor mentor)
+    {
+        OperationResult<Mentor> result = new() { StatusCode = HttpStatusCode.BadRequest };
+        User? existingUser = await GetAsync(mentor.Id);
+        if (existingUser != null && (user.HasRight(Right.Admin) || existingUser.Id == user.Id))
+        {
+            existingUser.IsMentor = true;
+            existingUser.IsOpenToNewMentees = mentor.IsOpenToNewMentees;
+            existingUser.MentorDescription = mentor.Description;
+        }
+        else if (existingUser != null)
+        {
+            string message = $"User '{user.Id}' does not have permissions to create Mentor '{mentor.Id}'.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.Forbidden;
+            logger.LogWarning("{Message}", message);
+        }
+        else
+        {
+            string message = $"Could not find User '{mentor.Id}' to create Mentor.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.NotFound;
+            logger.LogInformation("{Message}", message);
+        }
+
+        if (result.Messages.Count == 0)
+        {
+            await userRepository.SaveChangesAsync();
+            result.StatusCode = HttpStatusCode.Created;
+            result.Result = existingUser != null
+                ? new Mentor
+                {
+                    Id = existingUser.Id,
+                    Name = existingUser.Name,
+                    Description = existingUser.MentorDescription ?? string.Empty,
+                    ImageUri = existingUser.ImageUri,
+                    IsOpenToNewMentees = existingUser.IsOpenToNewMentees,
+                    Country = existingUser.Country
+                }
+                : null;
+            cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<Mentor>> RemoveAsync(User user, Guid id)
+    {
+        OperationResult<Mentor> result = new() { StatusCode = HttpStatusCode.BadRequest };
+        User? existingUser = await GetAsync(id);
+        if (existingUser != null && (user.HasRight(Right.Admin) || existingUser.Id == user.Id))
+        {
+            existingUser.IsMentor = false;
+            existingUser.IsOpenToNewMentees = false;
+            existingUser.MentorDescription = null;
+        }
+        else if (existingUser != null)
+        {
+            string message = $"User '{user.Id}' does not have permissions to remove Mentor '{id}'.";
+            result.Messages.Add(message);
+            result.StatusCode = HttpStatusCode.Forbidden;
+            logger.LogWarning("{Message}", message);
+        }
+        else
+        {
+            string message = $"Could not find User '{id}' to remove Mentor.";
+            result.Messages.Add(message);
+            logger.LogInformation("{Message}", message);
+        }
+
+        if (result.Messages.Count == 0)
+        {
+            await userRepository.SaveChangesAsync();
+            result.StatusCode = HttpStatusCode.NoContent;
+            cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
         }
 
         return result;

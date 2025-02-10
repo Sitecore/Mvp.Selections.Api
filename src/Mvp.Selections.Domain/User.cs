@@ -14,6 +14,12 @@ namespace Mvp.Selections.Domain
 
         public string Email { get; set; } = string.Empty;
 
+        public bool IsMentor { get; set; }
+
+        public bool IsOpenToNewMentees { get; set; }
+
+        public string? MentorDescription { get; set; }
+
         public ImageType ImageType { get; set; }
 
         public Uri? ImageUri { get; set; }
