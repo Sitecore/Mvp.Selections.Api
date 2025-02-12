@@ -477,7 +477,8 @@
 									"    pm.collectionVariables.set(\"Application.Id\", jsonData.id);\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -486,7 +487,8 @@
 								"exec": [
 									"pm.collectionVariables.set(\"Application.Objectives\", pm.variables.replaceIn(\"{{$randomBs}}\"));"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -503,7 +505,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}/applications",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/:selectionId/applications",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -512,8 +514,14 @@
 								"api",
 								"v1",
 								"selections",
-								"{{Selection.Id}}",
+								":selectionId",
 								"applications"
+							],
+							"variable": [
+								{
+									"key": "selectionId",
+									"value": "{{Selection.Id}}"
+								}
 							]
 						}
 					},
@@ -671,7 +679,8 @@
 									"    pm.response.to.have.status(204);\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -679,7 +688,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/:applicationId",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -688,7 +697,13 @@
 								"api",
 								"v1",
 								"applications",
-								"{{Application.Id}}"
+								":applicationId"
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "{{Application.Id}}"
+								}
 							]
 						}
 					},
@@ -956,7 +971,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/comments",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/:applicationId/comments",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -965,8 +980,14 @@
 								"api",
 								"v1",
 								"applications",
-								"{{Application.Id}}",
+								":applicationId",
 								"comments"
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "{{Application.Id}}"
+								}
 							]
 						}
 					},
@@ -1296,6 +1317,78 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Contribution",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/contributions/{{Contribution.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"contributions",
+								"{{Contribution.Id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Contributions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{MvpProfile.Id}}/contributions",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"{{MvpProfile.Id}}",
+								"contributions"
+							],
+							"query": [
+								{
+									"key": "selectionyear",
+									"value": "2023",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Public",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/contributions/{{Contribution.Id}}/togglePublic",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"contributions",
+								"{{Contribution.Id}}",
+								"togglePublic"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1376,6 +1469,294 @@
 								{
 									"key": "ps",
 									"value": "300"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Index",
+			"item": [
+				{
+					"name": "Titles",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/index/titles?code={{MasterKey}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"index",
+								"titles"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{MasterKey}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Titles",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/index/titles?code={{MasterKey}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"index",
+								"titles"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{MasterKey}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Mentors",
+			"item": [
+				{
+					"name": "All Mentors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mentors",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentors"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "countryId",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mentor",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mentors/:mentorId",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentors",
+								":mentorId"
+							],
+							"variable": [
+								{
+									"key": "mentorId",
+									"value": "2CE9A425-B3CF-4190-9315-08DD44310ABF"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mentor",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Description\": \"{{$randomPhrase}}\",\r\n    \"isOpenToNewMentees\": false,\r\n    \"name\": \"Ignore\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mentors/:mentorId",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentors",
+								":mentorId"
+							],
+							"variable": [
+								{
+									"key": "mentorId",
+									"value": "2CE9A425-B3CF-4190-9315-08DD44310ABF"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mentor",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"2CE9A425-B3CF-4190-9315-08DD44310ABF\",\r\n    \"Description\": \"{{$randomPhrase}}\",\r\n    \"IsOpenToNewMentees\": false,\r\n    \"Name\": \"This Shouldn't Work\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mentors",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mentor",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mentors/:mentorId",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mentors",
+								":mentorId"
+							],
+							"variable": [
+								{
+									"key": "mentorId",
+									"value": "2CE9A425-B3CF-4190-9315-08DD44310ABF"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MvpProfile",
+			"item": [
+				{
+					"name": "MvpProfile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvpprofiles/:id",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mvpprofiles",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{MvpProfile.Id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search MvpProfiles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/mvpprofiles/search",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mvpprofiles",
+								"search"
+							],
+							"query": [
+								{
+									"key": "p",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "ps",
+									"value": "100",
+									"disabled": true
+								},
+								{
+									"key": "countryId",
+									"value": "",
+									"disabled": true
 								}
 							]
 						}
@@ -1697,7 +2078,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{User.Id}}/profilelinks",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/:UserId/profilelinks",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -1706,8 +2087,14 @@
 								"api",
 								"v1",
 								"users",
-								"{{User.Id}}",
+								":UserId",
 								"profilelinks"
+							],
+							"variable": [
+								{
+									"key": "UserId",
+									"value": "{{User.Id}}"
+								}
 							]
 						}
 					},
@@ -2429,7 +2816,8 @@
 									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2437,7 +2825,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/reviews/",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/:ApplicationId/reviews/",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -2446,9 +2834,15 @@
 								"api",
 								"v1",
 								"applications",
-								"{{Application.Id}}",
+								":ApplicationId",
 								"reviews",
 								""
+							],
+							"variable": [
+								{
+									"key": "ApplicationId",
+									"value": "{{Application.Id}}"
+								}
 							]
 						}
 					},
@@ -2463,7 +2857,8 @@
 								"exec": [
 									"pm.collectionVariables.set(\"Review.Comment\", pm.variables.replaceIn(\"{{$randomLoremSentences}}\"));"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2472,7 +2867,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"comment\": \"{{Review.Comment}}\",\r\n  \"status\": \"Open\",\r\n  \"categoryScores\": [\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Content.Id}}\",\r\n      \"scoreId\": \"{{Score.Content.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Engagement.Id}}\",\r\n      \"scoreId\": \"{{Score.Engagement.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Speaking.Id}}\",\r\n      \"scoreId\": \"{{Score.Speaking.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Feedback.Id}}\",\r\n      \"scoreId\": \"{{Score.Feedback.Id}}\"\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"comment\": \"{{Review.Comment}}\",\r\n  \"status\": \"Open\",\r\n  \"sentiment\": \"Maybe\",\r\n  \"categoryScores\": [\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Content.Id}}\",\r\n      \"scoreId\": \"{{Score.Content.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Engagement.Id}}\",\r\n      \"scoreId\": \"{{Score.Engagement.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Speaking.Id}}\",\r\n      \"scoreId\": \"{{Score.Speaking.Id}}\"\r\n    },\r\n    {\r\n      \"scoreCategoryId\": \"{{ScoreCategory.Feedback.Id}}\",\r\n      \"scoreId\": \"{{Score.Feedback.Id}}\"\r\n    }\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2480,7 +2875,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/{{Application.Id}}/reviews/",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/:applicationId/reviews/",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -2489,9 +2884,15 @@
 								"api",
 								"v1",
 								"applications",
-								"{{Application.Id}}",
+								":applicationId",
 								"reviews",
 								""
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "{{Application.Id}}"
+								}
 							]
 						}
 					},
@@ -2780,6 +3181,167 @@
 								"v1",
 								"roles",
 								"{{SystemRole.Id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All SelectionRoles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/selection",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"roles",
+								"selection"
+							],
+							"query": [
+								{
+									"key": "applicationId",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "selectionId",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "countryId",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "regionId",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "mvpTypeId",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SelectionRole",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/selection/{{SelectionRole.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"roles",
+								"selection",
+								"{{SelectionRole.Id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SelectionRole",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"SelectionRole.Name\", pm.variables.replaceIn(\"{{$randomJobType}}\"));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"Role created matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"SelectionRole.Name\"));\r",
+									"    pm.collectionVariables.set(\"SelectionRole.Id\", jsonData.id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"{{SelectionRole.Name}}\",\r\n  \"applicationId\": \"{{Application.Id}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/selection",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"roles",
+								"selection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SelectionRole",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/roles/{{SelectionRole.Id}}",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"roles",
+								"{{SelectionRole.Id}}"
 							]
 						}
 					},
@@ -3221,7 +3783,8 @@
 									"});\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -3231,7 +3794,8 @@
 									"pm.collectionVariables.set(\"Selection.ApplicationsActive\", \"false\");\r",
 									"pm.collectionVariables.set(\"Selection.ReviewsActive\", \"false\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -3247,6 +3811,46 @@
 								}
 							}
 						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/:selectionId",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"selections",
+								":selectionId"
+							],
+							"variable": [
+								{
+									"key": "selectionId",
+									"value": "{{Selection.Id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Selection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
 						"url": {
 							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
 							"protocol": "{{EndpointScheme}}",
@@ -3323,40 +3927,6 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
-							"protocol": "{{EndpointScheme}}",
-							"host": [
-								"{{EndpointUri}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"selections",
-								"{{Selection.Id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Selection",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 204\", function () {\r",
-									"    pm.response.to.have.status(204);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
 						"header": [],
 						"url": {
 							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/selections/{{Selection.Id}}",
@@ -3627,7 +4197,8 @@
 									"    pm.expect(jsonData.id).to.eql(pm.variables.get(\"Me.User.Id\"));\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -3635,7 +4206,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/:userId",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -3644,7 +4215,13 @@
 								"api",
 								"v1",
 								"users",
-								"{{Me.User.Id}}"
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "{{Me.User.Id}}"
+								}
 							]
 						}
 					},
@@ -3695,7 +4272,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/:UserId",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -3704,7 +4281,13 @@
 								"api",
 								"v1",
 								"users",
-								"{{Me.User.Id}}"
+								":UserId"
+							],
+							"variable": [
+								{
+									"key": "UserId",
+									"value": "{{Me.User.Id}}"
+								}
 							]
 						}
 					},
@@ -3719,7 +4302,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -3736,7 +4320,8 @@
 									"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"Me.User.Country.Id\"));\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -3753,7 +4338,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/{{Me.User.Id}}",
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/:userId",
 							"protocol": "{{EndpointScheme}}",
 							"host": [
 								"{{EndpointUri}}"
@@ -3762,7 +4347,13 @@
 								"api",
 								"v1",
 								"users",
-								"{{Me.User.Id}}"
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "{{Me.User.Id}}"
+								}
 							]
 						}
 					},
@@ -3812,6 +4403,116 @@
 								"v1",
 								"users",
 								"current"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"User name, email, identifier and country matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.name).to.eql(pm.variables.get(\"Me.User.Name\"));\r",
+									"    pm.expect(jsonData.email).to.eql(pm.variables.get(\"Me.User.Email\"));\r",
+									"    pm.expect(jsonData.identifier).to.eql(pm.variables.get(\"Me.User.Identifier\"));\r",
+									"    pm.expect(jsonData.country.id).to.eql(pm.variables.get(\"Me.User.Country.Id\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"{{Me.User.Name}}\",\r\n    \"email\": \"{{Me.User.Email}}\",\r\n    \"identifier\": \"{{Me.User.Identifier}}\",\r\n    \"country\": {\r\n        \"id\": {{Me.User.Country.Id}}\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Users (Application Review)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/applications/:applicationId/reviewUsers",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"applications",
+								":applicationId",
+								"reviewUsers"
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "{{Application.Id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Merge",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{EndpointScheme}}://{{EndpointUri}}/api/v1/users/:OldId/merge/:NewId",
+							"protocol": "{{EndpointScheme}}",
+							"host": [
+								"{{EndpointUri}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":OldId",
+								"merge",
+								":NewId"
+							],
+							"variable": [
+								{
+									"key": "OldId",
+									"value": "{{Merge.OldId}}"
+								},
+								{
+									"key": "NewId",
+									"value": "{{Merge.NewId}}"
+								}
 							]
 						}
 					},
@@ -4027,11 +4728,56 @@
 		}
 	],
 	"auth": {
-		"type": "bearer",
-		"bearer": [
+		"type": "oauth2",
+		"oauth2": [
 			{
-				"key": "token",
-				"value": "eyJraWQiOiJyRGFzbDVMU2hNUVNxWWRqelM1VVc4U3BNSGI1cGtxTTdNYVNJdHNXSnBVIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyIsIm5hbWUiOiJJdmFuIExpZWNrZW5zIiwiZW1haWwiOiJpdmFuLmxpZWNrZW5zQHNpdGVjb3JlLmNvbSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9leHRlcm5hbHNpdGVjb3JlLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6IjBvYTExd3Q2OGEyQUxGVUIyMGg4IiwiaWF0IjoxNjcyODY1Nzk1LCJleHAiOjE2NzI4NjkzOTUsImp0aSI6IklELkEwZm92YnhKZmE3VjUyeHJxSUtuT0tuclFzMmxwT0N1RFo1VVdYbUsxcTgiLCJhbXIiOlsibWZhIiwicHdkIiwib3RwIl0sImlkcCI6IjAwb2kxZDhhMTkyd1gyU1FyMGg3Iiwibm9uY2UiOiI2MzgwODQ2MjU3MDY0MzM0MzguT0RGak1XTTVOalF0TVRobFpTMDBZVGt5TFRsa1pUSXROVE0wTTJJd1lXRTJNemt3WlRjeFptUTJOelV0TURJME5pMDBabU0zTFdFMFpqUXRNekJtT1RsbE1tUmpaVEJsIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaXZhbi5saWVja2Vuc0BzaXRlY29yZS5jb20iLCJhdXRoX3RpbWUiOjE2NzI4NjU3ODQsImF0X2hhc2giOiJMd2RuLXNBSnVCTGRhZmVwN2sxSTBnIiwiZXh0ZXJuYWxVc2VySWQiOiIwMHVxeXU1YnhjZmZtSDN4UDBoNyJ9.bDB6c4V51zas4wvOSuTKYoLObjcdn-9fwK0ioIf9DNdlJSnqiAjR2B23yzQu1O3usWLFwUFAqbJc9D9N__Tszx6kv560USE_T-E-oF6MNtEjvoq0jFlF6VhgUh0NY2_pTcUuZ2OfO8opgRa9lGpqFe5qggH0AzwYp3AIqm9You1tCDZZpKrphNEh-opngGiTF2WKo4jKJkiUSHJKOJmqAVtPmxEVyBNMcE7PiHhritb2TxoF_5sLzSv-TY4ttXFxpgy17B2MKdB79pxm91E4HtpXI2Kh4BoOnCYaUR1UvK6x4ITt4Vw53kl2A7zO5XqomZMViCclsn_8lGm6iiDF9A",
+				"key": "tokenName",
+				"value": "{{Okta.TokenName}}",
+				"type": "string"
+			},
+			{
+				"key": "scope",
+				"value": "openid profile email offline_access",
+				"type": "string"
+			},
+			{
+				"key": "redirect_uri",
+				"value": "{{Okta.Callback}}",
+				"type": "string"
+			},
+			{
+				"key": "useBrowser",
+				"value": false,
+				"type": "boolean"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "https://{{Okta.EndpointUri}}/oauth2/default/v1/token",
+				"type": "string"
+			},
+			{
+				"key": "authUrl",
+				"value": "https://{{Okta.EndpointUri}}/oauth2/default/v1/authorize",
+				"type": "string"
+			},
+			{
+				"key": "state",
+				"value": "{{$guid}}",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "{{Okta.ClientSecret}}",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{Okta.ClientId}}",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
 				"type": "string"
 			}
 		]
@@ -4343,6 +5089,31 @@
 		},
 		{
 			"key": "Title.Warning",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "MvpProfile.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "SelectionRole.Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "SelectionRole.Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Merge.OldId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Merge.NewId",
 			"value": "",
 			"type": "string"
 		}
