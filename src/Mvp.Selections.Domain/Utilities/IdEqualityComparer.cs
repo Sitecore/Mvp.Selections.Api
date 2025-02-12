@@ -1,23 +1,22 @@
-﻿namespace Mvp.Selections.Domain.Utilities
+﻿namespace Mvp.Selections.Domain.Utilities;
+
+public class IdEqualityComparer<T, TId> : IEqualityComparer<T>
+    where T : BaseEntity<TId>
+    where TId : struct
 {
-    public class IdEqualityComparer<T, TId> : IEqualityComparer<T>
-        where T : BaseEntity<TId>
-        where TId : struct
+    public bool Equals(T? x, T? y)
     {
-        public bool Equals(T? x, T? y)
+        bool result = ReferenceEquals(x, y);
+        if (!result && x is not null && y is not null)
         {
-            bool result = ReferenceEquals(x, y);
-            if (!result && x is not null && y is not null)
-            {
-                result = x.Id.Equals(y.Id);
-            }
-
-            return result;
+            result = x.Id.Equals(y.Id);
         }
 
-        public int GetHashCode(T obj)
-        {
-            return obj.Id.GetHashCode();
-        }
+        return result;
+    }
+
+    public int GetHashCode(T obj)
+    {
+        return obj.Id.GetHashCode();
     }
 }

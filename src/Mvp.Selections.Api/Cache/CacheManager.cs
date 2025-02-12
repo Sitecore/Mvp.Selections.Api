@@ -3,85 +3,84 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Mvp.Selections.Api.Extensions;
 
-namespace Mvp.Selections.Api.Cache
+namespace Mvp.Selections.Api.Cache;
+
+public class CacheManager(IOptions<Configuration.CacheOptions> options, IMemoryCache cache)
+    : ICacheManager
 {
-    public class CacheManager(IOptions<Configuration.CacheOptions> options, IMemoryCache cache)
-        : ICacheManager
+    private readonly Dictionary<CacheCollection, CacheInvalidationToken> _tokens =
+        new()
+        {
+            { CacheCollection.MvpProfileSearchResults, new CacheInvalidationToken() }
+        };
+
+    private readonly Dictionary<CacheCollection, TimeSpan> _expirations =
+        new()
+        {
+            { CacheCollection.MvpProfileSearchResults, TimeSpan.FromSeconds(options.Value.MvpProfilesCacheDurationInSeconds) }
+        };
+
+    public enum CacheCollection
     {
-        private readonly Dictionary<CacheCollection, CacheInvalidationToken> _tokens =
-            new()
-            {
-                { CacheCollection.MvpProfileSearchResults, new CacheInvalidationToken() }
-            };
+        MvpProfileSearchResults
+    }
 
-        private readonly Dictionary<CacheCollection, TimeSpan> _expirations =
-            new()
-            {
-                { CacheCollection.MvpProfileSearchResults, TimeSpan.FromSeconds(options.Value.MvpProfilesCacheDurationInSeconds) }
-            };
+    public bool TryGet<T>(string key, out T? value)
+    {
+        return cache.TryGetValue(key, out value);
+    }
 
-        public enum CacheCollection
+    public T Set<T>(CacheCollection collection, string key, T value)
+    {
+        MemoryCacheEntryOptions entryOptions =
+            new MemoryCacheEntryOptions().AddExpirationToken(_tokens[collection]);
+        if (_expirations.TryGetValue(collection, out TimeSpan expiration))
         {
-            MvpProfileSearchResults
+            entryOptions.SetAbsoluteExpiration(expiration);
         }
 
-        public bool TryGet<T>(string key, out T? value)
+        return cache.Set(key, value, entryOptions);
+    }
+
+    public void Clear(CacheCollection collection)
+    {
+        _tokens[collection].Cancel();
+        _tokens[collection].Reset();
+    }
+
+    public string GetMvpProfileSearchResultsKey(
+        string? text = null,
+        IList<short>? mvpTypeIds = null,
+        IList<short>? years = null,
+        IList<short>? countryIds = null,
+        bool onlyFinalized = true)
+    {
+        return
+            $"{options.Value.MvpProfilesCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}_{onlyFinalized}";
+    }
+
+    private class CacheInvalidationToken
+        : IChangeToken
+    {
+        private CancellationTokenSource _cts = new();
+
+        public bool HasChanged => _cts.Token.IsCancellationRequested;
+
+        public bool ActiveChangeCallbacks => true;
+
+        public IDisposable RegisterChangeCallback(Action<object?> callback, object? state)
         {
-            return cache.TryGetValue(key, out value);
+            return _cts.Token.Register(callback, state);
         }
 
-        public T Set<T>(CacheCollection collection, string key, T value)
+        public void Cancel()
         {
-            MemoryCacheEntryOptions entryOptions =
-                new MemoryCacheEntryOptions().AddExpirationToken(_tokens[collection]);
-            if (_expirations.TryGetValue(collection, out TimeSpan expiration))
-            {
-                entryOptions.SetAbsoluteExpiration(expiration);
-            }
-
-            return cache.Set(key, value, entryOptions);
+            _cts.Cancel();
         }
 
-        public void Clear(CacheCollection collection)
+        public void Reset()
         {
-            _tokens[collection].Cancel();
-            _tokens[collection].Reset();
-        }
-
-        public string GetMvpProfileSearchResultsKey(
-            string? text = null,
-            IList<short>? mvpTypeIds = null,
-            IList<short>? years = null,
-            IList<short>? countryIds = null,
-            bool onlyFinalized = true)
-        {
-            return
-                $"{options.Value.MvpProfilesCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}_{onlyFinalized}";
-        }
-
-        private class CacheInvalidationToken
-            : IChangeToken
-        {
-            private CancellationTokenSource _cts = new();
-
-            public bool HasChanged => _cts.Token.IsCancellationRequested;
-
-            public bool ActiveChangeCallbacks => true;
-
-            public IDisposable RegisterChangeCallback(Action<object?> callback, object? state)
-            {
-                return _cts.Token.Register(callback, state);
-            }
-
-            public void Cancel()
-            {
-                _cts.Cancel();
-            }
-
-            public void Reset()
-            {
-                _cts = new CancellationTokenSource();
-            }
+            _cts = new CancellationTokenSource();
         }
     }
 }

@@ -4,20 +4,19 @@ using System.Threading.Tasks;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api.Services.Interfaces
+namespace Mvp.Selections.Api.Services.Interfaces;
+
+public interface ISelectionService
 {
-    public interface ISelectionService
-    {
-        Task<Selection?> GetCurrentAsync();
+    Task<Selection?> GetCurrentAsync();
 
-        Task<Selection?> GetAsync(Guid id);
+    Task<Selection?> GetAsync(Guid id);
 
-        Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100);
+    Task<IList<Selection>> GetAllAsync(int page = 1, short pageSize = 100);
 
-        Task<Selection> AddAsync(Selection selection);
+    Task<Selection> AddAsync(Selection selection);
 
-        Task RemoveAsync(Guid id);
+    Task RemoveAsync(Guid id);
 
-        Task<OperationResult<Selection>> UpdateAsync(Guid id, Selection selection, IList<string> propertyKeys);
-    }
+    Task<OperationResult<Selection>> UpdateAsync(Guid id, Selection selection, IList<string> propertyKeys);
 }

@@ -1,8 +1,7 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public enum ConsentType
 {
-    public enum ConsentType
-    {
-        Communications,
-        PersonalInformation
-    }
+    Communications,
+    PersonalInformation
 }

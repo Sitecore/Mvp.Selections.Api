@@ -2,16 +2,15 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json.Serialization;
 
-namespace Mvp.Selections.Api.Serialization.Interfaces
+namespace Mvp.Selections.Api.Serialization.Interfaces;
+
+public interface ISerializer
 {
-    public interface ISerializer
-    {
-        string ContentType { get; }
+    string ContentType { get; }
 
-        Task<T?> DeserializeAsync<T>(Stream stream);
+    Task<T?> DeserializeAsync<T>(Stream stream);
 
-        Task<DeserializationResult<T>> DeserializeAsync<T>(Stream stream, bool extractPropertyKeys);
+    Task<DeserializationResult<T>> DeserializeAsync<T>(Stream stream, bool extractPropertyKeys);
 
-        string Serialize(object? data, IContractResolver? contractResolver = null);
-    }
+    string Serialize(object? data, IContractResolver? contractResolver = null);
 }

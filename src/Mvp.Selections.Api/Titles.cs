@@ -9,93 +9,92 @@ using Mvp.Selections.Api.Serialization.Interfaces;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api
+namespace Mvp.Selections.Api;
+
+public class Titles(
+    ILogger<Titles> logger,
+    ISerializer serializer,
+    IAuthService authService,
+    ITitleService titleService)
+    : Base<Titles>(logger, serializer, authService)
 {
-    public class Titles(
-        ILogger<Titles> logger,
-        ISerializer serializer,
-        IAuthService authService,
-        ITitleService titleService)
-        : Base<Titles>(logger, serializer, authService)
+    [Function("GetTitle")]
+    public Task<IActionResult> Get(
+        [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/titles/{id:Guid}")]
+        HttpRequest req,
+        Guid id)
     {
-        [Function("GetTitle")]
-        public Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/titles/{id:Guid}")]
-            HttpRequest req,
-            Guid id)
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
         {
-            return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
-            {
-                Title? title = await titleService.GetAsync(id);
-                return ContentResult(title, authResult.User!.HasRight(Right.Admin) ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
-            });
-        }
+            Title? title = await titleService.GetAsync(id);
+            return ContentResult(title, authResult.User!.HasRight(Right.Admin) ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
+        });
+    }
 
-        [Function("GetAllTitles")]
-        public Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/titles")]
-            HttpRequest req)
-        {
-            return ExecuteSafeSecurityValidatedAsync(
-                req,
-                [Right.Any],
-                authResult => GetAllInternal(req, authResult.User),
-                _ => GetAllInternal(req, null));
-        }
+    [Function("GetAllTitles")]
+    public Task<IActionResult> GetAll(
+        [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/titles")]
+        HttpRequest req)
+    {
+        return ExecuteSafeSecurityValidatedAsync(
+            req,
+            [Right.Any],
+            authResult => GetAllInternal(req, authResult.User),
+            _ => GetAllInternal(req, null));
+    }
 
-        [Function("AddTitle")]
-        public Task<IActionResult> Add(
-            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/titles")]
-            HttpRequest req)
+    [Function("AddTitle")]
+    public Task<IActionResult> Add(
+        [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/titles")]
+        HttpRequest req)
+    {
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Award], async authResult =>
         {
-            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Award], async authResult =>
-            {
-                Title? input = await Serializer.DeserializeAsync<Title>(req.Body);
-                OperationResult<Title> addResult = input != null
-                    ? await titleService.AddAsync(authResult.User!, input)
-                    : new OperationResult<Title>();
-                return ContentResult(addResult, TitlesContractResolver.Instance);
-            });
-        }
+            Title? input = await Serializer.DeserializeAsync<Title>(req.Body);
+            OperationResult<Title> addResult = input != null
+                ? await titleService.AddAsync(authResult.User!, input)
+                : new OperationResult<Title>();
+            return ContentResult(addResult, TitlesContractResolver.Instance);
+        });
+    }
 
-        [Function("UpdateTitle")]
-        public Task<IActionResult> Update(
-            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/titles/{id:Guid}")]
-            HttpRequest req,
-            Guid id)
+    [Function("UpdateTitle")]
+    public Task<IActionResult> Update(
+        [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/titles/{id:Guid}")]
+        HttpRequest req,
+        Guid id)
+    {
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Award], async _ =>
         {
-            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Award], async _ =>
-            {
-                Title? input = await Serializer.DeserializeAsync<Title>(req.Body);
-                OperationResult<Title> updateResult =
-                    input != null ? await titleService.UpdateAsync(id, input) : new OperationResult<Title>();
-                return ContentResult(updateResult, TitlesContractResolver.Instance);
-            });
-        }
+            Title? input = await Serializer.DeserializeAsync<Title>(req.Body);
+            OperationResult<Title> updateResult =
+                input != null ? await titleService.UpdateAsync(id, input) : new OperationResult<Title>();
+            return ContentResult(updateResult, TitlesContractResolver.Instance);
+        });
+    }
 
-        [Function("RemoveTitle")]
-        public Task<IActionResult> Remove(
-            [HttpTrigger(AuthorizationLevel.Anonymous, DeleteMethod, Route = "v1/titles/{id:Guid}")]
-            HttpRequest req,
-            Guid id)
+    [Function("RemoveTitle")]
+    public Task<IActionResult> Remove(
+        [HttpTrigger(AuthorizationLevel.Anonymous, DeleteMethod, Route = "v1/titles/{id:Guid}")]
+        HttpRequest req,
+        Guid id)
+    {
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Award], async _ =>
         {
-            return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Award], async _ =>
-            {
-                await titleService.RemoveAsync(id);
-                return new NoContentResult();
-            });
-        }
+            await titleService.RemoveAsync(id);
+            return new NoContentResult();
+        });
+    }
 
-        private async Task<IActionResult> GetAllInternal(HttpRequest req, User? user)
-        {
-            ListParameters lp = new(req);
-            string? name = req.Query.GetFirstValueOrDefault<string>("name");
-            IList<short> mvpTypeIds = req.Query.GetValuesOrEmpty<short>("mvpTypeId");
-            IList<short> years = req.Query.GetValuesOrEmpty<short>("year");
-            IList<short> countryIds = req.Query.GetValuesOrEmpty<short>("countryId");
-            bool isAdmin = user?.HasRight(Right.Admin) ?? false;
-            IList<Title> titles = await titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, !isAdmin, lp.Page, lp.PageSize);
-            return ContentResult(titles, isAdmin ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
-        }
+    private async Task<IActionResult> GetAllInternal(HttpRequest req, User? user)
+    {
+        ListParameters lp = new(req);
+        string? name = req.Query.GetFirstValueOrDefault<string>("name");
+        IList<short> mvpTypeIds = req.Query.GetValuesOrEmpty<short>("mvpTypeId");
+        IList<short> years = req.Query.GetValuesOrEmpty<short>("year");
+        IList<short> countryIds = req.Query.GetValuesOrEmpty<short>("countryId");
+        bool isAdmin = user?.HasRight(Right.Admin) ?? false;
+        IList<Title> titles = await titleService.GetAllAsync(name, mvpTypeIds, years, countryIds, !isAdmin, lp.Page, lp.PageSize);
+        return ContentResult(titles, isAdmin ? TitlesAdminContractResolver.Instance : TitlesContractResolver.Instance);
     }
 }
