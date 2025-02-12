@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Mvp.Selections.Api.Model.Auth;
 using Mvp.Selections.Domain;
 

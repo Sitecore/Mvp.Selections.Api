@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Mvp.Selections.Api.Model;
+﻿namespace Mvp.Selections.Api.Model;
 
 /// <summary>
 /// Model for search results.

@@ -1,5 +1,4 @@
-﻿using System;
-using Mvp.Selections.Domain.Comments;
+﻿using Mvp.Selections.Domain.Comments;
 
 namespace Mvp.Selections.Api.Model.Comments;
 

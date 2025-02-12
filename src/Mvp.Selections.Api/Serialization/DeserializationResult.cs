@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Mvp.Selections.Api.Serialization;
+﻿namespace Mvp.Selections.Api.Serialization;
 
 public class DeserializationResult<T>
 {

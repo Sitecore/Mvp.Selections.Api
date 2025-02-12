@@ -1,5 +1,4 @@
-﻿using System;
-using Mvp.Selections.Domain;
+﻿using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Model;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mvp.Selections.Api.Model.Roles;
+﻿namespace Mvp.Selections.Api.Model.Roles;
 
 public class AssignUserToRoleRequestBody
 {

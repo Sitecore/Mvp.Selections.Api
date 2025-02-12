@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Mvp.Selections.Api.Model.Request;
+﻿using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services.Interfaces;

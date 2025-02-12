@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Mvp.Selections.Api.Model.Regions;
+﻿using Mvp.Selections.Api.Model.Regions;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 

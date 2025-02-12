@@ -1,5 +1,4 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using Mvp.Selections.Api.Configuration;
 
 namespace Mvp.Selections.Api.Model.Auth;

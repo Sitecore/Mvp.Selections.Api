@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Mvp.Selections.Api.Model.Request;
+﻿using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Comments;
 

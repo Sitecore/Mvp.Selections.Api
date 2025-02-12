@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Mvp.Selections.Api.Extensions;
+﻿namespace Mvp.Selections.Api.Extensions;
 
 // ReSharper disable once InconsistentNaming - This class extends the interface, not the type
 public static class ICollectionExtensions

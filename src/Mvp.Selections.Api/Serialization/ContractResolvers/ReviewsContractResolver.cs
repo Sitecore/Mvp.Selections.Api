@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using Mvp.Selections.Domain;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;

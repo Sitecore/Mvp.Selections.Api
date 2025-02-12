@@ -1,5 +1,4 @@
-﻿using System;
-using Mvp.Selections.Domain;
+﻿using Mvp.Selections.Domain;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;

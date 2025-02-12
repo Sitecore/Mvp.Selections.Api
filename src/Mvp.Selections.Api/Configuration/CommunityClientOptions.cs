@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mvp.Selections.Api.Configuration;
+﻿namespace Mvp.Selections.Api.Configuration;
 
 public class CommunityClientOptions
 {
