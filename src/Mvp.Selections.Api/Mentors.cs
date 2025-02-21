@@ -94,4 +94,18 @@ public class Mentors(
             return ContentResult(result, MentorsContractResolver.Instance);
         });
     }
+
+    [Function("ContactMentor")]
+    public Task<IActionResult> Contact(
+        [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/mentors/{id:Guid}/contact")]
+        HttpRequest req,
+        Guid id)
+    {
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Apply, Right.Admin], async authResult =>
+        {
+            string? message = await req.Body.ReadAsStringAsync();
+            OperationResult<object> result = await mentorService.ContactAsync(authResult.User!, id, message);
+            return ContentResult(result);
+        });
+    }
 }

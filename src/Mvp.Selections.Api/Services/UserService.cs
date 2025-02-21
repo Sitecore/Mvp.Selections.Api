@@ -10,6 +10,7 @@ using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Model.Search;
+using Mvp.Selections.Api.Model.Send;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -24,8 +25,11 @@ public class UserService(
     ICountryRepository countryRepository,
     IApplicationRepository applicationRepository,
     IRoleRepository roleRepository,
+    IDispatchRepository dispatchRepository,
     SearchIngestionClient searchIngestionClient,
+    SendClient sendClient,
     IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
+    IOptions<MvpSelectionsOptions> mvpOptions,
     ICacheManager cache,
     AvatarUriHelper avatarUriHelper)
     : IUserService, IMvpProfileService, IMentorService
@@ -342,14 +346,14 @@ public class UserService(
                             }))
                     }
                 };
-                Task<Response<bool>> updateDocumentTask = searchIngestionClient.UpdateDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, document);
+                Task<Model.Search.Response<bool>> updateDocumentTask = searchIngestionClient.UpdateDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, document);
                 runningTasks.Add(updateDocumentTask, document.Id);
             }
 
             while (runningTasks.Count > 0)
             {
-                Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
-                Response<bool> response = await doneTask;
+                Task<Model.Search.Response<bool>> doneTask = (Task<Model.Search.Response<bool>>)await Task.WhenAny(runningTasks.Keys);
+                Model.Search.Response<bool> response = await doneTask;
                 if (!response.Result)
                 {
                     result.Messages.Add($"Failed to update {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
@@ -386,14 +390,14 @@ public class UserService(
             foreach (User user in users)
             {
                 string id = user.Id.ToString();
-                Task<Response<bool>> deleteDocumentTask = searchIngestionClient.DeleteDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, id);
+                Task<Model.Search.Response<bool>> deleteDocumentTask = searchIngestionClient.DeleteDocumentAsync(_searchIngestionClientOptions.MvpSourceEntity, id);
                 runningTasks.Add(deleteDocumentTask, id);
             }
 
             while (runningTasks.Count > 0)
             {
-                Task<Response<bool>> doneTask = (Task<Response<bool>>)await Task.WhenAny(runningTasks.Keys);
-                Response<bool> response = await doneTask;
+                Task<Model.Search.Response<bool>> doneTask = (Task<Model.Search.Response<bool>>)await Task.WhenAny(runningTasks.Keys);
+                Model.Search.Response<bool> response = await doneTask;
                 if (!response.Result)
                 {
                     result.Messages.Add($"Failed to delete {runningTasks[doneTask]}: [{response.StatusCode}] {response.Message}");
@@ -590,6 +594,90 @@ public class UserService(
             await userRepository.SaveChangesAsync();
             result.StatusCode = HttpStatusCode.NoContent;
             cache.Clear(CacheManager.CacheCollection.MvpProfileSearchResults);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<object>> ContactAsync(User user, Guid id, string? message)
+    {
+        OperationResult<object> result = new() { StatusCode = HttpStatusCode.BadRequest };
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            const string log = "Contact with empty message received.";
+            result.Messages.Add(log);
+            logger.LogInformation("{Message}", log);
+        }
+        else
+        {
+            User? mentor = await GetAsync(id);
+            if (mentor != null)
+            {
+                int recentDispatchSentCount = await dispatchRepository.GetLast24HourSentCountAsync(user.Id, mvpOptions.Value.MentorContact.TemplateId);
+                int dispatchLimit = mvpOptions.Value.MentorContact.MaxContactPer24HourPerUser;
+                if (recentDispatchSentCount < dispatchLimit)
+                {
+                    Model.Send.Response<TransactionalDispatchResult> dispatchResponse =
+                        await sendClient.SendTransactionalEmailAsync(
+                            mvpOptions.Value.MentorContact.TemplateId,
+                            [
+                                new Personalization
+                                {
+                                    To =
+                                    [
+                                        new Recipient
+                                        {
+                                            Name = mentor.Name,
+                                            Email = mentor.Email
+                                        }
+                                    ],
+                                    Substitutions = new Dictionary<string, string>
+                                    {
+                                        { mvpOptions.Value.MentorContact.MessageSubstitutionKey, message },
+                                        { mvpOptions.Value.MentorContact.MentorNameSubstitutionKey, mentor.Name },
+                                        { mvpOptions.Value.MentorContact.MenteeNameSubstitutionKey, user.Name }
+                                    }
+                                }
+                            ],
+                            false,
+                            null,
+                            new Sender
+                            {
+                                Email = user.Email,
+                                Name = user.Email
+                            });
+                    if (dispatchResponse is { StatusCode: HttpStatusCode.OK, Result: not null })
+                    {
+                        dispatchRepository.Add(new Dispatch(Guid.NewGuid())
+                        {
+                            Receiver = mentor, Sender = user, TemplateId = mvpOptions.Value.MentorContact.TemplateId
+                        });
+                        await dispatchRepository.SaveChangesAsync();
+                        result.StatusCode = HttpStatusCode.Created;
+                    }
+                    else
+                    {
+                        string log = $"User '{user.Id}' has attempted to contact Mentor '{id}' but there was an error during email dispatch.";
+                        result.Messages.Add(log);
+                        result.StatusCode = HttpStatusCode.InternalServerError;
+                        logger.LogError("{Message} Dispatch information: [{StatusCode}] {ExcludedRecipients}", log, dispatchResponse.StatusCode, dispatchResponse.Result?.ExcludedRecipients);
+                    }
+                }
+                else
+                {
+                    string log = $"User '{user.Id}' has attempted to contact a mentor '{recentDispatchSentCount}' times in the last 24h and reached the limit of '{dispatchLimit}'.";
+                    result.Messages.Add(log);
+                    result.StatusCode = HttpStatusCode.TooManyRequests;
+                    logger.LogWarning("{Message}", log);
+                }
+            }
+            else
+            {
+                string log = $"User '{user.Id}' has attempted to contact Mentor '{id}' who was not found.";
+                result.Messages.Add(log);
+                result.StatusCode = HttpStatusCode.NotFound;
+                logger.LogWarning("{Message}", log);
+            }
         }
 
         return result;

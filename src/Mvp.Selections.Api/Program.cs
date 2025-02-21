@@ -52,6 +52,8 @@ public class Program
                     configuration.GetSection(CommunityClientOptions.CommunityClient).Bind(options));
                 services.AddOptions<CacheOptions>().Configure<IConfiguration>((options, configuration) =>
                     configuration.GetSection(CacheOptions.Cache).Bind(options));
+                services.AddOptions<SendClientOptions>().Configure<IConfiguration>((options, configuration) =>
+                    configuration.GetSection(SendClientOptions.SendClient).Bind(options));
 
                 // Helpers
                 services.AddSingleton<ICacheManager, CacheManager>();
@@ -100,6 +102,7 @@ public class Program
                 services.AddScoped<IScoreRepository, ScoreRepository>();
                 services.AddScoped<ICommentRepository, CommentRepository>();
                 services.AddScoped<ITitleRepository, TitleRepository>();
+                services.AddScoped<IDispatchRepository, DispatchRepository>();
 
                 // Database
                 services.AddDbContextPool<Context>(options =>
@@ -125,6 +128,12 @@ public class Program
                 {
                     IOptions<CommunityClientOptions> options =
                         provider.GetRequiredService<IOptions<CommunityClientOptions>>();
+                    client.BaseAddress = options.Value.BaseAddress;
+                });
+                services.AddHttpClient<SendClient>((provider, client) =>
+                {
+                    IOptions<SendClientOptions> options =
+                        provider.GetRequiredService<IOptions<SendClientOptions>>();
                     client.BaseAddress = options.Value.BaseAddress;
                 });
             })

@@ -65,6 +65,8 @@ public class Context : DbContext
 
     public DbSet<Title> Titles => Set<Title>();
 
+    public DbSet<Dispatch> Dispatches => Set<Dispatch>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         Guid adminUserId = new("00000000-0000-0000-0000-000000000001");
