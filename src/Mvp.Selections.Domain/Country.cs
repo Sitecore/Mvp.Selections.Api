@@ -1,12 +1,11 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public class Country(short id)
+    : BaseEntity<short>(id)
 {
-    public class Country(short id)
-        : BaseEntity<short>(id)
-    {
-        public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
-        public Region? Region { get; set; }
+    public Region? Region { get; set; }
 
-        public ICollection<User> Users { get; init; } = new List<User>();
-    }
+    public ICollection<User> Users { get; init; } = new List<User>();
 }

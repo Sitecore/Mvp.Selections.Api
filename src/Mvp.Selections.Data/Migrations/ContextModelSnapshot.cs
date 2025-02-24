@@ -1937,6 +1937,44 @@ namespace Mvp.Selections.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Mvp.Selections.Domain.Dispatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TemplateId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Dispatches");
+                });
+
             modelBuilder.Entity("Mvp.Selections.Domain.MvpType", b =>
                 {
                     b.Property<short>("Id")
@@ -2672,6 +2710,23 @@ namespace Mvp.Selections.Data.Migrations
                         .HasForeignKey("RegionId");
 
                     b.Navigation("Region");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.Dispatch", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.User", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mvp.Selections.Domain.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ProfileLink", b =>

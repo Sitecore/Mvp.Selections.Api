@@ -1,11 +1,10 @@
-﻿namespace Mvp.Selections.Api.Configuration
+﻿namespace Mvp.Selections.Api.Configuration;
+
+public class CacheOptions
 {
-    public class CacheOptions
-    {
-        public const string Cache = "Cache";
+    public const string Cache = "Cache";
 
-        public string MvpProfilesCacheKey { get; set; } = "MvpUsers";
+    public string MvpProfilesCacheKey { get; set; } = "MvpUsers";
 
-        public int MvpProfilesCacheDurationInSeconds { get; set; } = 3600;
-    }
+    public int MvpProfilesCacheDurationInSeconds { get; set; } = 3600;
 }

@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace Mvp.Selections.Api.Model.X
+namespace Mvp.Selections.Api.Model.X;
+
+public class Profile
 {
-    public class Profile
-    {
-        [JsonProperty("data")]
-        public ProfileData? Data { get; set; }
-    }
+    [JsonProperty("data")]
+    public ProfileData? Data { get; set; }
 }

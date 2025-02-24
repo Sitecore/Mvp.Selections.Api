@@ -2,10 +2,9 @@
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Data.Repositories
+namespace Mvp.Selections.Data.Repositories;
+
+public class ScoreRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+    : BaseRepository<Score, Guid>(context, currentUserNameProvider), IScoreRepository
 {
-    public class ScoreRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-        : BaseRepository<Score, Guid>(context, currentUserNameProvider), IScoreRepository
-    {
-    }
 }

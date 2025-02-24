@@ -3,29 +3,28 @@ using Mvp.Selections.Domain;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Mvp.Selections.Api.Serialization.ContractResolvers
+namespace Mvp.Selections.Api.Serialization.ContractResolvers;
+
+public class ApplicantsContractResolver : CamelCasePropertyNamesContractResolver
 {
-    public class ApplicantsContractResolver : CamelCasePropertyNamesContractResolver
+    public static readonly ApplicantsContractResolver Instance = new();
+
+    protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
     {
-        public static readonly ApplicantsContractResolver Instance = new();
-
-        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        JsonProperty? result;
+        if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
         {
-            JsonProperty? result;
-            if (member.DeclaringType == typeof(Region) && member.Name == nameof(Region.Countries))
-            {
-                result = null;
-            }
-            else if (member.DeclaringType == typeof(Country) && member.Name == nameof(Country.Users))
-            {
-                result = null;
-            }
-            else
-            {
-                result = base.CreateProperty(member, memberSerialization);
-            }
-
-            return result!;
+            result = null;
         }
+        else if (member.DeclaringType == typeof(Country) && member.Name == nameof(Country.Users))
+        {
+            result = null;
+        }
+        else
+        {
+            result = base.CreateProperty(member, memberSerialization);
+        }
+
+        return result!;
     }
 }

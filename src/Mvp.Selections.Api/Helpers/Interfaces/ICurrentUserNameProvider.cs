@@ -1,7 +1,6 @@
-﻿namespace Mvp.Selections.Api.Helpers.Interfaces
+﻿namespace Mvp.Selections.Api.Helpers.Interfaces;
+
+public interface ICurrentUserNameProvider : Data.Interfaces.ICurrentUserNameProvider
 {
-    public interface ICurrentUserNameProvider : Data.Interfaces.ICurrentUserNameProvider
-    {
-        public string UserName { get; set; }
-    }
+    public string UserName { get; set; }
 }

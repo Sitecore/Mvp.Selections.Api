@@ -1,9 +1,8 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public enum ReviewSentiment
 {
-    public enum ReviewSentiment
-    {
-        No,
-        Maybe,
-        Yes
-    }
+    No,
+    Maybe,
+    Yes
 }

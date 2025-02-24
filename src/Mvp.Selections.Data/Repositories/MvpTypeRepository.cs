@@ -2,10 +2,9 @@
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Data.Repositories
+namespace Mvp.Selections.Data.Repositories;
+
+public class MvpTypeRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+    : BaseRepository<MvpType, short>(context, currentUserNameProvider), IMvpTypeRepository
 {
-    public class MvpTypeRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-        : BaseRepository<MvpType, short>(context, currentUserNameProvider), IMvpTypeRepository
-    {
-    }
 }

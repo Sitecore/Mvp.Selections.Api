@@ -1,10 +1,9 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public enum ImageType
 {
-    public enum ImageType
-    {
-        Anonymous,
-        Community,
-        Gravatar,
-        Twitter
-    }
+    Anonymous,
+    Community,
+    Gravatar,
+    Twitter
 }

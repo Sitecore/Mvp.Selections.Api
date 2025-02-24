@@ -1,26 +1,25 @@
 ﻿using System.Net;
 
-namespace Mvp.Selections.Client.Models
+namespace Mvp.Selections.Client.Models;
+
+/// <summary>
+/// Model of an API response.
+/// </summary>
+/// <typeparam name="T">Type of the result.</typeparam>
+public class Response<T>
 {
     /// <summary>
-    /// Model of an API response.
+    /// Gets or sets the status code.
     /// </summary>
-    /// <typeparam name="T">Type of the result.</typeparam>
-    public class Response<T>
-    {
-        /// <summary>
-        /// Gets or sets the status code.
-        /// </summary>
-        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unused;
+    public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unused;
 
-        /// <summary>
-        /// Gets or sets the message.
-        /// </summary>
-        public string Message { get; set; } = string.Empty;
+    /// <summary>
+    /// Gets or sets the message.
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Gets or sets the result.
-        /// </summary>
-        public T? Result { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets the result.
+    /// </summary>
+    public T? Result { get; set; }
 }

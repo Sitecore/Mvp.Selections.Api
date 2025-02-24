@@ -15,4 +15,6 @@ public interface IMentorService
     Task<OperationResult<Mentor>> AddAsync(User user, Mentor mentor);
 
     Task<OperationResult<Mentor>> RemoveAsync(User user, Guid id);
+
+    Task<OperationResult<object>> ContactAsync(User user, Guid id, string? message);
 }

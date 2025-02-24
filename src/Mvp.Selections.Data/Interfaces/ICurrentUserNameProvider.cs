@@ -1,7 +1,6 @@
-﻿namespace Mvp.Selections.Data.Interfaces
+﻿namespace Mvp.Selections.Data.Interfaces;
+
+public interface ICurrentUserNameProvider
 {
-    public interface ICurrentUserNameProvider
-    {
-        string GetCurrentUserName();
-    }
+    string GetCurrentUserName();
 }

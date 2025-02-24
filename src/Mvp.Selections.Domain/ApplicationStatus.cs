@@ -1,8 +1,7 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public enum ApplicationStatus
 {
-    public enum ApplicationStatus
-    {
-        Open,
-        Submitted
-    }
+    Open,
+    Submitted
 }
