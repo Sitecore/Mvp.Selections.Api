@@ -2,13 +2,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Clients.Interfaces;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Send;
 
 namespace Mvp.Selections.Api.Clients;
 
-public class SendClient
+public class SendClient : ISendClient
 {
     private static readonly JsonSerializerOptions _JsonSerializerOptions;
 

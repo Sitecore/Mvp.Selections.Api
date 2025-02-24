@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Clients;
+using Mvp.Selections.Api.Clients.Interfaces;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Helpers;
@@ -27,7 +28,7 @@ public class UserService(
     IRoleRepository roleRepository,
     IDispatchRepository dispatchRepository,
     SearchIngestionClient searchIngestionClient,
-    SendClient sendClient,
+    ISendClient sendClient,
     IOptions<SearchIngestionClientOptions> searchIngestionClientOptions,
     IOptions<MvpSelectionsOptions> mvpOptions,
     ICacheManager cache,
@@ -663,6 +664,13 @@ public class UserService(
                         result.StatusCode = HttpStatusCode.InternalServerError;
                         logger.LogError("{Message} Dispatch information: [{StatusCode}] {ExcludedRecipients}", log, dispatchResponse.StatusCode, dispatchResponse.Result?.ExcludedRecipients);
                     }
+                }
+                else if (recentDispatch.Count < dispatchLimit && recentDispatch.Any(d => d.Receiver.Id == id))
+                {
+                    string log = $"User '{user.Id}' can only contact Mentor '{id}' once every 24h.";
+                    result.Messages.Add(log);
+                    result.StatusCode = HttpStatusCode.TooManyRequests;
+                    logger.LogWarning("{Message}", log);
                 }
                 else
                 {

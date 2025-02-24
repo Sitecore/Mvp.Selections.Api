@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Clients;
+using Mvp.Selections.Api.Clients.Interfaces;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Helpers.Interfaces;
@@ -130,7 +131,7 @@ public class Program
                         provider.GetRequiredService<IOptions<CommunityClientOptions>>();
                     client.BaseAddress = options.Value.BaseAddress;
                 });
-                services.AddHttpClient<SendClient>((provider, client) =>
+                services.AddHttpClient<ISendClient, SendClient>((provider, client) =>
                 {
                     IOptions<SendClientOptions> options =
                         provider.GetRequiredService<IOptions<SendClientOptions>>();
