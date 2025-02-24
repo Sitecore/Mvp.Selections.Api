@@ -18,6 +18,8 @@ public class MvpSelectionsOptions
 
         public string MenteeNameSubstitutionKey { get; set; } = "menteename";
 
+        public string MenteeEmailSubstitutionKey { get; set; } = "menteeemail";
+
         public int MaxContactPer24HourPerUser { get; set; } = 5;
     }
 }

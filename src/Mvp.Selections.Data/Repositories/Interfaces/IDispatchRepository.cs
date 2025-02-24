@@ -4,5 +4,5 @@ namespace Mvp.Selections.Data.Repositories.Interfaces;
 
 public interface IDispatchRepository : IBaseRepository<Dispatch, Guid>
 {
-    Task<int> GetLast24HourSentCountAsync(Guid senderId, string? templateId = null);
+    Task<IList<Dispatch>> GetLast24HourAsync(Guid senderId, string? templateId = null);
 }

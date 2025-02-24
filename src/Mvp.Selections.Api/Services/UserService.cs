@@ -611,11 +611,11 @@ public class UserService(
         else
         {
             User? mentor = await GetAsync(id);
-            if (mentor != null)
+            if (mentor is { IsOpenToNewMentees: true })
             {
-                int recentDispatchSentCount = await dispatchRepository.GetLast24HourSentCountAsync(user.Id, mvpOptions.Value.MentorContact.TemplateId);
+                IList<Dispatch> recentDispatch = await dispatchRepository.GetLast24HourAsync(user.Id, mvpOptions.Value.MentorContact.TemplateId);
                 int dispatchLimit = mvpOptions.Value.MentorContact.MaxContactPer24HourPerUser;
-                if (recentDispatchSentCount < dispatchLimit)
+                if (recentDispatch.Count < dispatchLimit && recentDispatch.All(d => d.Receiver.Id != id))
                 {
                     Model.Send.Response<TransactionalDispatchResult> dispatchResponse =
                         await sendClient.SendTransactionalEmailAsync(
@@ -635,7 +635,8 @@ public class UserService(
                                     {
                                         { mvpOptions.Value.MentorContact.MessageSubstitutionKey, message },
                                         { mvpOptions.Value.MentorContact.MentorNameSubstitutionKey, mentor.Name },
-                                        { mvpOptions.Value.MentorContact.MenteeNameSubstitutionKey, user.Name }
+                                        { mvpOptions.Value.MentorContact.MenteeNameSubstitutionKey, user.Name },
+                                        { mvpOptions.Value.MentorContact.MenteeEmailSubstitutionKey, user.Email }
                                     }
                                 }
                             ],
@@ -644,7 +645,7 @@ public class UserService(
                             new Sender
                             {
                                 Email = user.Email,
-                                Name = user.Email
+                                Name = user.Name
                             });
                     if (dispatchResponse is { StatusCode: HttpStatusCode.OK, Result: not null })
                     {
@@ -665,11 +666,18 @@ public class UserService(
                 }
                 else
                 {
-                    string log = $"User '{user.Id}' has attempted to contact a mentor '{recentDispatchSentCount}' times in the last 24h and reached the limit of '{dispatchLimit}'.";
+                    string log = $"User '{user.Id}' has attempted to contact a mentor '{recentDispatch.Count}' times in the last 24h and reached the limit of '{dispatchLimit}'.";
                     result.Messages.Add(log);
                     result.StatusCode = HttpStatusCode.TooManyRequests;
                     logger.LogWarning("{Message}", log);
                 }
+            }
+            else if (mentor is { IsOpenToNewMentees: false })
+            {
+                string log = $"User '{user.Id}' has attempted to contact Mentor '{id}' who was not open to new mentees.";
+                result.Messages.Add(log);
+                result.StatusCode = HttpStatusCode.Forbidden;
+                logger.LogWarning("{Message}", log);
             }
             else
             {
