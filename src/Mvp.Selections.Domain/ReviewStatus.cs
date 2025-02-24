@@ -1,8 +1,7 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public enum ReviewStatus
 {
-    public enum ReviewStatus
-    {
-        Open,
-        Finished
-    }
+    Open,
+    Finished
 }

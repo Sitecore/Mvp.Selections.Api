@@ -1,13 +1,12 @@
 ﻿using System.Net;
 
-namespace Mvp.Selections.Api.Model.X
+namespace Mvp.Selections.Api.Model.X;
+
+public class Response<T>
 {
-    public class Response<T>
-    {
-        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unused;
+    public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unused;
 
-        public string Message { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 
-        public T? Result { get; set; } = default;
-    }
+    public T? Result { get; set; } = default;
 }

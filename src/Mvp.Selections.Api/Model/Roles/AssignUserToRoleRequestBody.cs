@@ -1,9 +1,6 @@
-﻿using System;
+﻿namespace Mvp.Selections.Api.Model.Roles;
 
-namespace Mvp.Selections.Api.Model.Roles
+public class AssignUserToRoleRequestBody
 {
-    public class AssignUserToRoleRequestBody
-    {
-        public Guid UserId { get; set; }
-    }
+    public Guid UserId { get; set; }
 }

@@ -1,11 +1,8 @@
-﻿using System;
+﻿namespace Mvp.Selections.Api.Configuration;
 
-namespace Mvp.Selections.Api.Configuration
+public class CommunityClientOptions
 {
-    public class CommunityClientOptions
-    {
-        public const string CommunityClient = "CommunityClient";
+    public const string CommunityClient = "CommunityClient";
 
-        public Uri BaseAddress { get; set; } = new("https://community.sitecore.com/");
-    }
+    public Uri BaseAddress { get; set; } = new("https://community.sitecore.com/");
 }

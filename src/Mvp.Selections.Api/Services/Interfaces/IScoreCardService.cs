@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Mvp.Selections.Api.Model;
+﻿using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api.Services.Interfaces
+namespace Mvp.Selections.Api.Services.Interfaces;
+
+public interface IScoreCardService
 {
-    public interface IScoreCardService
-    {
-        Task<OperationResult<IList<ScoreCard>>> GetScoreCardsAsync(User user, Guid selectionId, short mvpTypeId);
-    }
+    Task<OperationResult<IList<ScoreCard>>> GetScoreCardsAsync(User user, Guid selectionId, short mvpTypeId);
 }

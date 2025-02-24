@@ -1,28 +1,27 @@
 ﻿using System.Linq.Expressions;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Data.Repositories.Interfaces
+namespace Mvp.Selections.Data.Repositories.Interfaces;
+
+public interface IBaseRepository<TEntity, in TId>
+    where TEntity : BaseEntity<TId>
+    where TId : struct, IEquatable<TId>
 {
-    public interface IBaseRepository<TEntity, in TId>
-        where TEntity : BaseEntity<TId>
-        where TId : struct, IEquatable<TId>
-    {
-        Task<TEntity?> GetAsync(TId id, params Expression<Func<TEntity, object>>[] includes);
+    Task<TEntity?> GetAsync(TId id, params Expression<Func<TEntity, object>>[] includes);
 
-        Task<TEntity?> GetReadOnlyAsync(TId id, params Expression<Func<TEntity, object>>[] includes);
+    Task<TEntity?> GetReadOnlyAsync(TId id, params Expression<Func<TEntity, object>>[] includes);
 
-        Task<IList<TEntity>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<TEntity, object>>[] includes);
+    Task<IList<TEntity>> GetAllAsync(int page = 1, short pageSize = 100, params Expression<Func<TEntity, object>>[] includes);
 
-        Task<IList<TEntity>> GetAllReadOnlyAsync(int page = 1, short pageSize = 100, params Expression<Func<TEntity, object>>[] includes);
+    Task<IList<TEntity>> GetAllReadOnlyAsync(int page = 1, short pageSize = 100, params Expression<Func<TEntity, object>>[] includes);
 
-        TEntity Add(TEntity entity);
+    TEntity Add(TEntity entity);
 
-        Task<bool> RemoveAsync(TId id);
+    Task<bool> RemoveAsync(TId id);
 
-        bool RemoveAsync(TEntity? entity);
+    bool RemoveAsync(TEntity? entity);
 
-        void SaveChanges();
+    void SaveChanges();
 
-        Task SaveChangesAsync();
-    }
+    Task SaveChangesAsync();
 }

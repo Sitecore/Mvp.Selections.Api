@@ -1,17 +1,16 @@
-﻿namespace Mvp.Selections.Domain
+﻿namespace Mvp.Selections.Domain;
+
+public class ReviewCategoryScore
 {
-    public class ReviewCategoryScore
-    {
-        public Guid ReviewId { get; set; }
+    public Guid ReviewId { get; set; }
 
-        public Review Review { get; set; } = null!;
+    public Review Review { get; set; } = null!;
 
-        public Guid ScoreCategoryId { get; set; }
+    public Guid ScoreCategoryId { get; set; }
 
-        public ScoreCategory ScoreCategory { get; set; } = null!;
+    public ScoreCategory ScoreCategory { get; set; } = null!;
 
-        public Guid ScoreId { get; set; }
+    public Guid ScoreId { get; set; }
 
-        public Score Score { get; set; } = null!;
-    }
+    public Score Score { get; set; } = null!;
 }

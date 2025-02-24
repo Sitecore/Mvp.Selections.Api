@@ -1,7 +1,6 @@
-﻿namespace Mvp.Selections.Api.Model.Search
+﻿namespace Mvp.Selections.Api.Model.Search;
+
+public class DocumentRequest
 {
-    public class DocumentRequest
-    {
-        public Document? Document { get; set; }
-    }
+    public Document? Document { get; set; }
 }
