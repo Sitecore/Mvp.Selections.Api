@@ -14,11 +14,11 @@ public class User(Guid id)
 
     public string Email { get; set; } = string.Empty;
 
-    public bool IsMentor { get; set; }
+    internal bool IsMentor { get; set; }
 
-    public bool IsOpenToNewMentees { get; set; }
+    internal bool IsOpenToNewMentees { get; set; }
 
-    public string? MentorDescription { get; set; }
+    internal string? MentorDescription { get; set; }
 
     public ImageType ImageType { get; set; }
 

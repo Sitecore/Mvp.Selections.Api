@@ -444,7 +444,7 @@ public class UserService(
     {
         OperationResult<Mentor> result = new() { StatusCode = HttpStatusCode.BadRequest };
         User? user = await GetAsync(id);
-        if (user != null)
+        if (user is { IsMentor: true })
         {
             result.Result = new Mentor
             {

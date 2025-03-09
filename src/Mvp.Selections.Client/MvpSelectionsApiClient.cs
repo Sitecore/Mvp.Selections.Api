@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
@@ -1468,9 +1469,20 @@ public class MvpSelectionsApiClient
     /// </summary>
     /// <param name="mentorId">The id of the <see cref="Mentor"/>.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="bool"/> where true means success.</returns>
-    public Task<Response<bool>> RemoveMentorAsync(int mentorId)
+    public Task<Response<bool>> RemoveMentorAsync(Guid mentorId)
     {
         return DeleteAsync($"/api/v1/mentors/{mentorId}");
+    }
+
+    /// <summary>
+    /// Contact a <see cref="Mentor"/>.
+    /// </summary>
+    /// <param name="mentorId">The id of the <see cref="Mentor"/>.</param>
+    /// <param name="message">Message inserted into the outgoing email.</param>
+    /// <returns>A <see cref="Response{T}"/> with 201 on success or containing a string on error.</returns>
+    public Task<Response<string?>> ContactMentorAsync(Guid mentorId, string message)
+    {
+        return PostStringAsync($"/api/v1/mentors/{mentorId}/contact", message);
     }
 
     #endregion Mentor
@@ -1522,6 +1534,23 @@ public class MvpSelectionsApiClient
         }
 
         result.StatusCode = response.StatusCode;
+        return result;
+    }
+
+    private async Task<Response<string?>> PostStringAsync(string requestUri, string body)
+    {
+        Response<string?> result = new();
+        HttpRequestMessage request = new()
+        {
+            Method = HttpMethod.Post,
+            RequestUri = new Uri(requestUri, UriKind.Relative),
+            Content = new StringContent(body, Encoding.UTF8)
+        };
+        await SetAuthorizationHeader(request);
+        HttpResponseMessage response = await _client.SendAsync(request);
+        result.Result = await response.Content.ReadAsStringAsync();
+        result.StatusCode = response.StatusCode;
+
         return result;
     }
 
