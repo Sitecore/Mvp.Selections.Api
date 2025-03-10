@@ -79,6 +79,12 @@ public class Context : DbContext
             .IsUnique();
         modelBuilder.Entity<User>()
             .HasData(new { Id = adminUserId, Identifier = "00uqyu5bxcffmH3xP0h7", Name = "Ivan Lieckens", Email = "ivan.lieckens@sitecore.com", CountryId = (short)21, ImageType = ImageType.Anonymous, CreatedOn = new DateTime(2022, 9, 1), CreatedBy = "System", IsMentor = false, IsOpenToNewMentees = false });
+        modelBuilder.Entity<User>()
+            .Property(u => u.IsMentor);
+        modelBuilder.Entity<User>()
+            .Property(u => u.IsOpenToNewMentees);
+        modelBuilder.Entity<User>()
+            .Property(u => u.MentorDescription);
 
         modelBuilder.Entity("RoleUser")
             .HasData(new { UsersId = adminUserId, RolesId = DefaultAdminRoleId });
