@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Clients.Interfaces;
 using Mvp.Selections.Api.Configuration;
@@ -17,6 +18,8 @@ public class SendClient : ISendClient
 
     private readonly SendClientOptions _options;
 
+    private readonly ILogger<SendClient> _logger;
+
     static SendClient()
     {
         _JsonSerializerOptions = new JsonSerializerOptions
@@ -26,11 +29,12 @@ public class SendClient : ISendClient
         };
     }
 
-    public SendClient(HttpClient client, IOptions<SendClientOptions> options)
+    public SendClient(HttpClient client, IOptions<SendClientOptions> options, ILogger<SendClient> logger)
     {
         _options = options.Value;
         _client = client;
         _client.BaseAddress = _options.BaseAddress;
+        _logger = logger;
     }
 
     public async Task<Response<TransactionalDispatchResult>> SendTransactionalEmailAsync(
@@ -69,11 +73,14 @@ public class SendClient : ISendClient
         HttpResponseMessage response = await _client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
-            result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
+            string json = await response.Content.ReadAsStringAsync();
+            result.Result = JsonSerializer.Deserialize<T>(json, _JsonSerializerOptions);
+            _logger.LogInformation("[{ResponseCode}] {Message}", response.StatusCode, json);
         }
         else
         {
             result.Message = await response.Content.ReadAsStringAsync();
+            _logger.LogError("[{ResponseCode}] {Message}", response.StatusCode, result.Message);
         }
 
         result.StatusCode = response.StatusCode;
