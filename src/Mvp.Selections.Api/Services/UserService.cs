@@ -641,13 +641,7 @@ public class UserService(
                                     }
                                 }
                             ],
-                            false,
-                            null,
-                            new Sender
-                            {
-                                Email = user.Email,
-                                Name = user.Name
-                            });
+                            false);
                     if (dispatchResponse is { StatusCode: HttpStatusCode.OK, Result: not null })
                     {
                         dispatchRepository.Add(new Dispatch(Guid.NewGuid())
