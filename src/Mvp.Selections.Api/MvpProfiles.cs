@@ -27,6 +27,10 @@ public class MvpProfiles(
 
     private const string CountryIdQueryStringKey = "countryId";
 
+    private const string MentorQueryStringKey = "mentor";
+
+    private const string OpenToMenteesQueryStringKey = "openToMentees";
+
     [Function("GetMvpProfile")]
     public Task<IActionResult> Get(
         [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/mvpprofiles/{id:Guid}")]
@@ -59,10 +63,12 @@ public class MvpProfiles(
         IList<short>? mvpTypeIds = req.Query.GetValuesOrNull<short>(MvpTypeIdQueryStringKey);
         IList<short>? years = req.Query.GetValuesOrNull<short>(YearQueryStringKey);
         IList<short>? countryIds = req.Query.GetValuesOrNull<short>(CountryIdQueryStringKey);
+        bool? mentor = req.Query.GetFirstValueOrDefault<bool?>(MentorQueryStringKey);
+        bool? openToMentees = req.Query.GetFirstValueOrDefault<bool?>(OpenToMenteesQueryStringKey);
 
         bool isAdmin = user?.HasRight(Right.Admin) ?? false;
         SearchOperationResult<MvpProfile> searchOperationResult =
-            await mvpProfileService.SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, !isAdmin, lp.Page, lp.PageSize);
+            await mvpProfileService.SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, mentor, openToMentees, !isAdmin, lp.Page, lp.PageSize);
         return ContentResult(searchOperationResult, MvpProfileContractResolver.Instance);
     }
 

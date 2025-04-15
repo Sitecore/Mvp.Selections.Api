@@ -249,12 +249,14 @@ public class UserService(
         IList<short>? mvpTypeIds = null,
         IList<short>? years = null,
         IList<short>? countryIds = null,
+        bool? mentor = null,
+        bool? openToMentees = null,
         bool onlyFinalized = true,
         int page = 1,
         short pageSize = 100)
     {
         SearchOperationResult<MvpProfile> operationResult = new();
-        string cacheKey = cache.GetMvpProfileSearchResultsKey(text, mvpTypeIds, years, countryIds, onlyFinalized);
+        string cacheKey = cache.GetMvpProfileSearchResultsKey(text, mvpTypeIds, years, countryIds, mentor, openToMentees, onlyFinalized);
         if (!cache.TryGet(cacheKey, out List<MvpProfile>? profiles))
         {
             IList<User> mvpUsers = await userRepository.GetWithTitleReadOnlyAsync(
@@ -262,6 +264,8 @@ public class UserService(
                 mvpTypeIds,
                 years,
                 countryIds,
+                mentor,
+                openToMentees,
                 onlyFinalized,
                 1,
                 short.MaxValue);
@@ -308,7 +312,7 @@ public class UserService(
         Dictionary<Task, string> runningTasks = [];
         do
         {
-            users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, true, page, 1000, u => u.Country!);
+            users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, null, null, true, page, 1000, u => u.Country!);
             count += users.Count;
             foreach (User user in users)
             {
@@ -386,7 +390,7 @@ public class UserService(
         Dictionary<Task, string> runningTasks = [];
         do
         {
-            users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, true, page, 1000);
+            users = await userRepository.GetWithTitleReadOnlyAsync(null, null, null, null, null, null, true, page, 1000);
             count += users.Count;
             foreach (User user in users)
             {
@@ -743,6 +747,28 @@ public class UserService(
         return result;
     }
 
+    private static SearchFacet CalculateMentorFacet(IEnumerable<MvpProfile> profiles)
+    {
+        SearchFacet result = new() { Identifier = IMvpProfileService.MentorFacetIdentifier };
+        SearchFacetOption mentorOption = new() { Identifier = IMvpProfileService.MentorFacetMentorOptionIdentifier, Display = "Mentor" };
+        SearchFacetOption openToMenteesOption = new() { Identifier = IMvpProfileService.MentorFacetOpenToMenteesOptionIdentifier, Display = "Open to Mentees" };
+        foreach (MvpProfile profile in profiles)
+        {
+            if (profile.IsMentor)
+            {
+                mentorOption.Count++;
+                if (profile.IsOpenToNewMentees)
+                {
+                    openToMenteesOption.Count++;
+                }
+            }
+        }
+
+        result.Options.Add(mentorOption);
+        result.Options.Add(openToMenteesOption);
+        return result;
+    }
+
     // ReSharper disable once ReturnTypeCanBeEnumerable.Local - Concrete return type is more performant.
     private List<SearchFacet> CalculateFacets(string cacheKey, IReadOnlyCollection<MvpProfile> profiles)
     {
@@ -753,6 +779,7 @@ public class UserService(
             facets.Add(CalculateYearFacet(profiles));
             facets.Add(CalculateTypeFacet(profiles));
             facets.Add(CalculateCountryFacet(profiles));
+            facets.Add(CalculateMentorFacet(profiles));
             cache.Set(
                 CacheManager.CacheCollection.MvpProfileSearchResults,
                 facetsCacheKey,

@@ -26,6 +26,8 @@ public interface IUserRepository : IBaseRepository<User, Guid>
         IList<short>? mvpTypeIds = null,
         IList<short>? years = null,
         IList<short>? countryIds = null,
+        bool? mentor = null,
+        bool? openToMentees = null,
         bool onlyFinalized = true,
         int page = 1,
         short pageSize = 100,
