@@ -27,6 +27,8 @@ public class UserServiceTests
             Application = new Application(Guid.NewGuid())
                 { Selection = new Selection(Guid.NewGuid()) { Year = 1800 } }
         });
+        mvp1.IsMentor = true;
+        mvp1.IsOpenToNewMentees = false;
 
         mvp2.Country = country1;
         mvp2.Titles.Clear();
@@ -36,6 +38,8 @@ public class UserServiceTests
             Application = new Application(Guid.NewGuid())
                 { Selection = new Selection(Guid.NewGuid()) { Year = 1801 } }
         });
+        mvp2.IsMentor = true;
+        mvp2.IsOpenToNewMentees = true;
 
         mvp3.Country = country2;
         mvp3.Titles.Clear();
@@ -45,6 +49,8 @@ public class UserServiceTests
             Application = new Application(Guid.NewGuid())
                 { Selection = new Selection(Guid.NewGuid()) { Year = 1803 } }
         });
+        mvp3.IsMentor = false;
+        mvp3.IsOpenToNewMentees = false;
 
         cache.TryGet(Arg.Any<string>(), out Arg.Any<List<MvpProfile>?>()).Returns(x =>
         {
@@ -60,5 +66,9 @@ public class UserServiceTests
         result.Result.Facets.Single(f => f.Identifier == IMvpProfileService.CountryFacetIdentifier).Options.Should().HaveCount(2);
         result.Result.Facets.Single(f => f.Identifier == IMvpProfileService.TypeFacetIdentifier).Options.Should().HaveCount(1);
         result.Result.Facets.Single(f => f.Identifier == IMvpProfileService.YearFacetIdentifier).Options.Should().HaveCount(3);
+
+        result.Result.Facets.Single(f => f.Identifier == IMvpProfileService.MentorFacetIdentifier).Options.Should().HaveCount(2);
+        result.Result.Facets.Single(f => f.Identifier == IMvpProfileService.MentorFacetIdentifier).Options.First(o => o.Identifier == IMvpProfileService.MentorFacetMentorOptionIdentifier).Count.Should().Be(2);
+        result.Result.Facets.Single(f => f.Identifier == IMvpProfileService.MentorFacetIdentifier).Options.First(o => o.Identifier == IMvpProfileService.MentorFacetOpenToMenteesOptionIdentifier).Count.Should().Be(1);
     }
 }

@@ -13,5 +13,7 @@ public interface ICacheManager
         IList<short>? mvpTypeIds = null,
         IList<short>? years = null,
         IList<short>? countryIds = null,
+        bool? mentor = null,
+        bool? openToMentees = null,
         bool onlyFinalized = true);
 }

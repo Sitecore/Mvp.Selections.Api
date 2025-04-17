@@ -1366,6 +1366,8 @@ public class MvpSelectionsApiClient
     /// <param name="mvpTypeIds">The ids of the <see cref="MvpType"/>s to filter.</param>
     /// <param name="years">The years to filter.</param>
     /// <param name="countryIds">The ids of the <see cref="Country"/> to filter.</param>
+    /// <param name="mentor">Indicates to filter for mentors only.</param>
+    /// <param name="openToMentees">Indicates to filter for mentors open to mentees only.</param>
     /// <param name="page">Page to retrieve. 1 by default.</param>
     /// <param name="pageSize">Page size to retrieve. 100 by default.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="SearchResult{T}"/> of <see cref="MvpProfile"/>.</returns>
@@ -1374,11 +1376,13 @@ public class MvpSelectionsApiClient
         IEnumerable<short>? mvpTypeIds = null,
         IEnumerable<short>? years = null,
         IEnumerable<short>? countryIds = null,
+        bool? mentor = null,
+        bool? openToMentees = null,
         int page = 1,
         short pageSize = 100)
     {
         ListParameters listParameters = new() { Page = page, PageSize = pageSize };
-        return SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, listParameters);
+        return SearchMvpProfileAsync(text, mvpTypeIds, years, countryIds, mentor, openToMentees, listParameters);
     }
 
     /// <summary>
@@ -1388,6 +1392,8 @@ public class MvpSelectionsApiClient
     /// <param name="mvpTypeIds">The ids of the <see cref="MvpType"/>s to filter.</param>
     /// <param name="years">The years to filter.</param>
     /// <param name="countryIds">The ids of the <see cref="Country"/> to filter.</param>
+    /// <param name="mentor">Indicates to filter for mentors only.</param>
+    /// <param name="openToMentees">Indicates to filter for mentors open to mentees only.</param>
     /// <param name="listParameters">The list parameters.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="SearchResult{T}"/> of <see cref="MvpProfile"/>.</returns>
     public Task<Response<SearchResult<MvpProfile>>> SearchMvpProfileAsync(
@@ -1395,10 +1401,12 @@ public class MvpSelectionsApiClient
         IEnumerable<short>? mvpTypeIds,
         IEnumerable<short>? years,
         IEnumerable<short>? countryIds,
+        bool? mentor,
+        bool? openToMentees,
         ListParameters listParameters)
     {
         return GetAsync<SearchResult<MvpProfile>>(
-            $"/api/v1/mvpprofiles/search{listParameters.ToQueryString(true)}{text.ToQueryString("text")}{mvpTypeIds.ToQueryString("mvpTypeId")}{years.ToQueryString("year")}{countryIds.ToQueryString("countryId")}");
+            $"/api/v1/mvpprofiles/search{listParameters.ToQueryString(true)}{text.ToQueryString("text")}{mvpTypeIds.ToQueryString("mvpTypeId")}{years.ToQueryString("year")}{countryIds.ToQueryString("countryId")}{mentor.ToQueryString("mentor")}{openToMentees.ToQueryString("openToMentees")}");
     }
 
     #endregion MvpProfile

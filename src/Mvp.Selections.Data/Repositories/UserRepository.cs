@@ -69,12 +69,14 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
         IList<short>? mvpTypeIds = null,
         IList<short>? years = null,
         IList<short>? countryIds = null,
+        bool? mentor = null,
+        bool? openToMentees = null,
         bool onlyFinalized = true,
         int page = 1,
         short pageSize = 100,
         params Expression<Func<User, object>>[] includes)
     {
-        return await GetWithTitleQuery(text, mvpTypeIds, years, countryIds, onlyFinalized, page, pageSize, includes).AsNoTracking().ToListAsync();
+        return await GetWithTitleQuery(text, mvpTypeIds, years, countryIds, mentor, openToMentees, onlyFinalized, page, pageSize, includes).AsNoTracking().ToListAsync();
     }
 
     public async Task MergeAsync(User old, User merged)
@@ -197,6 +199,8 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
         IEnumerable<short>? mvpTypeIds,
         IEnumerable<short>? years,
         IEnumerable<short>? countryIds,
+        bool? mentor,
+        bool? openToMentees,
         bool onlyFinalized,
         int page,
         short pageSize,
@@ -222,6 +226,16 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
         if (countryIds != null)
         {
             query = countryIds.Aggregate(query, (current, id) => current.Where(u => u.Applications.Where(a => a.Titles.Count > 0).Any(a => a.Country.Id == id) || u.Country!.Id == id));
+        }
+
+        if (mentor.HasValue)
+        {
+            query = query.Where(u => u.IsMentor == mentor.Value);
+        }
+
+        if (openToMentees.HasValue)
+        {
+            query = query.Where(u => u.IsOpenToNewMentees == openToMentees.Value);
         }
 
         return query
