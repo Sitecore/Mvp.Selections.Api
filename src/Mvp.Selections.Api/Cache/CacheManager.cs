@@ -53,10 +53,12 @@ public class CacheManager(IOptions<Configuration.CacheOptions> options, IMemoryC
         IList<short>? mvpTypeIds = null,
         IList<short>? years = null,
         IList<short>? countryIds = null,
+        bool? mentor = null,
+        bool? openToMentees = null,
         bool onlyFinalized = true)
     {
         return
-            $"{options.Value.MvpProfilesCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}_{onlyFinalized}";
+            $"{options.Value.MvpProfilesCacheKey}_{text}_{mvpTypeIds.ToCommaSeparatedStringOrNullLiteral()}_{years.ToCommaSeparatedStringOrNullLiteral()}_{countryIds.ToCommaSeparatedStringOrNullLiteral()}_{mentor}_{openToMentees}_{onlyFinalized}";
     }
 
     private class CacheInvalidationToken
