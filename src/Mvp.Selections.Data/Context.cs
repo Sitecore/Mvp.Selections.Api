@@ -67,6 +67,8 @@ public class Context : DbContext
 
     public DbSet<Dispatch> Dispatches => Set<Dispatch>();
 
+    public DbSet<License> Licenses => Set<License>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         Guid adminUserId = new("00000000-0000-0000-0000-000000000001");
@@ -151,6 +153,12 @@ public class Context : DbContext
             .AutoInclude();
 
         modelBuilder.Entity<ApplicationComment>();
+
+        modelBuilder.Entity<License>()
+            .HasOne(l => l.AssignedUser)
+            .WithMany()
+            .HasForeignKey(l => l.AssignedUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 
     private static IEnumerable<Country> SeedCountries()
