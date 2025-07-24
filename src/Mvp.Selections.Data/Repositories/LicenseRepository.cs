@@ -42,7 +42,7 @@ namespace Mvp.Selections.Data.Repositories
                 .AnyAsync();
         }
 
-        public async Task<License> AssignedUserLicneseAsync(License license)
+        public async Task<License> AssignedUserLicenseAsync(License license)
         {
             Context.Set<License>().Update(license);
             await Context.SaveChangesAsync();

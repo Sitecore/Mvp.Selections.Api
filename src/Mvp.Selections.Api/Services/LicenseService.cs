@@ -36,7 +36,7 @@ namespace Mvp.Selections.Api.Services
         {
             var result = new OperationResult<Domain.License>();
 
-            if (string.IsNullOrEmpty(assignUserToLicense.email))
+            if (string.IsNullOrEmpty(assignUserToLicense.Email))
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
                 result.Messages.Add("Email is required");
@@ -52,11 +52,11 @@ namespace Mvp.Selections.Api.Services
                 return result;
             }
 
-            var user = await licenseRepository.GetUserByEmailAsync(assignUserToLicense.email);
+            var user = await licenseRepository.GetUserByEmailAsync(assignUserToLicense.Email);
             if (user == null)
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add($"No such user found with email: {assignUserToLicense.email}");
+                result.Messages.Add($"No such user found with email: {assignUserToLicense.Email}");
                 return result;
             }
 
@@ -64,14 +64,14 @@ namespace Mvp.Selections.Api.Services
             if (!isMVP)
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add($"{assignUserToLicense.email} is not a current year MVP.");
+                result.Messages.Add($"{assignUserToLicense.Email} is not a current year MVP.");
                 return result;
             }
 
             license.AssignedUserId = user.Id;
             license.ModifiedOn = DateTime.Now;
 
-            var results = await licenseRepository.AssignedUserLicneseAsync(license);
+            var results = await licenseRepository.AssignedUserLicenseAsync(license);
 
             return new OperationResult<Domain.License>
             {
@@ -128,61 +128,64 @@ namespace Mvp.Selections.Api.Services
             await zipFile.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
-            var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
-
-            foreach (var entry in archive.Entries)
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read))
             {
-                XmlDocument xmldoc = new XmlDocument();
-                string xmlContent = string.Empty;
-                string fileName = string.Empty;
-
-                if (entry.FullName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                foreach (var entry in archive.Entries)
                 {
-                    var nestedZipStream = new MemoryStream();
-                    await entry.Open().CopyToAsync(nestedZipStream);
-                    nestedZipStream.Position = 0;
-                    var nestedArchive = new ZipArchive(nestedZipStream, ZipArchiveMode.Read);
-                    var nestedXMLEntry = nestedArchive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+                    XmlDocument xmldoc = new XmlDocument();
+                    string xmlContent = string.Empty;
+                    string fileName = string.Empty;
 
-                    if (nestedXMLEntry != null)
+                    if (entry.FullName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                     {
-                        using var entryStream = nestedXMLEntry.Open();
+                        var nestedZipStream = new MemoryStream();
+                        await entry.Open().CopyToAsync(nestedZipStream);
+                        nestedZipStream.Position = 0;
+                        using (var nestedArchive = new ZipArchive(nestedZipStream, ZipArchiveMode.Read))
+                        {
+                            var nestedXMLEntry = nestedArchive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+
+                            if (nestedXMLEntry != null)
+                            {
+                                using var entryStream = nestedXMLEntry.Open();
+                                using var reader = new StreamReader(entryStream);
+                                xmlContent = await reader.ReadToEndAsync();
+
+                                xmldoc.LoadXml(xmlContent);
+                                fileName = nestedXMLEntry.Name;
+                            }
+                        }
+                    }
+                    else if (entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using var entryStream = entry.Open();
                         using var reader = new StreamReader(entryStream);
                         xmlContent = await reader.ReadToEndAsync();
 
                         xmldoc.LoadXml(xmlContent);
-                        fileName = nestedXMLEntry.Name;
+                        fileName = entry.Name;
                     }
-                }
-                else if (entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
-                {
-                    using var entryStream = entry.Open();
-                    using var reader = new StreamReader(entryStream);
-                    xmlContent = await reader.ReadToEndAsync();
 
-                    xmldoc.LoadXml(xmlContent);
-                    fileName = entry.Name;
-                }
+                    var expirationNode = xmldoc.GetElementsByTagName("expiration");
 
-                var expirationNode = xmldoc.GetElementsByTagName("expiration");
-
-                if (expirationNode != null && expirationNode.Count > 0)
-                {
-                    string expiration = expirationNode[0].InnerText;
-                    DateTime expiredate = DateTime.ParseExact(expiration, "yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
-
-                    string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlContent));
-
-                    var license = new Domain.License(Guid.NewGuid())
+                    if (expirationNode != null && expirationNode.Count > 0)
                     {
-                        FileName = fileName,
-                        LicenseContent = base64Content,
-                        ExpirationDate = expiredate,
-                        AssignedUserId = null,
-                        CreatedBy = identifier,
-                    };
+                        string expiration = expirationNode[0].InnerText;
+                        DateTime expiredate = DateTime.ParseExact(expiration, "yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
 
-                    licenses.Add(license);
+                        string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlContent));
+
+                        var license = new Domain.License(Guid.NewGuid())
+                        {
+                            FileName = fileName,
+                            LicenseContent = base64Content,
+                            ExpirationDate = expiredate,
+                            AssignedUserId = null,
+                            CreatedBy = identifier,
+                        };
+
+                        licenses.Add(license);
+                    }
                 }
             }
 

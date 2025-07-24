@@ -17,7 +17,7 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
 
         Task<User?> GetUserByEmailAsync(string email);
 
-        Task<License> AssignedUserLicneseAsync(License license);
+        Task<License> AssignedUserLicenseAsync(License license);
 
         Task<List<License>> GetAllLicenseAsync(int page, int pageSize);
 

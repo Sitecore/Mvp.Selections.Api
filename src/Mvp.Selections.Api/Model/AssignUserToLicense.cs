@@ -6,6 +6,6 @@ namespace Mvp.Selections.Api.Model
     {
         public Guid LicenceId { get; set; }
 
-        public string email { get; set; }
+        public string Email { get; set; }
     }
 }

@@ -39,7 +39,7 @@ namespace Mvp.Selections.Api.Tests.Services
             var request = new AssignUserToLicense
             {
                 LicenceId = Guid.NewGuid(),
-                email = string.Empty
+                Email = string.Empty
             };
 
             // Act
@@ -71,7 +71,7 @@ namespace Mvp.Selections.Api.Tests.Services
             var request = new AssignUserToLicense
             {
                 LicenceId = licenseId,
-                email = email
+                Email = email
             };
 
             _licenseRepository.GetLicenseAsync(licenseId)
@@ -83,7 +83,7 @@ namespace Mvp.Selections.Api.Tests.Services
             _licenseRepository.IsCurrentYearMvpAsync(user, DateTime.Now.Year)
                 .Returns(true);
 
-            _licenseRepository.AssignedUserLicneseAsync(Arg.Any<Domain.License>())
+            _licenseRepository.AssignedUserLicenseAsync(Arg.Any<Domain.License>())
                 .Returns(license);
 
             // Act
@@ -94,7 +94,7 @@ namespace Mvp.Selections.Api.Tests.Services
             result.Result.Should().Be(license);
 
             await _licenseRepository.Received(1)
-                .AssignedUserLicneseAsync(Arg.Is<Domain.License>(l => l.AssignedUserId == user.Id));
+                .AssignedUserLicenseAsync(Arg.Is<Domain.License>(l => l.AssignedUserId == user.Id));
         }
 
         [Fact]

@@ -54,7 +54,7 @@ namespace Mvp.Selections.Api
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (assignUser == null || string.IsNullOrEmpty(assignUser.email))
+                if (assignUser == null || string.IsNullOrEmpty(assignUser.Email))
                 {
                     return ContentResult(new OperationResult<Mvp.Selections.Domain.License>
                     {
@@ -69,7 +69,7 @@ namespace Mvp.Selections.Api
         }
 
         [Function("GetAllLicenses")]
-        public async Task<IActionResult> GetAllLicennses(
+        public async Task<IActionResult> GetAllLicenses(
         [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/license/getAllLicenses")]
         HttpRequest req)
         {
