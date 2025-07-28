@@ -3,9 +3,8 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Xml;
-using Google.Protobuf;
-using Grpc.Core;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
@@ -14,27 +13,49 @@ using Mvp.Selections.Data.Repositories.Interfaces;
 namespace Mvp.Selections.Api.Services
 {
     public class LicenseService(
-            ILicenseRepository licenseRepository) : ILicenseService
+                ILicenseRepository licenseRepository,
+                IUserRepository userRepository,
+                ILogger<LicenseService> logger) : ILicenseService
     {
+        private readonly ILogger<LicenseService> _logger = logger;
+
         public async Task<OperationResult<List<Domain.License>>> ZipUploadAsync(IFormFile formFile, string identifier)
         {
-            var licenses = new List<Domain.License>();
-            licenses = await ExtractZipAsync(formFile, identifier);
-            await licenseRepository.AddLicensesAsync(licenses);
+            List<Domain.License> licenses = [];
+            var operationResult = new OperationResult<List<Domain.License>>();
 
-            var operationResult = new OperationResult<List<Mvp.Selections.Domain.License>>
+            if (formFile == null)
             {
-                Result = licenses,
-                StatusCode = HttpStatusCode.OK
-            };
+                operationResult.StatusCode = HttpStatusCode.BadRequest;
+                _logger.LogWarning("No file uploaded for identifier: {Identifier}", identifier);
+                operationResult.Messages.Add("No file uploaded");
+                return operationResult;
+            }
+
+            licenses = await ExtractZipAsync(formFile, identifier);
+
+            if (licenses == null || !licenses.Any())
+            {
+                const string message = "No licenses extracted from zip file.";
+                _logger.LogWarning("License list is empty for identifier: {Identifier}", identifier);
+                operationResult.StatusCode = HttpStatusCode.BadRequest;
+                operationResult.Messages.Add(message);
+                return operationResult;
+            }
+
+            await licenseRepository.AddLicensesAsync(licenses);
+            await licenseRepository.SaveChangesAsync();
+
+            operationResult.StatusCode = HttpStatusCode.OK;
+            operationResult.Result = licenses;
             operationResult.Messages.Add("Success");
 
             return operationResult;
         }
 
-        public async Task<OperationResult<Domain.License>> AssignUserAsync(AssignUserToLicense assignUserToLicense)
+        public async Task<OperationResult<Domain.License>> AssignLicenseToUserAsync(AssignUserToLicense assignUserToLicense, Guid licenseId)
         {
-            var result = new OperationResult<Domain.License>();
+            OperationResult<Domain.License> result = new();
 
             if (string.IsNullOrEmpty(assignUserToLicense.Email))
             {
@@ -43,7 +64,7 @@ namespace Mvp.Selections.Api.Services
                 return result;
             }
 
-            var license = await licenseRepository.GetLicenseAsync(assignUserToLicense.LicenceId);
+            var license = await licenseRepository.GetLicenseAsync(licenseId);
 
             if (license == null)
             {
@@ -52,7 +73,9 @@ namespace Mvp.Selections.Api.Services
                 return result;
             }
 
-            var user = await licenseRepository.GetUserByEmailAsync(assignUserToLicense.Email);
+            var users = await userRepository.GetAllAsync(email: assignUserToLicense.Email);
+            var user = users.FirstOrDefault();
+
             if (user == null)
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
@@ -60,8 +83,8 @@ namespace Mvp.Selections.Api.Services
                 return result;
             }
 
-            var isMVP = await licenseRepository.IsCurrentYearMvpAsync(user, DateTime.Now.Year);
-            if (!isMVP)
+            var isCurrentMvp = await licenseRepository.UserHasTitleForYearAsync(user, DateTime.Now.Year);
+            if (!isCurrentMvp)
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
                 result.Messages.Add($"{assignUserToLicense.Email} is not a current year MVP.");
@@ -71,18 +94,19 @@ namespace Mvp.Selections.Api.Services
             license.AssignedUserId = user.Id;
             license.ModifiedOn = DateTime.Now;
 
-            var results = await licenseRepository.AssignedUserLicenseAsync(license);
+            await licenseRepository.AssignLicenseToUserAsync(license);
+            await licenseRepository.SaveChangesAsync();
 
             return new OperationResult<Domain.License>
             {
-                Result = results,
+                Result = license,
                 StatusCode = HttpStatusCode.OK,
             };
         }
 
         public async Task<Domain.License> GetLicenseAsync(Guid id)
         {
-            var license = await licenseRepository.GetLicenseAsync(id);
+            Domain.License? license = await licenseRepository.GetLicenseAsync(id);
             if (license == null)
             {
                 throw new InvalidOperationException("License not found.");
@@ -93,38 +117,44 @@ namespace Mvp.Selections.Api.Services
 
         public async Task<List<Domain.License>> GetAllLicenseAsync(int page, int pageSize)
         {
-            var licenses = await licenseRepository.GetAllLicenseAsync(page, pageSize);
+            List<Domain.License> licenses = await licenseRepository.GetNonExpiredLicensesAsync(page, pageSize);
             return licenses;
         }
 
-        public async Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId)
+        public async Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(string identifier)
         {
-            var license = await licenseRepository.DownloadLicenseAsync(userId);
-            if (license != null)
+            OperationResult<LicenseDownload> result = new();
+            var user = await userRepository.GetAsync(identifier);
+            if (user == null)
             {
-                return new OperationResult<LicenseDownload>
-                {
-                    Result = new LicenseDownload
-                    {
-                        XmlContent = license.LicenseContent,
-                        FileName = license.FileName,
-                    },
-                    StatusCode = HttpStatusCode.OK,
-                };
+                result.StatusCode = HttpStatusCode.BadRequest;
+                result.Messages.Add("User not found");
+                return result;
             }
 
-            return new OperationResult<LicenseDownload>
+            Domain.License? license = await licenseRepository.DownloadLicenseAsync(user.Id);
+            bool isCurrentMvp = await licenseRepository.UserHasTitleForYearAsync(user, DateTime.Now.Year);
+
+            if (isCurrentMvp && license != null)
             {
-                Result = null,
-                StatusCode = HttpStatusCode.BadRequest,
-                Messages = { "License not found. Please contact the admin via email" }
-            };
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = new LicenseDownload
+                {
+                    XmlContent = license.LicenseContent,
+                    FileName = "license.xml"
+                };
+                return result;
+            }
+
+            result.StatusCode = HttpStatusCode.BadRequest;
+            result.Messages.Add("License not found or the user does not hold MVP title for the current year. Please contact the admin via email");
+            return result;
         }
 
         private async Task<List<Domain.License>> ExtractZipAsync(IFormFile zipFile, string identifier)
         {
-            var licenses = new List<Domain.License>();
-            var memoryStream = new MemoryStream();
+            List<Domain.License> licenses = new();
+            MemoryStream memoryStream = new();
             await zipFile.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
@@ -147,22 +177,14 @@ namespace Mvp.Selections.Api.Services
 
                             if (nestedXMLEntry != null)
                             {
-                                using var entryStream = nestedXMLEntry.Open();
-                                using var reader = new StreamReader(entryStream);
-                                xmlContent = await reader.ReadToEndAsync();
-
-                                xmldoc.LoadXml(xmlContent);
+                                (xmldoc, fileName, xmlContent) = await ReadXmlFromEntryAsync(nestedXMLEntry);
                                 fileName = nestedXMLEntry.Name;
                             }
                         }
                     }
                     else if (entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                     {
-                        using var entryStream = entry.Open();
-                        using var reader = new StreamReader(entryStream);
-                        xmlContent = await reader.ReadToEndAsync();
-
-                        xmldoc.LoadXml(xmlContent);
+                        (xmldoc, fileName, xmlContent) = await ReadXmlFromEntryAsync(entry);
                         fileName = entry.Name;
                     }
 
@@ -177,7 +199,6 @@ namespace Mvp.Selections.Api.Services
 
                         var license = new Domain.License(Guid.NewGuid())
                         {
-                            FileName = fileName,
                             LicenseContent = base64Content,
                             ExpirationDate = expiredate,
                             AssignedUserId = null,
@@ -190,6 +211,18 @@ namespace Mvp.Selections.Api.Services
             }
 
             return licenses;
+        }
+
+        private async Task<(XmlDocument XmlDoc, string FileName, string XmlContent)> ReadXmlFromEntryAsync(ZipArchiveEntry entry)
+        {
+            using Stream entryStream = entry.Open();
+            using StreamReader reader = new StreamReader(entryStream);
+            string xmlContent = await reader.ReadToEndAsync();
+
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.LoadXml(xmlContent);
+
+            return (xmldoc, entry.Name, xmlContent);
         }
     }
 }

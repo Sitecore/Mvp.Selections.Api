@@ -19,34 +19,28 @@ namespace Mvp.Selections.Api
             IAuthService authService,
             ILicenseService licenseService) : Base<License>(logger, serializer, authService)
     {
-        [Function("AddLicenses")]
+        [Function("UploadLicenses")]
         public Task<IActionResult> AddLicenses(
-            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/license/zip")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/license/upload")]
             HttpRequest req)
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
                 IFormFile? file = req.Form.Files.FirstOrDefault();
                 var Identifier = authResult.User!.Identifier;
-                if (file == null)
-                {
-                    return ContentResult(new OperationResult<License>
-                    {
-                        StatusCode = HttpStatusCode.BadRequest
-                    });
-                }
 
                 OperationResult<List<Domain.License>> result = await licenseService.ZipUploadAsync(file, Identifier);
                 return ContentResult(result, LicenseContractResolver.Instance);
             });
         }
 
-        [Function("AssignUser")]
-        public async Task<IActionResult> AssignUser(
-            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/license/AssignUser")]
-            HttpRequest req)
+        [Function("AssignLicenseToUser")]
+        public async Task<IActionResult> AssignLicenseToUser(
+            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/licenses/{licenseId:Guid}/assign")]
+            HttpRequest req,
+            Guid licenseId)
         {
-            return await ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
+            return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 AssignUserToLicense? assignUser = JsonSerializer.Deserialize<AssignUserToLicense>(requestBody, new JsonSerializerOptions
@@ -54,16 +48,7 @@ namespace Mvp.Selections.Api
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (assignUser == null || string.IsNullOrEmpty(assignUser.Email))
-                {
-                    return ContentResult(new OperationResult<Mvp.Selections.Domain.License>
-                    {
-                        StatusCode = HttpStatusCode.BadRequest,
-                        Messages = { "Invalid payload or missing email." }
-                    });
-                }
-
-                OperationResult<Domain.License> result = await licenseService.AssignUserAsync(assignUser);
+                OperationResult<Domain.License> result = await licenseService.AssignLicenseToUserAsync(assignUser, licenseId);
                 return ContentResult(result, LicenseContractResolver.Instance);
             });
         }
@@ -73,10 +58,10 @@ namespace Mvp.Selections.Api
         [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/license/getAllLicenses")]
         HttpRequest req)
         {
-            return await ExecuteSafeSecurityValidatedAsync(req, new[] { Right.Admin }, async authResult =>
+            return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
-                ListParameters lp = new(req);
-                var licenses = await licenseService.GetAllLicenseAsync(lp.Page, lp.PageSize);
+                ListParameters listParameters = new(req);
+                var licenses = await licenseService.GetAllLicenseAsync(listParameters.Page, listParameters.PageSize);
                 return ContentResult(licenses, LicenseContractResolver.Instance);
             });
         }
@@ -88,7 +73,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
             {
-                var result = await licenseService.DownloadLicenseAsync(authResult.User!.Id);
+                var result = await licenseService.DownloadLicenseAsync(authResult.User!.Identifier);
 
                 if (result.StatusCode != HttpStatusCode.OK || result.Result == null)
                 {

@@ -107,7 +107,6 @@ public class Program
                 services.AddScoped<IDispatchRepository, DispatchRepository>();
                 services.AddScoped<ILicenseRepository, LicenseRepository>();
 
-
                 // Database
                 services.AddDbContextPool<Context>(options =>
                     options.UseSqlServer(

@@ -17,7 +17,7 @@ namespace Mvp.Selections.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -131,7 +131,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.ToTable("Comments");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Comment");
+                    b.HasDiscriminator().HasValue("Comment");
 
                     b.UseTphMappingStrategy();
                 });
@@ -1994,10 +1994,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Property<DateTime>("ExpirationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("LicenseContent")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2009,8 +2005,6 @@ namespace Mvp.Selections.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedUserId");
 
                     b.ToTable("Licenses");
                 });
@@ -2244,7 +2238,7 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.ToTable("Roles");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Role");
+                    b.HasDiscriminator().HasValue("Role");
 
                     b.UseTphMappingStrategy();
                 });
@@ -2767,16 +2761,6 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("Mvp.Selections.Domain.License", b =>
-                {
-                    b.HasOne("Mvp.Selections.Domain.User", "AssignedUser")
-                        .WithMany()
-                        .HasForeignKey("AssignedUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("AssignedUser");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ProfileLink", b =>

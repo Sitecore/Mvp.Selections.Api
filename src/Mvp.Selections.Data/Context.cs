@@ -153,12 +153,6 @@ public class Context : DbContext
             .AutoInclude();
 
         modelBuilder.Entity<ApplicationComment>();
-
-        modelBuilder.Entity<License>()
-            .HasOne(l => l.AssignedUser)
-            .WithMany()
-            .HasForeignKey(l => l.AssignedUserId)
-            .OnDelete(DeleteBehavior.SetNull);
     }
 
     private static IEnumerable<Country> SeedCountries()
