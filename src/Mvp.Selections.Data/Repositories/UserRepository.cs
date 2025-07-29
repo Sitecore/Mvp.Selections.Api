@@ -156,6 +156,16 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             .ToListAsync();
     }
 
+    public async Task<bool> UserHasTitleForYearAsync(Guid userId, int year)
+    {
+        return await Context.Applications
+            .Where(a => a.Applicant.Id == userId &&
+                        a.Selection.Finalized &&
+                        a.Selection.Year == year &&
+                        a.Titles.Any())
+            .AnyAsync();
+    }
+
     private IQueryable<User> GetByIdentifierQuery(string identifier, params Expression<Func<User, object>>[] includes)
     {
         return Context.Users

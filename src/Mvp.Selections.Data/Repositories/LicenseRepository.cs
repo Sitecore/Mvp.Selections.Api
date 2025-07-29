@@ -13,29 +13,6 @@ namespace Mvp.Selections.Data.Repositories
             await Context.Set<License>().AddRangeAsync(licenses);
         }
 
-        public async Task<License?> GetLicenseAsync(Guid id)
-        {
-            return await Context.Set<License>()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(l => l.Id == id);
-        }
-
-        public async Task<bool> UserHasTitleForYearAsync(User user, int year)
-        {
-            return await Context.Applications
-                .Where(a => a.Applicant.Id == user.Id &&
-                            a.Selection.Finalized &&
-                            a.Selection.Year == year &&
-                            a.Titles.Any())
-                .AnyAsync();
-        }
-
-        public async Task AssignLicenseToUserAsync(License license)
-        {
-            Context.Set<License>().Update(license);
-            await Context.SaveChangesAsync();
-        }
-
         public async Task<List<License>> GetNonExpiredLicensesAsync(int page, int pageSize)
         {
             return await Context.Set<License>()
@@ -51,6 +28,7 @@ namespace Mvp.Selections.Data.Repositories
         {
             return await Context.Licenses
                 .AsNoTracking()
+                .Where(l => l.ExpirationDate > DateTime.Now)
                 .FirstOrDefaultAsync(l => l.AssignedUserId == userId);
         }
     }

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -29,7 +28,7 @@ namespace Mvp.Selections.Api
                 IFormFile? file = req.Form.Files.FirstOrDefault();
                 var Identifier = authResult.User!.Identifier;
 
-                OperationResult<List<Domain.License>> result = await licenseService.ZipUploadAsync(file, Identifier);
+                OperationResult<List<Domain.License>> result = await licenseService.ZipUploadAsync(file);
                 return ContentResult(result, LicenseContractResolver.Instance);
             });
         }
@@ -42,14 +41,12 @@ namespace Mvp.Selections.Api
         {
             return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                AssignUserToLicense? assignUser = JsonSerializer.Deserialize<AssignUserToLicense>(requestBody, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                AssignUserToLicense? assignUser = await Serializer.DeserializeAsync<AssignUserToLicense>(req.Body);
 
-                OperationResult<Domain.License> result = await licenseService.AssignLicenseToUserAsync(assignUser, licenseId);
-                return ContentResult(result, LicenseContractResolver.Instance);
+                OperationResult<Domain.License> Result = assignUser != null
+                ? await licenseService.AssignLicenseToUserAsync(assignUser, licenseId)
+                : new OperationResult<Domain.License>();
+                return ContentResult(Result, LicenseContractResolver.Instance);
             });
         }
 
@@ -73,7 +70,7 @@ namespace Mvp.Selections.Api
         {
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
             {
-                var result = await licenseService.DownloadLicenseAsync(authResult.User!.Identifier);
+                var result = await licenseService.DownloadLicenseAsync(authResult.User!.Id);
 
                 if (result.StatusCode != HttpStatusCode.OK || result.Result == null)
                 {
