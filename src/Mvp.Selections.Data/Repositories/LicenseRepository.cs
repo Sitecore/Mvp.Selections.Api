@@ -8,14 +8,9 @@ namespace Mvp.Selections.Data.Repositories
     public class LicenseRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
      : BaseRepository<License, Guid>(context, currentUserNameProvider), ILicenseRepository
     {
-        public async Task AddLicensesAsync(IEnumerable<License> licenses)
-        {
-            await Context.Set<License>().AddRangeAsync(licenses);
-        }
-
         public async Task<List<License>> GetNonExpiredLicensesAsync(int page, int pageSize)
         {
-            return await Context.Set<License>()
+            return await Context.Licenses
                 .AsNoTracking()
                 .Where(l => l.ExpirationDate > DateTime.Now)
                 .OrderBy(l => l.ExpirationDate)

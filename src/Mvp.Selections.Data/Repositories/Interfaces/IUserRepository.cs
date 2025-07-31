@@ -21,7 +21,7 @@ public interface IUserRepository : IBaseRepository<User, Guid>
 
     Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes);
 
-    Task<bool> UserHasTitleForYearAsync(Guid userId, int year);
+    bool UserHasTitleForYear(Guid userId, int year);
 
     Task<IList<User>> GetWithTitleReadOnlyAsync(
         string? text = null,

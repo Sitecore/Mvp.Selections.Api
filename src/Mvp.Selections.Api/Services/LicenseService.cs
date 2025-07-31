@@ -40,7 +40,7 @@ namespace Mvp.Selections.Api.Services
                 return operationResult;
             }
 
-            await licenseRepository.AddLicensesAsync(licenses);
+            await licenseRepository.AddRangeAsync(licenses);
             await licenseRepository.SaveChangesAsync();
 
             operationResult.StatusCode = HttpStatusCode.OK;
@@ -50,16 +50,9 @@ namespace Mvp.Selections.Api.Services
             return operationResult;
         }
 
-        public async Task<OperationResult<Domain.License>> AssignLicenseToUserAsync(AssignUserToLicense assignUserToLicense, Guid licenseId)
+        public async Task<OperationResult<Domain.License>> UpdateLicenseAsync(PatchLicenseBody patchLicenseBody, Guid licenseId)
         {
             OperationResult<Domain.License> result = new();
-
-            if (string.IsNullOrEmpty(assignUserToLicense.Email))
-            {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add("Email is required");
-                return result;
-            }
 
             var license = await licenseRepository.GetAsync(licenseId);
 
@@ -70,33 +63,44 @@ namespace Mvp.Selections.Api.Services
                 return result;
             }
 
-            var users = await userService.GetAllAsync(email: assignUserToLicense.Email);
-            var user = users.FirstOrDefault();
-
-            if (user == null)
+            if (!string.IsNullOrWhiteSpace(patchLicenseBody.LicenseContent))
             {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add($"No such user found with email: {assignUserToLicense.Email}");
-                return result;
+                license.LicenseContent = patchLicenseBody.LicenseContent;
             }
 
-            bool isCurrentMvp = await userService.UserHasTitleForYearAsync(user.Id, DateTime.Now.Year);
-            if (!isCurrentMvp)
+            if (patchLicenseBody.ExpirationDate.HasValue)
             {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add($"{assignUserToLicense.Email} is not a current year MVP.");
-                return result;
+                license.ExpirationDate = (DateTime)patchLicenseBody.ExpirationDate;
             }
 
-            license.AssignedUserId = user.Id;
+            if (!string.IsNullOrEmpty(patchLicenseBody.Email))
+            {
+                var users = await userService.GetAllAsync(email: patchLicenseBody.Email);
+                var user = users.FirstOrDefault();
+
+                if (user == null)
+                {
+                    result.StatusCode = HttpStatusCode.BadRequest;
+                    result.Messages.Add($"No such user found with email: {patchLicenseBody.Email}");
+                    return result;
+                }
+
+                bool isCurrentMvp = userService.UserHasTitleForYear(user.Id, DateTime.Now.Year);
+                if (!isCurrentMvp)
+                {
+                    result.StatusCode = HttpStatusCode.BadRequest;
+                    result.Messages.Add($"{patchLicenseBody.Email} is not a current year MVP.");
+                    return result;
+                }
+
+                license.AssignedUserId = user.Id;
+            }
 
             await licenseRepository.SaveChangesAsync();
 
-            return new OperationResult<Domain.License>
-            {
-                Result = license,
-                StatusCode = HttpStatusCode.OK,
-            };
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = license;
+            return result;
         }
 
         public async Task<List<Domain.License>> GetAllLicenseAsync(int page, int pageSize)
@@ -117,7 +121,7 @@ namespace Mvp.Selections.Api.Services
             }
 
             Domain.License? license = await licenseRepository.DownloadLicenseAsync(user.Id);
-            bool isCurrentMvp = await userService.UserHasTitleForYearAsync(user.Id, DateTime.Now.Year);
+            bool isCurrentMvp = userService.UserHasTitleForYear(user.Id, DateTime.Now.Year);
 
             if (isCurrentMvp && license != null)
             {

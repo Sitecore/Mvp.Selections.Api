@@ -17,5 +17,5 @@ public interface IUserService
 
     Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId);
 
-    Task<bool> UserHasTitleForYearAsync(Guid userId, int year);
+    bool UserHasTitleForYear(Guid userId, int year);
 }

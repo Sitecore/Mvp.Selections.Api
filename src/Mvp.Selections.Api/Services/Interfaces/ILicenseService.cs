@@ -8,7 +8,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
     {
         Task<OperationResult<List<Domain.License>>> ZipUploadAsync(IFormFile formFile);
 
-        Task<OperationResult<Domain.License>> AssignLicenseToUserAsync(AssignUserToLicense assignUserToLicense, Guid licenseId);
+        Task<OperationResult<Domain.License>> UpdateLicenseAsync(PatchLicenseBody patchLicenseBody, Guid licenseId);
 
         Task<List<Domain.License>> GetAllLicenseAsync(int page, int pageSize);
 

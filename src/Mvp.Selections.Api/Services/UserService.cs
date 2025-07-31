@@ -697,9 +697,9 @@ public class UserService(
         return result;
     }
 
-    public async Task<bool> UserHasTitleForYearAsync(Guid userId, int year)
+    public bool UserHasTitleForYear(Guid userId, int year)
     {
-        return await userRepository.UserHasTitleForYearAsync(userId, year);
+        return userRepository.UserHasTitleForYear(userId, year);
     }
 
     private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)

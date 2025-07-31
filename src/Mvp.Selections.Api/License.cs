@@ -33,18 +33,18 @@ namespace Mvp.Selections.Api
             });
         }
 
-        [Function("AssignLicenseToUser")]
+        [Function("UpdateLicense")]
         public async Task<IActionResult> AssignLicenseToUser(
-            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/licenses/{licenseId:Guid}/assign")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/licenses/{licenseId:Guid}")]
             HttpRequest req,
             Guid licenseId)
         {
             return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
-                AssignUserToLicense? assignUser = await Serializer.DeserializeAsync<AssignUserToLicense>(req.Body);
+                PatchLicenseBody? assignUser = await Serializer.DeserializeAsync<PatchLicenseBody>(req.Body);
 
                 OperationResult<Domain.License> Result = assignUser != null
-                ? await licenseService.AssignLicenseToUserAsync(assignUser, licenseId)
+                ? await licenseService.UpdateLicenseAsync(assignUser, licenseId)
                 : new OperationResult<Domain.License>();
                 return ContentResult(Result, LicenseContractResolver.Instance);
             });
