@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Mvp.Selections.Api.Model
+﻿namespace Mvp.Selections.Api.Model
 {
     public class PatchLicenseBody
     {

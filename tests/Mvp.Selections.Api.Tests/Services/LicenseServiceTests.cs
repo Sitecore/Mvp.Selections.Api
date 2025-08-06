@@ -454,12 +454,16 @@ namespace Mvp.Selections.Api.Tests.Services
                     ExpirationDate = DateTime.UtcNow.AddDays(-1)
                 }
             };
-            List<Domain.License> expectedLicenses = licenses
+            var nonExpiredLicenses = licenses
                 .Where(l => l.ExpirationDate > DateTime.UtcNow)
                 .ToList();
 
+            var expectedLicenses = nonExpiredLicenses
+                .Select(l => LicenseWithUserInfo.MapFromLicense(l))
+                .ToList();
+
             _licenseRepository.GetNonExpiredLicensesAsync(page, pageSize)
-                .Returns(expectedLicenses);
+                .Returns(nonExpiredLicenses);
 
             // Act
             var result = await _sut.GetAllLicenseAsync(page, pageSize);

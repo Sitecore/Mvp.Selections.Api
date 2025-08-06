@@ -1495,6 +1495,112 @@ public class MvpSelectionsApiClient
 
     #endregion Mentor
 
+    #region Licenses
+
+    /// <summary>
+    /// Download a user's <see cref="License"/> file from the system.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Response{T}"/> containing the license stream.
+    /// </returns>
+    public async Task<(Response<Stream> Response, string Filename)> DownloadLicenseAsync()
+    {
+        Response<Stream> result = new();
+
+        HttpRequestMessage request = new()
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri("api/v1/license/downloadLicense", UriKind.Relative)
+        };
+
+        await SetAuthorizationHeader(request);
+        HttpResponseMessage response = await _client.SendAsync(request);
+
+        string filename = "license.xml";
+
+        if (response.IsSuccessStatusCode)
+        {
+            result.Result = await response.Content.ReadAsStreamAsync();
+            result.StatusCode = response.StatusCode;
+
+            if (response.Content.Headers.ContentDisposition != null)
+            {
+                var contentDisposition = response.Content.Headers.ContentDisposition;
+                filename = contentDisposition.FileNameStar ?? contentDisposition.FileName ?? filename;
+                filename = filename.Trim('\"');
+            }
+        }
+        else
+        {
+            result.StatusCode = response.StatusCode;
+            result.Message = await response.Content.ReadAsStringAsync();
+        }
+
+        return (result, filename);
+    }
+
+    /// <summary>
+    /// Get all licenses with user information.
+    /// </summary>
+    /// <param name="page">Page to retrieve. 1 by default.</param>
+    /// <param name="pageSize">Page size to retrieve. 100 by default.</param>
+    /// <returns>A <see cref="Response{T}"/> of type <see cref="List{T}"/> of <see cref="LicenseWithUserInfo"/>.</returns>
+    public async Task<Response<List<LicenseWithUserInfo>>> GetAllLicensesAsync(int page = 1, int pageSize = 100)
+    {
+        string requestUri = $"api/v1/license/getAllLicenses?page={page}&pageSize={pageSize}";
+        return await GetAsync<List<LicenseWithUserInfo>>(requestUri);
+    }
+
+    /// <summary>
+    /// Update a <see cref="License"/>.
+    /// </summary>
+    /// <param name="licenseId">The id of the <see cref="License"/> to update.</param>
+    /// <param name="patchBody">The data to update the <see cref="License"/> with.</param>
+    /// <returns>A <see cref="Response{T}"/> of type <see cref="License"/> representing the updated data.</returns>
+    public async Task<Response<License>> UpdateLicenseAsync(Guid licenseId, PatchLicenseBody patchBody)
+    {
+        return await PatchAsync<License>($"api/v1/licenses/{licenseId}", patchBody);
+    }
+
+    /// <summary>
+    /// Upload licenses from a zip file.
+    /// </summary>
+    /// <param name="zipFileStream">The stream containing the zip file with licenses.</param>
+    /// <param name="fileName">The name of the zip file.</param>
+    /// <returns>A <see cref="Response{T}"/> containing the list of uploaded licenses.</returns>
+    public async Task<Response<List<License>>> UploadLicensesAsync(Stream zipFileStream, string fileName)
+    {
+        Response<List<License>> result = new();
+
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(zipFileStream);
+        content.Add(streamContent, "file", fileName);
+
+        HttpRequestMessage request = new()
+        {
+            Method = HttpMethod.Post,
+            RequestUri = new Uri("api/v1/license/upload", UriKind.Relative),
+            Content = content
+        };
+
+        await SetAuthorizationHeader(request);
+        HttpResponseMessage response = await _client.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            result.Result = await response.Content.ReadFromJsonAsync<List<License>>(_JsonSerializerOptions);
+        }
+        else
+        {
+            result.Message = await response.Content.ReadAsStringAsync();
+        }
+
+        result.StatusCode = response.StatusCode;
+        return result;
+    }
+
+    #endregion Licenses
+
     #region Private
 
     private async Task<Response<T>> GetAsync<T>(string requestUri)

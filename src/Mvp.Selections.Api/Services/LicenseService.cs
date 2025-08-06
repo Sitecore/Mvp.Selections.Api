@@ -103,10 +103,24 @@ namespace Mvp.Selections.Api.Services
             return result;
         }
 
-        public async Task<List<Domain.License>> GetAllLicenseAsync(int page, int pageSize)
+        public async Task<List<LicenseWithUserInfo>> GetAllLicenseAsync(int page, int pageSize)
         {
             List<Domain.License> licenses = await licenseRepository.GetNonExpiredLicensesAsync(page, pageSize);
-            return licenses;
+            List<LicenseWithUserInfo> result = new();
+
+            foreach (var license in licenses)
+            {
+                string? userName = null;
+                if (license.AssignedUserId.HasValue)
+                {
+                    var user = await userService.GetAsync(license.AssignedUserId.Value);
+                    userName = user?.Name;
+                }
+
+                result.Add(LicenseWithUserInfo.MapFromLicense(license, userName));
+            }
+
+            return result;
         }
 
         public async Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId)

@@ -10,7 +10,7 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<OperationResult<Domain.License>> UpdateLicenseAsync(PatchLicenseBody patchLicenseBody, Guid licenseId);
 
-        Task<List<Domain.License>> GetAllLicenseAsync(int page, int pageSize);
+        Task<List<LicenseWithUserInfo>> GetAllLicenseAsync(int page, int pageSize);
 
         Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId);
     }

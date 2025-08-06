@@ -26,15 +26,13 @@ namespace Mvp.Selections.Api
             return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
                 IFormFile? file = req.Form.Files.FirstOrDefault();
-                var Identifier = authResult.User!.Identifier;
-
                 OperationResult<List<Domain.License>> result = await licenseService.ZipUploadAsync(file);
                 return ContentResult(result, LicenseContractResolver.Instance);
             });
         }
 
         [Function("UpdateLicense")]
-        public async Task<IActionResult> AssignLicenseToUser(
+        public async Task<IActionResult> UpdateLicense(
             [HttpTrigger(AuthorizationLevel.Anonymous, PatchMethod, Route = "v1/licenses/{licenseId:Guid}")]
             HttpRequest req,
             Guid licenseId)
@@ -43,17 +41,17 @@ namespace Mvp.Selections.Api
             {
                 PatchLicenseBody? assignUser = await Serializer.DeserializeAsync<PatchLicenseBody>(req.Body);
 
-                OperationResult<Domain.License> Result = assignUser != null
+                OperationResult<Domain.License> result = assignUser != null
                 ? await licenseService.UpdateLicenseAsync(assignUser, licenseId)
                 : new OperationResult<Domain.License>();
-                return ContentResult(Result, LicenseContractResolver.Instance);
+                return ContentResult(result, LicenseContractResolver.Instance);
             });
         }
 
         [Function("GetAllLicenses")]
         public async Task<IActionResult> GetAllLicenses(
-        [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/license/getAllLicenses")]
-        HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/license/getAllLicenses")]
+            HttpRequest req)
         {
             return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
