@@ -61,6 +61,19 @@ namespace Mvp.Selections.Api
             });
         }
 
+        [Function("GetLicense")]
+        public async Task<IActionResult> GetLicenses(
+            [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/licenses/{licenseId:Guid}")]
+            HttpRequest req,
+            Guid licenseId)
+        {
+            return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
+            {
+                var license = await licenseService.GetLicenseAsync(licenseId);
+                return ContentResult(license, LicenseContractResolver.Instance);
+            });
+        }
+
         [Function("DownloadLicense")]
         public Task<IActionResult> DownloadLicense(
             [HttpTrigger(AuthorizationLevel.Anonymous, GetMethod, Route = "v1/license/downloadLicense")]

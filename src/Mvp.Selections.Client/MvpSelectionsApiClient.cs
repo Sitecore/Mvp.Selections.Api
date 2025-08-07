@@ -1599,6 +1599,16 @@ public class MvpSelectionsApiClient
         return result;
     }
 
+    /// <summary>
+    /// Get a <see cref="LicenseWithUserInfo"/>.
+    /// </summary>
+    /// <param name="licenseId">The id of the <see cref="License"/> to get.</param>
+    /// <returns>A <see cref="Response{T}"/> of <see cref="LicenseWithUserInfo"/>.</returns>
+    public async Task<Response<LicenseWithUserInfo>> GetLicenseAsync(Guid licenseId)
+    {
+        return await GetAsync<LicenseWithUserInfo>($"api/v1/licenses/{licenseId}");
+    }
+
     #endregion Licenses
 
     #region Private

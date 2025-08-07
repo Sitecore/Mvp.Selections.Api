@@ -12,6 +12,8 @@ namespace Mvp.Selections.Api.Services.Interfaces
 
         Task<List<LicenseWithUserInfo>> GetAllLicenseAsync(int page, int pageSize);
 
+        Task<LicenseWithUserInfo?> GetLicenseAsync(Guid id);
+
         Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId);
     }
 }

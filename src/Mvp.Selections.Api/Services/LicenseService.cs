@@ -13,9 +13,9 @@ using Mvp.Selections.Data.Repositories.Interfaces;
 namespace Mvp.Selections.Api.Services
 {
     public class LicenseService(
-                ILicenseRepository licenseRepository,
-                IUserService userService,
-                ILogger<LicenseService> logger) : ILicenseService
+                    ILicenseRepository licenseRepository,
+                    IUserService userService,
+                    ILogger<LicenseService> logger) : ILicenseService
     {
         public async Task<OperationResult<List<Domain.License>>> ZipUploadAsync(IFormFile formFile)
         {
@@ -117,10 +117,29 @@ namespace Mvp.Selections.Api.Services
                     userName = user?.Name;
                 }
 
-                result.Add(LicenseWithUserInfo.MapFromLicense(license, userName));
+                result.Add(MapFromLicense(license, userName));
             }
 
             return result;
+        }
+
+        public async Task<LicenseWithUserInfo?> GetLicenseAsync(Guid id)
+        {
+            Domain.License? license = await licenseRepository.GetAsync(id);
+            if (license == null)
+            {
+                return null;
+            }
+
+            LicenseWithUserInfo result = new(license.Id);
+            string? userName = null;
+            if (license.AssignedUserId.HasValue)
+            {
+                var user = await userService.GetAsync(license.AssignedUserId.Value);
+                userName = user?.Name;
+            }
+
+            return MapFromLicense(license, userName);
         }
 
         public async Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId)
@@ -220,6 +239,17 @@ namespace Mvp.Selections.Api.Services
             xmldoc.LoadXml(xmlContent);
 
             return (xmldoc, xmlContent);
+        }
+
+        private LicenseWithUserInfo MapFromLicense(Domain.License license, string? userName = null)
+        {
+            return new LicenseWithUserInfo(license.Id)
+            {
+                ExpirationDate = license.ExpirationDate,
+                AssignedUserId = license.AssignedUserId,
+                AssignedUserName = userName,
+                CreatedBy = license.CreatedBy
+            };
         }
     }
 }
