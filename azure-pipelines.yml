@@ -6,7 +6,13 @@
 name: 4.22.0$(Rev:.r)
 
 trigger:
-- main
+  branches:
+    include:
+      - main
+  paths:
+    exclude:
+      - '*.md'
+      - '**/*.md'
 
 pool:
   vmImage: 'windows-latest'
