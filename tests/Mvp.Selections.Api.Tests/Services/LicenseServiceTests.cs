@@ -42,7 +42,7 @@ namespace Mvp.Selections.Api.Tests.Services
         {
             // Arrange
             Guid licenseId = Guid.NewGuid();
-            var request = new PatchLicenseBody
+            var request = new PatchLicenseBody(licenseId)
             {
                 Email = "nonexistent@example.com"
             };
@@ -76,7 +76,7 @@ namespace Mvp.Selections.Api.Tests.Services
             var userId = Guid.NewGuid();
             var email = "user@example.com";
 
-            var request = new PatchLicenseBody
+            var request = new PatchLicenseBody(licenseId)
             {
                 Email = email
             };
@@ -113,7 +113,7 @@ namespace Mvp.Selections.Api.Tests.Services
             var email = "test@example.com";
 
             Guid licenseId = Guid.NewGuid();
-            var request = new PatchLicenseBody
+            var request = new PatchLicenseBody(licenseId)
             {
                 Email = email
             };
@@ -150,7 +150,7 @@ namespace Mvp.Selections.Api.Tests.Services
                 Email = email
             };
 
-            var request = new PatchLicenseBody
+            var request = new PatchLicenseBody(licenseId)
             {
                 Email = email
             };

@@ -39,10 +39,10 @@ namespace Mvp.Selections.Api
         {
             return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
             {
-                PatchLicenseBody? assignUser = await Serializer.DeserializeAsync<PatchLicenseBody>(req.Body);
+                PatchLicenseBody? licenseBody = await Serializer.DeserializeAsync<PatchLicenseBody>(req.Body);
 
-                OperationResult<Domain.License> result = assignUser != null
-                ? await licenseService.UpdateLicenseAsync(assignUser, licenseId)
+                OperationResult<Domain.License> result = licenseBody != null
+                ? await licenseService.UpdateLicenseAsync(licenseBody, licenseId)
                 : new OperationResult<Domain.License>();
                 return ContentResult(result, LicenseContractResolver.Instance);
             });

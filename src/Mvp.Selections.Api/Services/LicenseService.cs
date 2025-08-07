@@ -68,7 +68,7 @@ namespace Mvp.Selections.Api.Services
                 license.LicenseContent = patchLicenseBody.LicenseContent;
             }
 
-            if (patchLicenseBody.ExpirationDate.HasValue)
+            if (patchLicenseBody.ExpirationDate != default)
             {
                 license.ExpirationDate = (DateTime)patchLicenseBody.ExpirationDate;
             }
