@@ -62,6 +62,7 @@ public class Program
                 services.AddScoped<ISerializer, JsonSerializer>();
                 services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
                 services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
+                services.AddScoped<ILicenseZipParser, LicenseZipParser>();
 
                 // Services
                 services.AddScoped<IAuthService, AuthService>();

@@ -6,6 +6,6 @@
 
         public DateTime ExpirationDate { get; set; }
 
-        public Guid? AssignedUserId { get; set; }
+        public User? AssignedUser { get; set; }
     }
 }

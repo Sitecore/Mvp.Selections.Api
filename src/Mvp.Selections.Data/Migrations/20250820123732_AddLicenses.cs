@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Mvp.Selections.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddLicenseTable : Migration
+    public partial class AddLicenses : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,7 +27,17 @@ namespace Mvp.Selections.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Licenses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Licenses_Users_AssignedUserId",
+                        column: x => x.AssignedUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Licenses_AssignedUserId",
+                table: "Licenses",
+                column: "AssignedUserId");
         }
 
         /// <inheritdoc />

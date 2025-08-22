@@ -39,10 +39,9 @@ public abstract class BaseRepository<T, TId>(Context context, ICurrentUserNamePr
         return Context.Set<T>().Add(entity).Entity;
     }
 
-    public async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities)
+    public async Task AddRangeAsync(IList<T> entities)
     {
         await Context.Set<T>().AddRangeAsync(entities);
-        return entities;
     }
 
     public async Task<bool> RemoveAsync(TId id)

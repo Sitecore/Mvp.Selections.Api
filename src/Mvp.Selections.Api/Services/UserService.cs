@@ -697,11 +697,6 @@ public class UserService(
         return result;
     }
 
-    public bool UserHasTitleForYear(Guid userId, int year)
-    {
-        return userRepository.UserHasTitleForYear(userId, year);
-    }
-
     private static SearchFacet CalculateYearFacet(IEnumerable<MvpProfile> profiles)
     {
         SearchFacet result = new() { Identifier = IMvpProfileService.YearFacetIdentifier };

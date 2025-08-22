@@ -16,6 +16,4 @@ public interface IUserService
     Task<OperationResult<IList<User>>> GetAllForApplicationReviewAsync(Guid applicationId);
 
     Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId);
-
-    bool UserHasTitleForYear(Guid userId, int year);
 }

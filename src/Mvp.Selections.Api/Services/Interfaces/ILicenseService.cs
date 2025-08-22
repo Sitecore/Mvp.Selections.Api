@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api.Services.Interfaces
+namespace Mvp.Selections.Api.Services.Interfaces;
+
+public interface ILicenseService
 {
-    public interface ILicenseService
-    {
-        Task<OperationResult<List<Domain.License>>> ZipUploadAsync(IFormFile formFile);
+    Task<OperationResult<IList<License>>> AddAsync(IEnumerable<License> licenses);
 
-        Task<OperationResult<Domain.License>> UpdateLicenseAsync(PatchLicenseBody patchLicenseBody, Guid licenseId);
+    Task<OperationResult<License>> UpdateAsync(License patchLicenseBody, Guid licenseId);
 
-        Task<List<LicenseWithUserInfo>> GetAllLicenseAsync(int page, int pageSize);
+    Task<IList<License>> GetAllAsync(int page, short pageSize);
 
-        Task<LicenseWithUserInfo?> GetLicenseAsync(Guid id);
+    Task<License?> GetAsync(Guid id);
 
-        Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId);
-    }
+    Task<OperationResult<string>> GetByUserAsync(Guid userId);
 }

@@ -4,8 +4,8 @@ namespace Mvp.Selections.Data.Repositories.Interfaces
 {
     public interface ILicenseRepository : IBaseRepository<License, Guid>
     {
-        Task<List<License>> GetNonExpiredLicensesAsync(int page, int pageSize);
+        Task<IList<License>> GetAllReadOnlyAsync(int page, short pageSize);
 
-        Task<License?> DownloadLicenseAsync(Guid userId);
+        Task<IList<License>> GetByUserReadOnlyAsync(Guid userId);
     }
 }

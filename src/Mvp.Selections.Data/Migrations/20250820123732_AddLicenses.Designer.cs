@@ -12,8 +12,8 @@ using Mvp.Selections.Data;
 namespace Mvp.Selections.Data.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20250728074945_AddLicenseTable")]
-    partial class AddLicenseTable
+    [Migration("20250820123732_AddLicenses")]
+    partial class AddLicenses
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2009,6 +2009,8 @@ namespace Mvp.Selections.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedUserId");
+
                     b.ToTable("Licenses");
                 });
 
@@ -2764,6 +2766,15 @@ namespace Mvp.Selections.Data.Migrations
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("Mvp.Selections.Domain.License", b =>
+                {
+                    b.HasOne("Mvp.Selections.Domain.User", "AssignedUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedUserId");
+
+                    b.Navigation("AssignedUser");
                 });
 
             modelBuilder.Entity("Mvp.Selections.Domain.ProfileLink", b =>

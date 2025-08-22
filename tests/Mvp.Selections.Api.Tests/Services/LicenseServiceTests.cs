@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.IO.Compression;
+using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using AutoFixture;
@@ -7,7 +8,9 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model;
+using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -23,13 +26,17 @@ namespace Mvp.Selections.Api.Tests.Services
         private readonly LicenseService _sut;
         private readonly ILogger<LicenseService> _logger;
         private readonly IUserService _userService;
+        private readonly ITitleService _titleService;
+        private readonly ILicenseZipParser _licenseZipParser;
 
         public LicenseServiceTests()
         {
             _licenseRepository = Substitute.For<ILicenseRepository>();
             _logger = Substitute.For<ILogger<LicenseService>>();
             _userService = Substitute.For<IUserService>();
-            _sut = new LicenseService(_licenseRepository, _userService, _logger);
+            _licenseZipParser = Substitute.For<ILicenseZipParser>();
+            _titleService = Substitute.For<ITitleService>();
+            _sut = new LicenseService(_licenseRepository, _userService, _titleService, _logger);
 
             Fixture fixture = new Fixture();
             fixture.Behaviors
@@ -40,30 +47,35 @@ namespace Mvp.Selections.Api.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateLicenseAsync_EmailProvidedButUserNotFound_ReturnBadRequest()
+        public async Task UpdateAsync_EmailProvidedButUserNotFound_ReturnBadRequest()
         {
             // Arrange
             Guid licenseId = Guid.NewGuid();
-            var request = new PatchLicenseBody(licenseId)
+
+            User user = new(Guid.NewGuid())
             {
                 Email = "nonexistent@example.com"
             };
+            Domain.License request = new(licenseId)
+            {
+                AssignedUser = user,
+            };
 
-            var license = new Domain.License(licenseId)
+            Domain.License license = new(licenseId)
             {
                 LicenseContent = "test content",
                 ExpirationDate = DateTime.UtcNow.AddDays(30)
             };
 
             _licenseRepository.GetAsync(licenseId).Returns(license);
-            _userService.GetAllAsync(email: request.Email).Returns(new List<User>());
+            _userService.GetAllAsync(email: user.Email).Returns([]);
 
             // Act
-            var result = await _sut.UpdateLicenseAsync(request, licenseId);
+            OperationResult<Domain.License> result = await _sut.UpdateAsync(request, licenseId);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            result.Messages.Should().Contain($"No such user found with email: {request.Email}");
+            result.Messages.Should().Contain($"No such user found with Email: {request.AssignedUser.Email}");
             result.Result.Should().BeNull();
 
             await _licenseRepository.DidNotReceive()
@@ -71,36 +83,38 @@ namespace Mvp.Selections.Api.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateLicenseAsync_UserIsNotCurrentYearMvp_ReturnBadRequest()
+        public async Task UpdateAsync_UserIsNotCurrentYearMvp_ReturnBadRequest()
         {
             // Arrange
             Guid licenseId = Guid.NewGuid();
-            var userId = Guid.NewGuid();
-            var email = "user@example.com";
+            Guid userId = Guid.NewGuid();
+            string email = "user@example.com";
 
-            var request = new PatchLicenseBody(licenseId)
+            User user = new(userId)
             {
                 Email = email
             };
-
-            var license = new Domain.License(licenseId)
+            Domain.License license = new(licenseId)
             {
                 LicenseContent = "test content",
                 ExpirationDate = DateTime.UtcNow.AddDays(30)
             };
 
-            var user = new User(userId);
+            Domain.License licenseUpdate = new(licenseId)
+            {
+                AssignedUser = new Domain.User(Guid.Empty) { Email = email }
+            };
 
             _licenseRepository.GetAsync(licenseId).Returns(license);
-            _userService.GetAllAsync(email: request.Email).Returns(new List<User>() { user });
-            _userService.UserHasTitleForYear(userId, DateTime.Now.Year).Returns(false);
+            _userService.GetAllAsync(email: email).Returns(new List<Domain.User>() { user });
+            _titleService.GetAsync(userId, DateTime.Now.Year).Returns(false);
 
             // Act
-            var result = await _sut.UpdateLicenseAsync(request, licenseId);
+            OperationResult<Domain.License> result = await _sut.UpdateAsync(licenseUpdate, licenseId);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            result.Messages.Should().Contain($"{request.Email} is not a current year MVP.");
+            result.Messages.Should().Contain($"{email} is not a current year MVP.");
             result.Result.Should().BeNull();
 
             await _licenseRepository.DidNotReceive()
@@ -108,23 +122,19 @@ namespace Mvp.Selections.Api.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateLicenseAsync_WithInvalidLicenseId_ReturnsBadRequest()
+        public async Task UpdateAsync_WithInvalidLicenseId_ReturnsBadRequest()
         {
             // Arrange
-            var nonExistentLicenseId = Guid.NewGuid();
-            var email = "test@example.com";
+            Guid nonExistentLicenseId = Guid.NewGuid();
 
             Guid licenseId = Guid.NewGuid();
-            var request = new PatchLicenseBody(licenseId)
-            {
-                Email = email
-            };
+            Domain.License request = new(licenseId);
 
             _licenseRepository.GetAsync(nonExistentLicenseId)
                 .Returns((Domain.License?)null);
 
             // Act
-            var result = await _sut.UpdateLicenseAsync(request, licenseId);
+            OperationResult<Domain.License> result = await _sut.UpdateAsync(request, licenseId);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -136,41 +146,41 @@ namespace Mvp.Selections.Api.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateLicenseAsync_WithValidUserAndLicense_ReturnsSuccess()
+        public async Task UpdateAsync_WithValidUserAndLicense_ReturnsSuccess()
         {
             // Arrange
-            var licenseId = Guid.NewGuid();
-            var email = "test@example.com";
-            var license = new Domain.License(licenseId)
+            Guid licenseId = Guid.NewGuid();
+            string email = "test@example.com";
+            Domain.License license = new(licenseId)
             {
                 LicenseContent = "test content",
                 ExpirationDate = DateTime.UtcNow.AddDays(30)
             };
 
-            var user = new User(Guid.NewGuid())
+            User user = new(Guid.NewGuid())
             {
                 Email = email
             };
 
-            var request = new PatchLicenseBody(licenseId)
+            Domain.License request = new(licenseId)
             {
-                Email = email
+                AssignedUser = user
             };
 
             _licenseRepository.GetAsync(licenseId)
                 .Returns(license);
 
             _userService.GetAllAsync(email: email)
-                    .Returns(new List<User> { user });
+                    .Returns(new List<Domain.User> { user });
 
-            _userService.UserHasTitleForYear(user.Id, DateTime.Now.Year)
+            _titleService.GetAsync(user.Id, DateTime.Now.Year)
                 .Returns(true);
 
             _licenseRepository.SaveChangesAsync()
                     .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _sut.UpdateLicenseAsync(request, licenseId);
+            OperationResult<Domain.License> result = await _sut.UpdateAsync(request, licenseId);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -181,50 +191,10 @@ namespace Mvp.Selections.Api.Tests.Services
         }
 
         [Fact]
-        public async Task ZipUploadAsync_WithNoFile_ReturnsBadRequest()
+        public async Task AddLicenseAsync_WithEmptyLicenseList_ReturnsBadRequest()
         {
-            // Arrange
-            IFormFile? formFile = null;
-
             // Act
-            var result = await _sut.ZipUploadAsync(formFile);
-
-            // Assert
-            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            result.Messages.Should().Contain("No file uploaded");
-            result.Result.Should().BeNull();
-
-            // Verify no repository calls were made
-            await _licenseRepository.DidNotReceive()
-                .AddRangeAsync(Arg.Any<IEnumerable<Domain.License>>());
-            await _licenseRepository.DidNotReceive()
-                .SaveChangesAsync();
-        }
-
-        [Fact]
-        public async Task ZipUploadAsync_WithEmptyZipFile_ReturnsBadRequest()
-        {
-            // Arrange
-            var emptyZipStream = new MemoryStream();
-            using (var archive = new ZipArchive(emptyZipStream, ZipArchiveMode.Create, true))
-            {
-                // empty zip file
-            }
-
-            emptyZipStream.Position = 0;
-
-            var formFile = Substitute.For<IFormFile>();
-            formFile.Length.Returns(emptyZipStream.Length);
-            formFile.CopyToAsync(Arg.Any<Stream>())
-                .Returns(callInfo =>
-                {
-                    var targetStream = callInfo.Arg<Stream>();
-                    emptyZipStream.Position = 0;
-                    return emptyZipStream.CopyToAsync(targetStream);
-                });
-
-            // Act
-            var result = await _sut.ZipUploadAsync(formFile);
+            OperationResult<IList<Domain.License>> result = await _sut.AddAsync([]);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -233,112 +203,61 @@ namespace Mvp.Selections.Api.Tests.Services
 
             // Verify no repository calls were made
             await _licenseRepository.DidNotReceive()
-                .AddRangeAsync(Arg.Any<IEnumerable<Domain.License>>());
+                .AddRangeAsync(Arg.Any<IList<Domain.License>>());
             await _licenseRepository.DidNotReceive()
                 .SaveChangesAsync();
         }
 
         [Fact]
-        public async Task ZipUploadAsync_WithValidFile_ReturnsSuccessResult()
+        public async Task AddLicenseAsync_WithValidFile_ReturnsSuccessResult()
         {
             // Arrange
             DateTime expirationDate = DateTime.Today.AddMonths(6);
             string formattedExpiration = expirationDate.ToString("yyyyMMdd'T'HHmmss");
 
-            var content = $@"<?xml version='1.0'?>
+            string content = $@"<?xml version='1.0'?>
                 <license>
                     <expiration>{formattedExpiration}</expiration>
                 </license>";
 
-            var zipStream = new MemoryStream();
-            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
-            {
-                var entry = archive.CreateEntry("test.xml");
-                using (var entryStream = entry.Open())
-                using (var writer = new StreamWriter(entryStream))
+            List<Domain.License> parsedLicenses =
+            [
+                new(Guid.NewGuid())
                 {
-                    await writer.WriteAsync(content);
+                    LicenseContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content)),
+                    ExpirationDate = expirationDate
                 }
-            }
+            ];
 
-            zipStream.Position = 0;
-
-            var formFile = Substitute.For<IFormFile>();
-            formFile.FileName.Returns("test.zip");
-            formFile.Length.Returns(zipStream.Length);
-            formFile.CopyToAsync(Arg.Any<Stream>())
-                .Returns(callInfo =>
-                {
-                    var targetStream = callInfo.Arg<Stream>();
-                    zipStream.Position = 0;
-                    return zipStream.CopyToAsync(targetStream);
-                });
+            _licenseRepository.AddRangeAsync(Arg.Any<IList<Domain.License>>())
+                .Returns(Task.CompletedTask);
+            _licenseRepository.SaveChangesAsync()
+                .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _sut.ZipUploadAsync(formFile);
+            OperationResult<IList<Domain.License>> result = await _sut.AddAsync(parsedLicenses);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.OK);
             result.Result.Should().NotBeEmpty();
             await _licenseRepository.Received(1)
-                .AddRangeAsync(Arg.Is<IEnumerable<Domain.License>>(licenses =>
+                .AddRangeAsync(Arg.Is<IList<Domain.License>>(licenses =>
                     licenses.Any(l => l.ExpirationDate == expirationDate)));
-        }
-
-        [Fact]
-        public async Task DownloadLicenseAsync_WithNonCurrentYearMvp_ReturnBadRequest()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var user = new User(userId)
-            {
-                Email = "test@example.com"
-            };
-
-            var license = new Domain.License(Guid.NewGuid())
-            {
-                LicenseContent = Convert.ToBase64String(Encoding.UTF8.GetBytes("<license>test</license>")),
-                AssignedUserId = userId,
-                ExpirationDate = DateTime.UtcNow.AddDays(30)
-            };
-
-            _userService.GetAsync(userId)
-                .Returns(user);
-
-            _userService.UserHasTitleForYear(userId, DateTime.Now.Year)
-                .Returns(false);
-
-            _licenseRepository.DownloadLicenseAsync(userId)
-                .Returns(license);
-
-            // Act
-            var result = await _sut.DownloadLicenseAsync(userId);
-
-            // Assert
-            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            result.Messages.Should().Contain("License not found or the user does not hold MVP title for the current year. Please contact the admin via email");
-            result.Result.Should().BeNull();
-
-            // Verify service calls
-            await _userService.Received(1)
-                .GetAsync(userId);
-            _userService.Received(1)
-                .UserHasTitleForYear(userId, DateTime.Now.Year);
             await _licenseRepository.Received(1)
-                .DownloadLicenseAsync(userId);
+                .SaveChangesAsync();
         }
 
         [Fact]
-        public async Task DownloadLicenseAsync_WithNullUser_ReturnBadRequest()
+        public async Task GetByUserAsync_WithNullUser_ReturnBadRequest()
         {
             // Arrange
-            var userId = Guid.NewGuid();
+            Guid userId = Guid.NewGuid();
 
             _userService.GetAsync(userId)
-                .Returns((User?)null);
+                .Returns((Domain.User?)null);
 
             // Act
-            var result = await _sut.DownloadLicenseAsync(userId);
+            OperationResult<string> result = await _sut.GetByUserAsync(userId);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -349,97 +268,48 @@ namespace Mvp.Selections.Api.Tests.Services
             await _userService.Received(1)
                 .GetAsync(userId);
 
-            _userService.DidNotReceive()
-                .UserHasTitleForYear(Arg.Any<Guid>(), Arg.Any<int>());
+            _titleService.DidNotReceive()
+                .GetAsync(Arg.Any<Guid>(), Arg.Any<int>());
             await _licenseRepository.DidNotReceive()
-                .DownloadLicenseAsync(Arg.Any<Guid>());
+                .GetByUserReadOnlyAsync(Arg.Any<Guid>());
         }
 
         [Fact]
-        public async Task DownloadLicenseAsync_WithNullLicense_ReturnBadRequest()
+        public async Task GetByUserAsync_WithNullLicense_ReturnBadRequest()
         {
             // Arrange
-            var userId = Guid.NewGuid();
+            Guid userId = Guid.NewGuid();
 
-            var user = new User(userId);
+            User user = new(userId);
 
             _userService.GetAsync(userId)
                 .Returns(user);
-            _licenseRepository.DownloadLicenseAsync(userId)
-                .Returns((Domain.License?)null);
-            _userService.UserHasTitleForYear(userId, Arg.Any<int>())
-                .Returns(true);
+            _licenseRepository.GetByUserReadOnlyAsync(userId)
+                .Returns([]);
 
             // Act
-            var result = await _sut.DownloadLicenseAsync(userId);
+            OperationResult<string> result = await _sut.GetByUserAsync(userId);
 
             // Assert
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            result.Messages.Should().Contain("License not found or the user does not hold MVP title for the current year. Please contact the admin via email");
+            result.Messages.Should().Contain("License not found. Please contact the admin via email.");
             result.Result.Should().BeNull();
 
             // Verify service calls
             await _userService.Received(1)
                 .GetAsync(userId);
-            _userService.Received(1)
-                .UserHasTitleForYear(userId, Arg.Any<int>());
             await _licenseRepository.Received(1)
-                .DownloadLicenseAsync(userId);
+                .GetByUserReadOnlyAsync(userId);
         }
 
         [Fact]
-        public async Task DownloadLicenseAsync_WithCurrentYearMvp_ReturnOK()
+        public async Task GetAllAsync_ShouldReturnOnlyNonExpiredLicenses()
         {
             // Arrange
-            var userId = Guid.NewGuid();
-            var user = new User(userId)
-            {
-                Email = "test@example.com"
-            };
-
-            var license = new Domain.License(Guid.NewGuid())
-            {
-                LicenseContent = Convert.ToBase64String(Encoding.UTF8.GetBytes("<license>test</license>")),
-                AssignedUserId = userId,
-                ExpirationDate = DateTime.UtcNow.AddDays(30)
-            };
-
-            _userService.GetAsync(userId)
-                .Returns(user);
-
-            _userService.UserHasTitleForYear(userId, DateTime.Now.Year)
-                .Returns(true);
-
-            _licenseRepository.DownloadLicenseAsync(userId)
-                .Returns(license);
-
-            // Act
-            var result = await _sut.DownloadLicenseAsync(userId);
-
-            // Assert
-            result.Result!.XmlContent.Should().Be(license.LicenseContent);
-            result.StatusCode.Should().Be(HttpStatusCode.OK);
-            result.Result.Should().NotBeNull();
-            result.Result.XmlContent.Should().Be(license.LicenseContent);
-            result.Result.FileName.Should().Be("license.xml");
-
-            // Verify service calls
-            await _userService.Received(1)
-                .GetAsync(userId);
-            _userService.Received(1)
-                .UserHasTitleForYear(userId, DateTime.Now.Year);
-            await _licenseRepository.Received(1)
-                .DownloadLicenseAsync(userId);
-        }
-
-        [Fact]
-        public async Task GetAllLicenseAsync_ShouldReturnOnlyNonExpiredLicenses()
-        {
-            // Arrange
-            var page = 1;
-            var pageSize = 10;
-            var licenses = new List<Domain.License>
-            {
+            int page = 1;
+            short pageSize = 10;
+            List<Domain.License> licenses =
+            [
                 new(Guid.NewGuid())
                 {
                     LicenseContent = "content1",
@@ -455,128 +325,115 @@ namespace Mvp.Selections.Api.Tests.Services
                     LicenseContent = "expiredContent",
                     ExpirationDate = DateTime.UtcNow.AddDays(-1)
                 }
-            };
-            var nonExpiredLicenses = licenses
+            ];
+            IList<Domain.License> nonExpiredLicenses = licenses
                 .Where(l => l.ExpirationDate > DateTime.UtcNow)
                 .ToList();
 
-            var expectedLicenses = nonExpiredLicenses
-                .Select(l => new LicenseWithUserInfo(l.Id)
-                {
-                    ExpirationDate = l.ExpirationDate,
-                    AssignedUserId = l.AssignedUserId,
-                    AssignedUserName = null
-                })
-                .ToList();
-
-            _licenseRepository.GetNonExpiredLicensesAsync(page, pageSize)
+            _licenseRepository.GetAllReadOnlyAsync(page, pageSize)
                 .Returns(nonExpiredLicenses);
 
             // Act
-            var result = await _sut.GetAllLicenseAsync(page, pageSize);
+            IList<Domain.License> result = await _sut.GetAllAsync(page, pageSize);
 
             // Assert
-            result.Should().BeEquivalentTo(expectedLicenses, options =>
+            result.Should().BeEquivalentTo(nonExpiredLicenses, options =>
                 options.Using<DateTime>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromSeconds(1)))
                 .WhenTypeIs<DateTime>());
 
             await _licenseRepository.Received(1)
-                .GetNonExpiredLicensesAsync(page, pageSize);
+                .GetAllReadOnlyAsync(page, pageSize);
         }
 
         [Fact]
-        public async Task GetLicenseAsync_WithInvalidId_ReturnsNull()
+        public async Task GetAsync_WithInvalidId_ReturnsNull()
         {
             // Arrange
-            var nonExistentLicenseId = Guid.NewGuid();
+            Guid nonExistentLicenseId = Guid.NewGuid();
 
-            _licenseRepository.GetAsync(nonExistentLicenseId)
+            _licenseRepository.GetAsync(nonExistentLicenseId, Arg.Any<Expression<Func<Domain.License, object>>>())
                 .Returns((Domain.License?)null);
 
             // Act
-            var result = await _sut.GetLicenseAsync(nonExistentLicenseId);
+            Domain.License? result = await _sut.GetAsync(nonExistentLicenseId);
 
             // Assert
             result.Should().BeNull();
 
             // Verify repository calls
             await _licenseRepository.Received(1)
-                .GetAsync(nonExistentLicenseId);
+                .GetAsync(nonExistentLicenseId, Arg.Any<Expression<Func<Domain.License, object>>>());
             await _userService.DidNotReceive()
                 .GetAsync(Arg.Any<Guid>());
         }
 
         [Fact]
-        public async Task GetLicenseAsync_WithValidId_ReturnsLicenseWithUserInfo()
+        public async Task GetAsync_WithValidId_ReturnsLicenseWithUserInfo()
         {
             // Arrange
-            var licenseId = Guid.NewGuid();
-            var userId = Guid.NewGuid();
-            var userName = "Test User";
+            Guid licenseId = Guid.NewGuid();
+            Guid userId = Guid.NewGuid();
+            string userName = "Test User";
 
-            var license = new Domain.License(licenseId)
-            {
-                LicenseContent = "test content",
-                ExpirationDate = DateTime.UtcNow.AddDays(30),
-                AssignedUserId = userId
-            };
-
-            var user = new User(userId)
+            User user = new(userId)
             {
                 Name = userName
             };
 
-            _licenseRepository.GetAsync(licenseId)
+            Domain.License license = new(licenseId)
+            {
+                LicenseContent = "test content",
+                ExpirationDate = DateTime.UtcNow.AddDays(30),
+                AssignedUser = user
+            };
+
+            _licenseRepository.GetAsync(licenseId, Arg.Any<Expression<Func<Domain.License, object>>>())
                 .Returns(license);
             _userService.GetAsync(userId)
                 .Returns(user);
 
             // Act
-            var result = await _sut.GetLicenseAsync(licenseId);
+            Domain.License? result = await _sut.GetAsync(licenseId);
 
             // Assert
             result.Should().NotBeNull();
             result!.Id.Should().Be(licenseId);
-            result.AssignedUserId.Should().Be(userId);
-            result.AssignedUserName.Should().Be(userName);
+            result.AssignedUser.Should().Be(user);
             result.ExpirationDate.Should().BeCloseTo(license.ExpirationDate, TimeSpan.FromSeconds(1));
 
             // Verify repository calls
             await _licenseRepository.Received(1)
-                .GetAsync(licenseId);
-            await _userService.Received(1)
-                .GetAsync(userId);
+                .GetAsync(licenseId, Arg.Any<Expression<Func<Domain.License, object>>>());
         }
 
         [Fact]
-        public async Task GetLicenseAsync_WithUnassignedLicense_ReturnsLicenseWithoutUserInfo()
+        public async Task GetAsync_WithUnassignedLicense_ReturnsLicenseWithoutUserInfo()
         {
             // Arrange
-            var licenseId = Guid.NewGuid();
+            Guid licenseId = Guid.NewGuid();
 
-            var license = new Domain.License(licenseId)
+            Domain.License license = new(licenseId)
             {
                 LicenseContent = "test content",
                 ExpirationDate = DateTime.UtcNow.AddDays(30),
-                AssignedUserId = null
+                AssignedUser = null
             };
 
-            _licenseRepository.GetAsync(licenseId)
+            _licenseRepository.GetAsync(licenseId, Arg.Any<Expression<Func<Domain.License, object>>>())
                 .Returns(license);
 
             // Act
-            var result = await _sut.GetLicenseAsync(licenseId);
+            Domain.License? result = await _sut.GetAsync(licenseId);
 
             // Assert
             result.Should().NotBeNull();
             result!.Id.Should().Be(licenseId);
-            result.AssignedUserId.Should().BeNull();
-            result.AssignedUserName.Should().BeNull();
+            result.AssignedUser.Should().BeNull();
             result.ExpirationDate.Should().BeCloseTo(license.ExpirationDate, TimeSpan.FromSeconds(1));
 
             // Verify repository calls
             await _licenseRepository.Received(1)
-                .GetAsync(licenseId);
+                .GetAsync(licenseId, Arg.Any<Expression<Func<Domain.License, object>>>());
             await _userService.DidNotReceive()
                 .GetAsync(Arg.Any<Guid>());
         }

@@ -1,255 +1,151 @@
 ﻿using System.Globalization;
 using System.IO.Compression;
+using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
+using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api.Services
+namespace Mvp.Selections.Api.Services;
+
+public class LicenseService(
+                ILicenseRepository licenseRepository,
+                IUserService userService,
+                ITitleService titleService,
+                ILogger<LicenseService> logger) : ILicenseService
 {
-    public class LicenseService(
-                    ILicenseRepository licenseRepository,
-                    IUserService userService,
-                    ILogger<LicenseService> logger) : ILicenseService
+    private readonly Expression<Func<License, object>>[] _standardIncludes =
+    [
+        l => l.AssignedUser!
+    ];
+
+    public async Task<OperationResult<IList<License>>> AddAsync(IEnumerable<License> licenses)
     {
-        public async Task<OperationResult<List<Domain.License>>> ZipUploadAsync(IFormFile formFile)
+        OperationResult<IList<License>> result = new();
+
+        if (!licenses.Any())
         {
-            var operationResult = new OperationResult<List<Domain.License>>();
-
-            if (formFile == null)
-            {
-                operationResult.StatusCode = HttpStatusCode.BadRequest;
-                logger.LogWarning("No file uploaded ");
-                operationResult.Messages.Add("No file uploaded");
-                return operationResult;
-            }
-
-            List<Domain.License> licenses = await ExtractZipAsync(formFile);
-
-            if (licenses == null || !licenses.Any())
-            {
-                const string message = "No licenses extracted from zip file.";
-                logger.LogWarning("License list is empty for");
-                operationResult.StatusCode = HttpStatusCode.BadRequest;
-                operationResult.Messages.Add(message);
-                return operationResult;
-            }
-
-            await licenseRepository.AddRangeAsync(licenses);
-            await licenseRepository.SaveChangesAsync();
-
-            operationResult.StatusCode = HttpStatusCode.OK;
-            operationResult.Result = licenses;
-            operationResult.Messages.Add("Success");
-
-            return operationResult;
+            result.StatusCode = HttpStatusCode.BadRequest;
+            result.Messages.Add("No licenses extracted from zip file.");
+            logger.LogWarning("License list is empty");
         }
-
-        public async Task<OperationResult<Domain.License>> UpdateLicenseAsync(PatchLicenseBody patchLicenseBody, Guid licenseId)
+        else
         {
-            OperationResult<Domain.License> result = new();
-
-            var license = await licenseRepository.GetAsync(licenseId);
-
-            if (license == null)
-            {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add("License not found");
-                return result;
-            }
-
-            if (!string.IsNullOrWhiteSpace(patchLicenseBody.LicenseContent))
-            {
-                license.LicenseContent = patchLicenseBody.LicenseContent;
-            }
-
-            if (patchLicenseBody.ExpirationDate != default)
-            {
-                license.ExpirationDate = (DateTime)patchLicenseBody.ExpirationDate;
-            }
-
-            if (!string.IsNullOrEmpty(patchLicenseBody.Email))
-            {
-                var users = await userService.GetAllAsync(email: patchLicenseBody.Email);
-                var user = users.FirstOrDefault();
-
-                if (user == null)
-                {
-                    result.StatusCode = HttpStatusCode.BadRequest;
-                    result.Messages.Add($"No such user found with email: {patchLicenseBody.Email}");
-                    return result;
-                }
-
-                bool isCurrentMvp = userService.UserHasTitleForYear(user.Id, DateTime.Now.Year);
-                if (!isCurrentMvp)
-                {
-                    result.StatusCode = HttpStatusCode.BadRequest;
-                    result.Messages.Add($"{patchLicenseBody.Email} is not a current year MVP.");
-                    return result;
-                }
-
-                license.AssignedUserId = user.Id;
-            }
-
+            await licenseRepository.AddRangeAsync(licenses.ToList());
             await licenseRepository.SaveChangesAsync();
 
             result.StatusCode = HttpStatusCode.OK;
-            result.Result = license;
+            result.Result = licenses.ToList();
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<License>> UpdateAsync(License licenseUpdate, Guid licenseId)
+    {
+        OperationResult<License> result = new();
+
+        License? license = await licenseRepository.GetAsync(licenseId);
+
+        if (license == null)
+        {
+            result.StatusCode = HttpStatusCode.BadRequest;
+            result.Messages.Add("License not found");
             return result;
         }
 
-        public async Task<List<LicenseWithUserInfo>> GetAllLicenseAsync(int page, int pageSize)
+        if (!string.IsNullOrWhiteSpace(licenseUpdate.LicenseContent))
         {
-            List<Domain.License> licenses = await licenseRepository.GetNonExpiredLicensesAsync(page, pageSize);
-            List<LicenseWithUserInfo> result = new();
-
-            foreach (var license in licenses)
-            {
-                string? userName = null;
-                if (license.AssignedUserId.HasValue)
-                {
-                    var user = await userService.GetAsync(license.AssignedUserId.Value);
-                    userName = user?.Name;
-                }
-
-                result.Add(MapFromLicense(license, userName));
-            }
-
-            return result;
+            license.LicenseContent = licenseUpdate.LicenseContent;
         }
 
-        public async Task<LicenseWithUserInfo?> GetLicenseAsync(Guid id)
+        if (licenseUpdate.ExpirationDate != default)
         {
-            Domain.License? license = await licenseRepository.GetAsync(id);
-            if (license == null)
-            {
-                return null;
-            }
-
-            LicenseWithUserInfo result = new(license.Id);
-            string? userName = null;
-            if (license.AssignedUserId.HasValue)
-            {
-                var user = await userService.GetAsync(license.AssignedUserId.Value);
-                userName = user?.Name;
-            }
-
-            return MapFromLicense(license, userName);
+            license.ExpirationDate = licenseUpdate.ExpirationDate;
         }
 
-        public async Task<OperationResult<LicenseDownload>> DownloadLicenseAsync(Guid userId)
+        if (licenseUpdate.AssignedUser != null)
         {
-            OperationResult<LicenseDownload> result = new();
-            var user = await userService.GetAsync(userId);
+            IList<User>? users = await userService.GetAllAsync(email: licenseUpdate.AssignedUser.Email);
+            User? user = users.FirstOrDefault();
+
             if (user == null)
             {
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add("User not found");
+                result.Messages.Add($"No such user found with Email: {licenseUpdate.AssignedUser.Email}");
                 return result;
             }
 
-            Domain.License? license = await licenseRepository.DownloadLicenseAsync(user.Id);
-            bool isCurrentMvp = userService.UserHasTitleForYear(user.Id, DateTime.Now.Year);
+            if (!titleService.GetAsync(user.Id, DateTime.Now.Year))
+            {
+                result.StatusCode = HttpStatusCode.BadRequest;
+                result.Messages.Add($"{user.Email} is not a current year MVP.");
+                return result;
+            }
 
-            if (isCurrentMvp && license != null)
+            license.AssignedUser = user;
+        }
+
+        await licenseRepository.SaveChangesAsync();
+
+        result.StatusCode = HttpStatusCode.OK;
+        result.Result = license;
+
+        return result;
+    }
+
+    public async Task<IList<License>> GetAllAsync(int page, short pageSize)
+    {
+        IList<License> licenses = await licenseRepository.GetAllReadOnlyAsync(page, pageSize);
+
+        return licenses;
+    }
+
+    public async Task<License?> GetAsync(Guid id)
+    {
+        License? license = await licenseRepository.GetAsync(id, _standardIncludes);
+        if (license == null)
+        {
+            return null;
+        }
+
+        return license;
+    }
+
+    public async Task<OperationResult<string>> GetByUserAsync(Guid userId)
+    {
+        OperationResult<string> result = new();
+        User? user = await userService.GetAsync(userId);
+        if (user == null)
+        {
+            result.StatusCode = HttpStatusCode.BadRequest;
+            result.Messages.Add("User not found");
+        }
+        else
+        {
+            IList<License> licenses = await licenseRepository.GetByUserReadOnlyAsync(user.Id);
+            License? license = licenses.FirstOrDefault(l => l.ExpirationDate > DateTime.Now);
+
+            if (license != null)
             {
                 result.StatusCode = HttpStatusCode.OK;
-                result.Result = new LicenseDownload
-                {
-                    XmlContent = license.LicenseContent,
-                    FileName = "license.xml"
-                };
-                return result;
+                result.Result = license.LicenseContent;
             }
-
-            result.StatusCode = HttpStatusCode.BadRequest;
-            result.Messages.Add("License not found or the user does not hold MVP title for the current year. Please contact the admin via email");
-            return result;
-        }
-
-        private async Task<List<Domain.License>> ExtractZipAsync(IFormFile zipFile)
-        {
-            List<Domain.License> licenses = new();
-            MemoryStream memoryStream = new();
-            await zipFile.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-
-            using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
-
-            foreach (var entry in archive.Entries)
+            else
             {
-                XmlDocument xmldoc = new XmlDocument();
-                string xmlContent = string.Empty;
-
-                if (entry.FullName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    var nestedZipStream = new MemoryStream();
-                    await entry.Open().CopyToAsync(nestedZipStream);
-                    nestedZipStream.Position = 0;
-
-                    using var nestedArchive = new ZipArchive(nestedZipStream, ZipArchiveMode.Read);
-
-                    var nestedXMLEntry = nestedArchive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
-
-                    if (nestedXMLEntry != null)
-                    {
-                        (xmldoc, xmlContent) = await ReadXmlFromEntryAsync(nestedXMLEntry);
-                    }
-                }
-                else if (entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
-                {
-                    (xmldoc, xmlContent) = await ReadXmlFromEntryAsync(entry);
-                }
-
-                var expirationNode = xmldoc.GetElementsByTagName("expiration");
-
-                if (expirationNode != null && expirationNode.Count > 0)
-                {
-                    string expiration = expirationNode[0].InnerText;
-                    DateTime expiredate = DateTime.ParseExact(expiration, "yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
-
-                    string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlContent));
-
-                    var license = new Domain.License(Guid.NewGuid())
-                    {
-                        LicenseContent = base64Content,
-                        ExpirationDate = expiredate,
-                        AssignedUserId = null,
-                    };
-
-                    licenses.Add(license);
-                }
+                result.StatusCode = HttpStatusCode.BadRequest;
+                result.Messages.Add("License not found. Please contact the admin via email.");
+                logger.LogWarning("License not found");
             }
-
-            return licenses;
         }
 
-        private async Task<(XmlDocument XmlDoc, string XmlContent)> ReadXmlFromEntryAsync(ZipArchiveEntry entry)
-        {
-            using Stream entryStream = entry.Open();
-            using StreamReader reader = new StreamReader(entryStream);
-            string xmlContent = await reader.ReadToEndAsync();
-
-            XmlDocument xmldoc = new XmlDocument();
-            xmldoc.LoadXml(xmlContent);
-
-            return (xmldoc, xmlContent);
-        }
-
-        private LicenseWithUserInfo MapFromLicense(Domain.License license, string? userName = null)
-        {
-            return new LicenseWithUserInfo(license.Id)
-            {
-                ExpirationDate = license.ExpirationDate,
-                AssignedUserId = license.AssignedUserId,
-                AssignedUserName = userName,
-                CreatedBy = license.CreatedBy
-            };
-        }
+        return result;
     }
 }
