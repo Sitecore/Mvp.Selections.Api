@@ -1533,12 +1533,11 @@ public class MvpSelectionsApiClient
     /// <summary>
     /// Update a <see cref="License"/>.
     /// </summary>
-    /// <param name="licenseId">The id of the <see cref="License"/> to update.</param>
     /// <param name="patchBody">The data to update the <see cref="License"/> with.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="License"/> representing the updated data.</returns>
-    public Task<Response<License>> UpdateLicenseAsync(Guid licenseId, License patchBody)
+    public Task<Response<License>> UpdateLicenseAsync(License patchBody)
     {
-        return PatchAsync<License>($"api/v1/licenses/{licenseId}", patchBody);
+        return PatchAsync<License>($"api/v1/licenses/{patchBody.Id}", patchBody);
     }
 
     /// <summary>
