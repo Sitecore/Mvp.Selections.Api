@@ -7,9 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
+using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Api.Helpers.Interfaces;
+namespace Mvp.Selections.Api.Helpers;
 
 internal class LicenseZipParser : ILicenseZipParser
 {
@@ -71,7 +72,7 @@ internal class LicenseZipParser : ILicenseZipParser
 
     private static async Task<(XmlDocument XmlDoc, string XmlContent)> ReadXmlFromEntryAsync(ZipArchiveEntry entry)
     {
-        using Stream entryStream = entry.Open();
+        await using Stream entryStream = entry.Open();
         using StreamReader reader = new(entryStream);
         string xmlContent = await reader.ReadToEndAsync();
 

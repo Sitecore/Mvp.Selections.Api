@@ -9,7 +9,7 @@ public interface ILicenseService
 {
     Task<OperationResult<IList<License>>> AddAsync(IEnumerable<License> licenses);
 
-    Task<OperationResult<License>> UpdateAsync(License patchLicenseBody, Guid licenseId);
+    Task<OperationResult<License>> UpdateAsync(Guid licenseId, License licenseUpdate, IList<string> propertyKeys);
 
     Task<IList<License>> GetAllAsync(int page, short pageSize);
 

@@ -1,13 +1,6 @@
-﻿using System.Globalization;
-using System.IO.Compression;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Net;
-using System.Text;
-using System.Xml;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Mvp.Selections.Api.Helpers;
-using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -48,7 +41,7 @@ public class LicenseService(
         return result;
     }
 
-    public async Task<OperationResult<License>> UpdateAsync(License licenseUpdate, Guid licenseId)
+    public async Task<OperationResult<License>> UpdateAsync(Guid licenseId, License licenseUpdate, IList<string> propertyKeys)
     {
         OperationResult<License> result = new();
 
@@ -58,45 +51,47 @@ public class LicenseService(
         {
             result.StatusCode = HttpStatusCode.BadRequest;
             result.Messages.Add("License not found");
-            return result;
         }
-
-        if (!string.IsNullOrWhiteSpace(licenseUpdate.LicenseContent))
+        else
         {
-            license.LicenseContent = licenseUpdate.LicenseContent;
-        }
-
-        if (licenseUpdate.ExpirationDate != default)
-        {
-            license.ExpirationDate = licenseUpdate.ExpirationDate;
-        }
-
-        if (licenseUpdate.AssignedUser != null)
-        {
-            IList<User>? users = await userService.GetAllAsync(email: licenseUpdate.AssignedUser.Email);
-            User? user = users.FirstOrDefault();
-
-            if (user == null)
+            if (propertyKeys.Any(key => key.Equals(nameof(License.LicenseContent), StringComparison.InvariantCultureIgnoreCase)))
             {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add($"No such user found with Email: {licenseUpdate.AssignedUser.Email}");
-                return result;
+                    license.LicenseContent = licenseUpdate.LicenseContent;
             }
 
-            if (!titleService.GetAsync(user.Id, DateTime.Now.Year))
+            if (propertyKeys.Any(key => key.Equals(nameof(License.AssignedUser), StringComparison.InvariantCultureIgnoreCase)))
             {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add($"{user.Email} is not a current year MVP.");
-                return result;
+                if (licenseUpdate.AssignedUser != null)
+                {
+                    IList<User>? users = await userService.GetAllAsync(email: licenseUpdate.AssignedUser.Email);
+                    User? user = users.FirstOrDefault();
+
+                    if (user == null)
+                    {
+                        result.Messages.Add($"No such user found with Email: {licenseUpdate.AssignedUser.Email}");
+                    }
+                    else if (!titleService.GetAsync(user.Id, DateTime.Now.Year))
+                    {
+                        result.Messages.Add($"{user.Email} is not a current year MVP.");
+                    }
+                    else
+                    {
+                        license.AssignedUser = user;
+                    }
+                }
             }
 
-            license.AssignedUser = user;
+            if (result.Messages.Count == 0)
+            {
+                await licenseRepository.SaveChangesAsync();
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = license;
+            }
+            else
+            {
+                result.StatusCode = HttpStatusCode.BadRequest;
+            }
         }
-
-        await licenseRepository.SaveChangesAsync();
-
-        result.StatusCode = HttpStatusCode.OK;
-        result.Result = license;
 
         return result;
     }
@@ -111,11 +106,6 @@ public class LicenseService(
     public async Task<License?> GetAsync(Guid id)
     {
         License? license = await licenseRepository.GetAsync(id, _standardIncludes);
-        if (license == null)
-        {
-            return null;
-        }
-
         return license;
     }
 

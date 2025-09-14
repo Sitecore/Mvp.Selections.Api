@@ -1505,7 +1505,7 @@ public class MvpSelectionsApiClient
     /// </returns>
     public async Task<(Response<Stream> Response, string Filename)> GetLicenseByUserAsync()
     {
-        return await GetStreamAsync("api/v1/users/current/license/download", "license.xml");
+        return await GetStreamAsync("api/v1/users/current/licenses/current/download", "license.xml");
     }
 
     /// <summary>
@@ -1717,7 +1717,7 @@ public class MvpSelectionsApiClient
         return result;
     }
 
-    private async Task<(Response<Stream> Response, string Filename)> GetStreamAsync(string requestUri, string defaultFileName = "license.xml")
+    private async Task<(Response<Stream> Response, string Filename)> GetStreamAsync(string requestUri, string defaultFileName = "download.xml")
     {
         Response<Stream> result = new();
         string filename = defaultFileName;
