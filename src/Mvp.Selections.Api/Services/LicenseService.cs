@@ -63,12 +63,11 @@ public class LicenseService(
             {
                 if (licenseUpdate.AssignedUser != null)
                 {
-                    IList<User>? users = await userService.GetAllAsync(email: licenseUpdate.AssignedUser.Email);
-                    User? user = users.FirstOrDefault();
+                    User? user = await userService.GetAsync(licenseUpdate.AssignedUser.Id);
 
                     if (user == null)
                     {
-                        result.Messages.Add($"No such user found with Email: {licenseUpdate.AssignedUser.Email}");
+                        result.Messages.Add($"No such user found with Id: {licenseUpdate.AssignedUser.Id}");
                     }
                     else if (!titleService.GetAsync(user.Id, DateTime.Now.Year))
                     {
