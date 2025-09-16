@@ -24,4 +24,6 @@ public interface ITitleRepository : IBaseRepository<Title, Guid>
         int page = 1,
         short pageSize = 100,
         params Expression<Func<Title, object>>[] includes);
+
+    bool GetAsync(Guid userId, int year);
 }

@@ -1495,6 +1495,74 @@ public class MvpSelectionsApiClient
 
     #endregion Mentor
 
+    #region Licenses
+
+    /// <summary>
+    /// Download a user's <see cref="License"/> file from the system.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Response{T}"/> containing the license stream.
+    /// </returns>
+    public async Task<(Response<Stream> Response, string Filename)> GetLicenseByUserAsync()
+    {
+        return await GetStreamAsync("api/v1/users/current/licenses/current/download", "license.xml");
+    }
+
+    /// <summary>
+    /// Get all licenses with user information.
+    /// </summary>
+    /// <param name="page">Page to retrieve. 1 by default.</param>
+    /// <param name="pageSize">Page size to retrieve. 100 by default.</param>
+    /// <returns>A <see cref="Response{T}"/> of type <see cref="List{T}"/> of <see cref="License"/>.</returns>
+    public Task<Response<IList<License>>> GetLicensesAsync(int page = 1, short pageSize = 100)
+    {
+        ListParameters listParameters = new() { Page = page, PageSize = pageSize };
+        return GetLicensesAsync(listParameters);
+    }
+
+    /// <summary>
+    /// Get an <see cref="IList{T}"/> of <see cref="License"/>.
+    /// </summary>
+    /// <param name="listParameters">The list parameters.</param>
+    /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="License"/>.</returns>
+    public Task<Response<IList<License>>> GetLicensesAsync(ListParameters listParameters)
+    {
+        return GetAsync<IList<License>>($"api/v1/licenses{listParameters.ToQueryString(true)}");
+    }
+
+    /// <summary>
+    /// Update a <see cref="License"/>.
+    /// </summary>
+    /// <param name="patchBody">The data to update the <see cref="License"/> with.</param>
+    /// <returns>A <see cref="Response{T}"/> of type <see cref="License"/> representing the updated data.</returns>
+    public Task<Response<License>> UpdateLicenseAsync(License patchBody)
+    {
+        return PatchAsync<License>($"api/v1/licenses/{patchBody.Id}", patchBody);
+    }
+
+    /// <summary>
+    /// Upload licenses from a zip file.
+    /// </summary>
+    /// <param name="zipFileStream">The stream containing the zip file with licenses.</param>
+    /// <param name="fileName">The name of the zip file.</param>
+    /// <returns>A <see cref="Response{T}"/> containing the list of uploaded licenses.</returns>
+    public async Task<Response<IList<License>>> UploadLicensesAsync(Stream zipFileStream, string fileName)
+    {
+        return await PostStreamAsync<IList<License>>("api/v1/licenses/upload", zipFileStream, fileName);
+    }
+
+    /// <summary>
+    /// Get a <see cref="License"/>.
+    /// </summary>
+    /// <param name="licenseId">The id of the <see cref="License"/> to get.</param>
+    /// <returns>A <see cref="Response{T}"/> of <see cref="License"/>.</returns>
+    public Task<Response<License>> GetLicenseAsync(Guid licenseId)
+    {
+        return GetAsync<License>($"api/v1/licenses/{licenseId}");
+    }
+
+    #endregion Licenses
+
     #region Private
 
     private async Task<Response<T>> GetAsync<T>(string requestUri)
@@ -1615,6 +1683,73 @@ public class MvpSelectionsApiClient
     {
         message.Headers.Authorization =
             new AuthenticationHeaderValue(AuthorizationScheme, await _tokenProvider.GetTokenAsync());
+    }
+
+    private async Task<Response<T>> PostStreamAsync<T>(string requestUri, Stream stream, string fileName, string formFieldName = "file")
+    {
+        Response<T> result = new();
+
+        using MultipartFormDataContent content = new();
+        using StreamContent streamContent = new(stream);
+        content.Add(streamContent, formFieldName, fileName);
+
+        HttpRequestMessage request = new()
+        {
+            Method = HttpMethod.Post,
+            RequestUri = new Uri(requestUri, UriKind.Relative),
+            Content = content
+        };
+
+        await SetAuthorizationHeader(request);
+        using HttpResponseMessage response = await _client.SendAsync(request);
+
+        result.StatusCode = response.StatusCode;
+
+        if (response.IsSuccessStatusCode)
+        {
+            result.Result = await response.Content.ReadFromJsonAsync<T>(_JsonSerializerOptions);
+        }
+        else
+        {
+            result.Message = await response.Content.ReadAsStringAsync();
+        }
+
+        return result;
+    }
+
+    private async Task<(Response<Stream> Response, string Filename)> GetStreamAsync(string requestUri, string defaultFileName = "download.xml")
+    {
+        Response<Stream> result = new();
+        string filename = defaultFileName;
+
+        HttpRequestMessage request = new()
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri(requestUri, UriKind.Relative)
+        };
+
+        await SetAuthorizationHeader(request);
+        HttpResponseMessage response = await _client.SendAsync(request);
+
+        result.StatusCode = response.StatusCode;
+
+        if (response.IsSuccessStatusCode)
+        {
+            result.Result = await response.Content.ReadAsStreamAsync();
+
+            if (response.Content.Headers.ContentDisposition != null)
+            {
+                var disposition = response.Content.Headers.ContentDisposition;
+                filename = disposition.FileNameStar ?? disposition.FileName ?? filename;
+                filename = filename.Trim('\"');
+            }
+        }
+        else
+        {
+            result.Message = await response.Content.ReadAsStringAsync();
+        }
+
+        return (result, filename);
     }
 
     #endregion Private

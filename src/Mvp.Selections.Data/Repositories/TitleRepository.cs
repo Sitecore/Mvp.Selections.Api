@@ -36,6 +36,15 @@ public class TitleRepository(Context context, ICurrentUserNameProvider currentUs
         return await GetAllQuery(name, mvpTypeIds, years, countryIds, onlyFinalized, page, pageSize, includes).AsNoTracking().ToListAsync();
     }
 
+    public bool GetAsync(Guid userId, int year)
+    {
+        return Context.Applications
+            .Any(a => a.Applicant.Id == userId &&
+                        a.Selection.Finalized &&
+                        a.Selection.Year == year &&
+                        a.Titles.Any());
+    }
+
     private IQueryable<Title> GetAllQuery(
         string? name = null,
         IList<short>? mvpTypeIds = null,
