@@ -21,4 +21,6 @@ public interface ITitleService
     Task RemoveAsync(Guid id);
 
     Task<Title?> GetAsync(Guid id);
+
+    bool GetAsync(Guid userId, int year);
 }
