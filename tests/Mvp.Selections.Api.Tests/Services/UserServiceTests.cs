@@ -1,5 +1,5 @@
 ﻿using AutoFixture.Xunit2;
-using FluentAssertions;
+using AwesomeAssertions;
 using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;

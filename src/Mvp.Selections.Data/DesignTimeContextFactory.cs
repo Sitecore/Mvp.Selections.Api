@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace Mvp.Selections.Data;
+
 #if DEBUG
 public class DesignTimeContextFactory : IDesignTimeDbContextFactory<Context>
 {
