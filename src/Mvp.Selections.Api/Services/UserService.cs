@@ -636,7 +636,7 @@ public class UserService(
                                             Email = mentor.Email
                                         }
                                     ],
-                                    Substitutions = new Dictionary<string, string>
+                                    Substitutions = new Dictionary<string, object>
                                     {
                                         { mvpOptions.Value.MentorContact.MessageSubstitutionKey, message },
                                         { mvpOptions.Value.MentorContact.MentorNameSubstitutionKey, mentor.Name },

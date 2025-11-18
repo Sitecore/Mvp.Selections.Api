@@ -1,8 +1,13 @@
 ﻿using System.Linq.Expressions;
 using System.Net;
+using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Mvp.Selections.Api.Clients.Interfaces;
+using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
+using Mvp.Selections.Api.Model.Send;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
@@ -17,7 +22,9 @@ public class ApplicationService(
     IProductService productService,
     IUserService userService,
     ICountryService countryService,
-    IMvpTypeService mvpTypeService)
+    IMvpTypeService mvpTypeService,
+    ISendClient sendClient,
+    IOptions<MvpSelectionsOptions> mvpOptions)
     : IApplicationService, IApplicantService
 {
     private readonly Expression<Func<Application, object>>[] _standardIncludes =
@@ -165,6 +172,12 @@ public class ApplicationService(
         {
             newApplication = applicationRepository.Add(newApplication);
             await applicationRepository.SaveChangesAsync();
+
+            if (newApplication.Status == ApplicationStatus.Submitted)
+            {
+                await SendEmailConfirmation(newApplication);
+            }
+
             result.StatusCode = HttpStatusCode.Created;
             result.Result = newApplication;
         }
@@ -177,6 +190,8 @@ public class ApplicationService(
         OperationResult<Application> result = new();
         OperationResult<Application> getResult = await GetInternalAsync(user, id, _standardIncludes, false);
         Application? updatedApplication = null;
+        bool sendConfirmationEmail = false;
+
         if (
             getResult is { StatusCode: HttpStatusCode.OK, Result: not null }
             && (user.HasRight(Right.Admin) || getResult.Result.Selection.AreApplicationsOpen()))
@@ -200,6 +215,10 @@ public class ApplicationService(
             if (propertyKeys.Any(key => key.Equals(nameof(Application.Status), StringComparison.InvariantCultureIgnoreCase)))
             {
                 updatedApplication.Status = application.Status;
+                if (application.Status == ApplicationStatus.Submitted)
+                {
+                    sendConfirmationEmail = true;
+                }
             }
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract - MvpType can be null after deserialization
@@ -296,6 +315,12 @@ public class ApplicationService(
         if (result.Messages.Count == 0)
         {
             await applicationRepository.SaveChangesAsync();
+
+            if (sendConfirmationEmail && updatedApplication != null)
+            {
+                await SendEmailConfirmation(updatedApplication);
+            }
+
             result.StatusCode = HttpStatusCode.OK;
             result.Result = updatedApplication;
         }
@@ -480,5 +505,35 @@ public class ApplicationService(
         }
 
         return result;
+    }
+
+    private async Task SendEmailConfirmation(Application application)
+    {
+        DateTime applicationDate = application.ModifiedOn ?? application.CreatedOn;
+
+        await sendClient.SendTransactionalEmailAsync(
+            mvpOptions.Value.ApplicationConfirmation.TemplateId,
+            [
+                new Personalization
+                {
+                    To =
+                    [
+                        new Recipient
+                        {
+                            Name = application.Applicant.Name,
+                            Email = application.Applicant.Email
+                        }
+                    ],
+                    Substitutions = new Dictionary<string, object>
+                    {
+                        { mvpOptions.Value.ApplicationConfirmation.ApplicationMvpType, application.MvpType.Name },
+                        { mvpOptions.Value.ApplicationConfirmation.ApplicantNameSubstitutionKey, application.Applicant.Name },
+                        { mvpOptions.Value.ApplicationConfirmation.ApplicantCountrySubstitutionKey, application.Applicant.Country?.Name ?? string.Empty },
+                        { mvpOptions.Value.ApplicationConfirmation.ApplicationDateSubstitutionKey, applicationDate.ToString("dd MMMM yyyy") },
+                        { mvpOptions.Value.ApplicationConfirmation.ApplicationDataSubstitutionKey, application }
+                    }
+                }
+            ],
+            false);
     }
 }
