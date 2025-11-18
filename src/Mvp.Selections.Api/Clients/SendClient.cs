@@ -25,8 +25,10 @@ public class SendClient : ISendClient
         _JsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles
         };
+        _JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     public SendClient(HttpClient client, IOptions<SendClientOptions> options, ILogger<SendClient> logger)

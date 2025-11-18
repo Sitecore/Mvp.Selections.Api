@@ -4,5 +4,5 @@ public class Personalization
 {
     public IList<Recipient> To { get; set; } = [];
 
-    public Dictionary<string, string> Substitutions { get; set; } = [];
+    public Dictionary<string, object> Substitutions { get; set; } = [];
 }
