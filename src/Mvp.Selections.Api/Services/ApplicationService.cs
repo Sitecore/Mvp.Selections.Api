@@ -1,6 +1,5 @@
 ﻿using System.Linq.Expressions;
 using System.Net;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Clients.Interfaces;
@@ -509,12 +508,14 @@ public class ApplicationService(
 
     private async Task SendEmailConfirmation(Application application)
     {
-        DateTime applicationDate = application.ModifiedOn ?? application.CreatedOn;
+        if (!string.IsNullOrWhiteSpace(mvpOptions.Value.ApplicationConfirmation.TemplateId))
+        {
+            DateTime applicationDate = application.ModifiedOn ?? application.CreatedOn;
 
-        await sendClient.SendTransactionalEmailAsync(
-            mvpOptions.Value.ApplicationConfirmation.TemplateId,
-            [
-                new Personalization
+            await sendClient.SendTransactionalEmailAsync(
+                mvpOptions.Value.ApplicationConfirmation.TemplateId,
+                [
+                    new Personalization
                 {
                     To =
                     [
@@ -533,7 +534,8 @@ public class ApplicationService(
                         { mvpOptions.Value.ApplicationConfirmation.ApplicationDataSubstitutionKey, application }
                     }
                 }
-            ],
-            false);
+                ],
+                false);
+        }
     }
 }
