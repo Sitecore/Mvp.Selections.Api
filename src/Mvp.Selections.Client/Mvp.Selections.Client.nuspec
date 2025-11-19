@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Mvp.Selections.Client</id>
-    <version>4.22.0</version>
+    <version>4.24.0</version>
     <releaseNotes>
-      + Added mentor and openToMentee options to SearchMvpProfileAsync
+      + Added mentor contribution type
     </releaseNotes>
     <title>MVP Selections API Client</title>
     <authors>sc-ivanlieckens</authors>
