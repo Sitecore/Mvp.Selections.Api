@@ -516,24 +516,51 @@ public class ApplicationService(
                 mvpOptions.Value.ApplicationConfirmation.TemplateId,
                 [
                     new Personalization
-                {
-                    To =
-                    [
-                        new Recipient
-                        {
-                            Name = application.Applicant.Name,
-                            Email = application.Applicant.Email
-                        }
-                    ],
-                    Substitutions = new Dictionary<string, object>
                     {
-                        { mvpOptions.Value.ApplicationConfirmation.ApplicationMvpType, application.MvpType.Name },
-                        { mvpOptions.Value.ApplicationConfirmation.ApplicantNameSubstitutionKey, application.Applicant.Name },
-                        { mvpOptions.Value.ApplicationConfirmation.ApplicantCountrySubstitutionKey, application.Applicant.Country?.Name ?? string.Empty },
-                        { mvpOptions.Value.ApplicationConfirmation.ApplicationDateSubstitutionKey, applicationDate.ToString("dd MMMM yyyy") },
-                        { mvpOptions.Value.ApplicationConfirmation.ApplicationDataSubstitutionKey, application }
+                        To =
+                        [
+                            new Recipient
+                            {
+                                Name = application.Applicant.Name,
+                                Email = application.Applicant.Email
+                            }
+                        ],
+                        Substitutions = new Dictionary<string, object>
+                        {
+                            { mvpOptions.Value.ApplicationConfirmation.ApplicationMvpType, application.MvpType.Name },
+                            {
+                                mvpOptions.Value.ApplicationConfirmation.ApplicantNameSubstitutionKey,
+                                application.Applicant.Name
+                            },
+                            {
+                                mvpOptions.Value.ApplicationConfirmation.ApplicantCountrySubstitutionKey,
+                                application.Applicant.Country?.Name ?? string.Empty
+                            },
+                            {
+                                mvpOptions.Value.ApplicationConfirmation.ApplicationDateSubstitutionKey,
+                                applicationDate.ToString("dd MMMM yyyy")
+                            },
+                            {
+                                mvpOptions.Value.ApplicationConfirmation.ApplicationDataSubstitutionKey,
+                                new
+                                {
+                                    Eligibility = application.Eligibility ?? string.Empty,
+                                    Objectives = application.Objectives ?? string.Empty,
+                                    Mentor = application.Mentor ?? string.Empty,
+                                    Contributions = application.Contributions.Select(c => new
+                                    {
+                                        c.Date,
+                                        c.Description,
+                                        c.IsPublic,
+                                        c.Name,
+                                        RelatedProducts = c.RelatedProducts.Select(rp => new { rp.Name }),
+                                        c.Type,
+                                        c.Uri
+                                    })
+                                }
+                            }
+                        }
                     }
-                }
                 ],
                 false);
         }
