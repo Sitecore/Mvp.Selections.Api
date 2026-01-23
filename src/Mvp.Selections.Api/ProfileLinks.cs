@@ -24,7 +24,7 @@ public class ProfileLinks(
         HttpRequest req,
         Guid userId)
     {
-        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply], async authResult =>
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
         {
             ProfileLink? input = await Serializer.DeserializeAsync<ProfileLink>(req.Body);
             OperationResult<ProfileLink> addResult = input != null
@@ -41,7 +41,7 @@ public class ProfileLinks(
         Guid userId,
         Guid id)
     {
-        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Apply], async authResult =>
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
         {
             OperationResult<ProfileLink> removeResult = await profileLinkService.RemoveAsync(authResult.User!, userId, id);
             return ContentResult(removeResult);

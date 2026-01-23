@@ -11,5 +11,6 @@ public enum ContributionType
     BugReport,
     Feedback,
     Reference,
-    Community
+    Community,
+    Mentor
 }

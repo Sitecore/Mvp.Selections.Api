@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using FluentAssertions;
+using AwesomeAssertions;
 using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Roles;
 using Xunit;

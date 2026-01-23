@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Net;
 using AutoFixture.Xunit2;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Model.Request;
