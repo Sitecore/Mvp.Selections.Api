@@ -6,7 +6,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Mvp.Selections.Api.Serialization.ContractResolvers;
 
-internal class CommentsContractResolver : CamelCasePropertyNamesContractResolver
+public class CommentsContractResolver : CamelCasePropertyNamesContractResolver
 {
     public static readonly CommentsContractResolver Instance = new();
 
