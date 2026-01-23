@@ -27,7 +27,7 @@ public class Licenses(
     private const string ActivePastDateTimeQueryStringKey = "activePastDateTime";
 
     [Function("UploadLicenses")]
-    public Task<IActionResult> Add(
+    public Task<IActionResult> Upload(
         [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/licenses/upload")]
         HttpRequest req)
     {
