@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +15,7 @@ using Mvp.Selections.Client.Serialization;
 using Mvp.Selections.Domain;
 using Mvp.Selections.Domain.Comments;
 using Mvp.Selections.Domain.Roles;
+using File = Mvp.Selections.Client.Models.File;
 
 // ReSharper disable StringLiteralTypo - URI segments
 // ReSharper disable UnusedMember.Global - Client is used by other libraries that take a dependency
@@ -23,6 +25,7 @@ namespace Mvp.Selections.Client;
 /// <summary>
 /// MVP Selections API Client.
 /// </summary>
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Used by other libraries that take a dependency")]
 public class MvpSelectionsApiClient
 {
     /// <summary>
@@ -1498,57 +1501,59 @@ public class MvpSelectionsApiClient
     #region Licenses
 
     /// <summary>
-    /// Download a user's <see cref="License"/> file from the system.
+    /// Download a user's <see cref="License"/> <see cref="File"/> from the system.
     /// </summary>
-    /// <returns>
-    /// A <see cref="Response{T}"/> containing the license stream.
-    /// </returns>
-    public async Task<(Response<Stream> Response, string Filename)> GetLicenseByUserAsync()
+    /// <returns>A <see cref="Response{T}"/> of type <see cref="File"/>.</returns>
+    public async Task<Response<File>> GetValidLicenseForCurrentUserAsync()
     {
         return await GetStreamAsync("api/v1/users/current/licenses/current/download", "license.xml");
     }
 
     /// <summary>
-    /// Get all licenses with user information.
+    /// Get an <see cref="IList{T}"/> of <see cref="License"/> optionally filtered by the parameters.
     /// </summary>
+    /// <param name="activePastDateTime">Filter for licenses active past this date.</param>
+    /// <param name="userId">Filter for licenses belonging to this user.</param>
     /// <param name="page">Page to retrieve. 1 by default.</param>
     /// <param name="pageSize">Page size to retrieve. 100 by default.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="List{T}"/> of <see cref="License"/>.</returns>
-    public Task<Response<IList<License>>> GetLicensesAsync(int page = 1, short pageSize = 100)
+    public Task<Response<IList<License>>> GetLicensesAsync(DateTime? activePastDateTime = null, Guid? userId = null, int page = 1, short pageSize = 100)
     {
         ListParameters listParameters = new() { Page = page, PageSize = pageSize };
-        return GetLicensesAsync(listParameters);
+        return GetLicensesAsync(activePastDateTime, userId, listParameters);
     }
 
     /// <summary>
-    /// Get an <see cref="IList{T}"/> of <see cref="License"/>.
+    /// Get an <see cref="IList{T}"/> of <see cref="License"/> optionally filtered by the parameters.
     /// </summary>
+    /// <param name="activePastDateTime">Filter for licenses active past this date.</param>
+    /// <param name="userId">Filter for licenses belonging to this user.</param>
     /// <param name="listParameters">The list parameters.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="IList{T}"/> of <see cref="License"/>.</returns>
-    public Task<Response<IList<License>>> GetLicensesAsync(ListParameters listParameters)
+    public Task<Response<IList<License>>> GetLicensesAsync(DateTime? activePastDateTime, Guid? userId, ListParameters listParameters)
     {
-        return GetAsync<IList<License>>($"api/v1/licenses{listParameters.ToQueryString(true)}");
+        return GetAsync<IList<License>>($"api/v1/licenses{listParameters.ToQueryString(true)}{activePastDateTime.ToQueryString("activePastDateTime")}{userId.ToQueryString("userId")}");
     }
 
     /// <summary>
     /// Update a <see cref="License"/>.
     /// </summary>
-    /// <param name="patchBody">The data to update the <see cref="License"/> with.</param>
+    /// <param name="license">The data to update the <see cref="License"/> with.</param>
     /// <returns>A <see cref="Response{T}"/> of type <see cref="License"/> representing the updated data.</returns>
-    public Task<Response<License>> UpdateLicenseAsync(License patchBody)
+    public Task<Response<License>> UpdateLicenseAsync(License license)
     {
-        return PatchAsync<License>($"api/v1/licenses/{patchBody.Id}", patchBody);
+        return PatchAsync<License>($"api/v1/licenses/{license.Id}", license);
     }
 
     /// <summary>
-    /// Upload licenses from a zip file.
+    /// Upload a ZIP containing <see cref="License"/> XML files either raw or ZIP.
     /// </summary>
-    /// <param name="zipFileStream">The stream containing the zip file with licenses.</param>
+    /// <param name="fileStream">The <see cref="Stream"/> to upload.</param>
     /// <param name="fileName">The name of the zip file.</param>
     /// <returns>A <see cref="Response{T}"/> containing the list of uploaded licenses.</returns>
-    public async Task<Response<IList<License>>> UploadLicensesAsync(Stream zipFileStream, string fileName)
+    public async Task<Response<IList<License>>> UploadLicensesAsync(Stream fileStream, string fileName = "licenses.zip")
     {
-        return await PostStreamAsync<IList<License>>("api/v1/licenses/upload", zipFileStream, fileName);
+        return await PostStreamAsync<IList<License>>("api/v1/licenses/upload", fileStream, fileName);
     }
 
     /// <summary>
@@ -1717,11 +1722,9 @@ public class MvpSelectionsApiClient
         return result;
     }
 
-    private async Task<(Response<Stream> Response, string Filename)> GetStreamAsync(string requestUri, string defaultFileName = "download.xml")
+    private async Task<Response<File>> GetStreamAsync(string requestUri, string defaultFileName = "download")
     {
-        Response<Stream> result = new();
-        string filename = defaultFileName;
-
+        Response<File> result = new();
         HttpRequestMessage request = new()
         {
             Method = HttpMethod.Get,
@@ -1732,16 +1735,22 @@ public class MvpSelectionsApiClient
         HttpResponseMessage response = await _client.SendAsync(request);
 
         result.StatusCode = response.StatusCode;
-
         if (response.IsSuccessStatusCode)
         {
-            result.Result = await response.Content.ReadAsStreamAsync();
+            result.Result = new File
+            {
+                Content = await response.Content.ReadAsStreamAsync()
+            };
 
             if (response.Content.Headers.ContentDisposition != null)
             {
-                var disposition = response.Content.Headers.ContentDisposition;
-                filename = disposition.FileNameStar ?? disposition.FileName ?? filename;
-                filename = filename.Trim('\"');
+                ContentDispositionHeaderValue disposition = response.Content.Headers.ContentDisposition;
+                result.Result.FileName = disposition.FileNameStar ?? disposition.FileName ?? defaultFileName;
+                result.Result.FileName = result.Result.FileName.Trim('\"');
+            }
+            else
+            {
+                result.Result.FileName = defaultFileName;
             }
         }
         else
@@ -1749,7 +1758,7 @@ public class MvpSelectionsApiClient
             result.Message = await response.Content.ReadAsStringAsync();
         }
 
-        return (result, filename);
+        return result;
     }
 
     #endregion Private

@@ -1,31 +1,37 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Mvp.Selections.Data.Extensions;
 using Mvp.Selections.Data.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
-namespace Mvp.Selections.Data.Repositories
+namespace Mvp.Selections.Data.Repositories;
+
+public class LicenseRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
+    : BaseRepository<License, Guid>(context, currentUserNameProvider), ILicenseRepository
 {
-    public class LicenseRepository(Context context, ICurrentUserNameProvider currentUserNameProvider)
-     : BaseRepository<License, Guid>(context, currentUserNameProvider), ILicenseRepository
+    public async Task<IList<License>> GetAllReadOnlyAsync(DateTime? activePastDateTime = null, Guid? userId = null, int page = 1, short pageSize = 100, params Expression<Func<License, object>>[] includes)
     {
-        public async Task<IList<License>> GetAllReadOnlyAsync(int page, short pageSize)
+        page--;
+        IQueryable<License> query = Context.Licenses;
+
+        if (userId.HasValue)
         {
-            return await Context.Licenses
-                .AsNoTracking()
-                .Include(l => l.AssignedUser)
-                .Where(l => l.ExpirationDate > DateTime.Now)
-                .OrderByDescending(l => l.CreatedOn)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(l => l.AssignedUser!.Id == userId.Value);
         }
 
-        public async Task<IList<License>> GetByUserReadOnlyAsync(Guid userId)
+        if (activePastDateTime.HasValue)
         {
-            return await Context.Licenses
-                    .AsNoTracking()
-                    .Where(l => l.AssignedUser != null && l.AssignedUser.Id == userId)
-                    .ToListAsync();
+            query = query.Where(l => l.ExpirationDate > activePastDateTime.Value);
         }
+
+        return await query
+            .OrderByDescending(l => l.ExpirationDate)
+            .ThenBy(l => l.CreatedOn)
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .Includes(includes)
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

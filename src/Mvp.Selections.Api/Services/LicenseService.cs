@@ -9,132 +9,149 @@ using Mvp.Selections.Domain;
 namespace Mvp.Selections.Api.Services;
 
 public class LicenseService(
-                ILicenseRepository licenseRepository,
-                IUserService userService,
-                ITitleService titleService,
-                ILogger<LicenseService> logger) : ILicenseService
+    ILogger<LicenseService> logger,
+    ILicenseRepository licenseRepository,
+    IUserService userService)
+    : ILicenseService
 {
     private readonly Expression<Func<License, object>>[] _standardIncludes =
     [
         l => l.AssignedUser!
     ];
 
-    public async Task<OperationResult<IList<License>>> AddAsync(IEnumerable<License> licenses)
+    public async Task<OperationResult<IList<License>>> AddAsync(IList<License> licenses)
     {
-        OperationResult<IList<License>> result = new();
-
-        if (!licenses.Any())
+        OperationResult<IList<License>> result = new() { Result = [] };
+        foreach (License license in licenses)
         {
-            result.StatusCode = HttpStatusCode.BadRequest;
-            result.Messages.Add("No licenses extracted from zip file.");
-            logger.LogWarning("License list is empty");
+            result.Result.Add(Add(license));
         }
-        else
-        {
-            await licenseRepository.AddRangeAsync(licenses.ToList());
-            await licenseRepository.SaveChangesAsync();
 
-            result.StatusCode = HttpStatusCode.OK;
-            result.Result = licenses.ToList();
-        }
+        await licenseRepository.SaveChangesAsync();
+        result.StatusCode = HttpStatusCode.Created;
 
         return result;
     }
 
-    public async Task<OperationResult<License>> UpdateAsync(Guid licenseId, License licenseUpdate, IList<string> propertyKeys)
+    public async Task<OperationResult<License>> AddAsync(License license)
+    {
+        OperationResult<License> result = new()
+        {
+            Result = Add(license)
+        };
+        await licenseRepository.SaveChangesAsync();
+        result.StatusCode = HttpStatusCode.Created;
+
+        return result;
+    }
+
+    public async Task<OperationResult<License>> UpdateAsync(Guid licenseId, License license, IList<string> propertyKeys)
     {
         OperationResult<License> result = new();
-
-        License? license = await licenseRepository.GetAsync(licenseId);
-
-        if (license == null)
-        {
-            result.StatusCode = HttpStatusCode.BadRequest;
-            result.Messages.Add("License not found");
-        }
-        else
+        License? existingLicense = await licenseRepository.GetAsync(licenseId);
+        if (existingLicense != null)
         {
             if (propertyKeys.Any(key => key.Equals(nameof(License.LicenseContent), StringComparison.InvariantCultureIgnoreCase)))
             {
-                    license.LicenseContent = licenseUpdate.LicenseContent;
+                existingLicense.LicenseContent = license.LicenseContent;
+            }
+
+            if (propertyKeys.Any(key => key.Equals(nameof(License.ExpirationDate), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                existingLicense.ExpirationDate = license.ExpirationDate;
             }
 
             if (propertyKeys.Any(key => key.Equals(nameof(License.AssignedUser), StringComparison.InvariantCultureIgnoreCase)))
             {
-                if (licenseUpdate.AssignedUser != null)
+                if (license.AssignedUser != null)
                 {
-                    User? user = await userService.GetAsync(licenseUpdate.AssignedUser.Id);
-
-                    if (user == null)
+                    User? user = await userService.GetAsync(license.AssignedUser.Id);
+                    if (user != null)
                     {
-                        result.Messages.Add($"No such user found with Id: {licenseUpdate.AssignedUser.Id}");
-                    }
-                    else if (!titleService.GetAsync(user.Id, DateTime.Now.Year))
-                    {
-                        result.Messages.Add($"{user.Email} is not a current year MVP.");
+                        existingLicense.AssignedUser = user;
                     }
                     else
                     {
-                        license.AssignedUser = user;
+                        result.StatusCode = HttpStatusCode.BadRequest;
+                        string message = $"Could not find User '{license.AssignedUser.Id}'.";
+                        result.Messages.Add(message);
+                        logger.LogInformation("{Message}", message);
                     }
                 }
             }
-
-            if (result.Messages.Count == 0)
-            {
-                await licenseRepository.SaveChangesAsync();
-                result.StatusCode = HttpStatusCode.OK;
-                result.Result = license;
-            }
-            else
-            {
-                result.StatusCode = HttpStatusCode.BadRequest;
-            }
-        }
-
-        return result;
-    }
-
-    public async Task<IList<License>> GetAllAsync(int page, short pageSize)
-    {
-        IList<License> licenses = await licenseRepository.GetAllReadOnlyAsync(page, pageSize);
-
-        return licenses;
-    }
-
-    public async Task<License?> GetAsync(Guid id)
-    {
-        License? license = await licenseRepository.GetAsync(id, _standardIncludes);
-        return license;
-    }
-
-    public async Task<OperationResult<string>> GetByUserAsync(Guid userId)
-    {
-        OperationResult<string> result = new();
-        User? user = await userService.GetAsync(userId);
-        if (user == null)
-        {
-            result.StatusCode = HttpStatusCode.BadRequest;
-            result.Messages.Add("User not found");
         }
         else
         {
-            IList<License> licenses = await licenseRepository.GetByUserReadOnlyAsync(user.Id);
-            License? license = licenses.FirstOrDefault(l => l.ExpirationDate > DateTime.Now);
+            result.StatusCode = HttpStatusCode.NotFound;
+            string message = $"Could not find License '{licenseId}'.";
+            result.Messages.Add(message);
+            logger.LogInformation("{Message}", message);
+        }
 
-            if (license != null)
-            {
-                result.StatusCode = HttpStatusCode.OK;
-                result.Result = license.LicenseContent;
-            }
-            else
-            {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add("License not found. Please contact the admin via email.");
-                logger.LogWarning("License not found");
-            }
+        if (result.Messages.Count == 0)
+        {
+            await licenseRepository.SaveChangesAsync();
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = existingLicense;
         }
 
         return result;
+    }
+
+    public async Task<IList<License>> GetAllAsync(DateTime? activePastDateTime = null, Guid? userId = null, int page = 1, short pageSize = 100)
+    {
+        IList<License> licenses = await licenseRepository.GetAllReadOnlyAsync(activePastDateTime, userId, page, pageSize, _standardIncludes);
+        return licenses;
+    }
+
+    public async Task<OperationResult<License>> GetAsync(Guid id)
+    {
+        OperationResult<License> result = new();
+        License? license = await licenseRepository.GetAsync(id, _standardIncludes);
+        if (license != null)
+        {
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = license;
+        }
+        else
+        {
+            result.StatusCode = HttpStatusCode.NotFound;
+            string message = $"Could not find License '{id}'.";
+            result.Messages.Add(message);
+            logger.LogWarning("{Message}", message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<License>> GetActiveForUserAsync(Guid userId)
+    {
+        OperationResult<License> result = new();
+        IList<License> licenses = await licenseRepository.GetAllReadOnlyAsync(DateTime.UtcNow, userId);
+        if (licenses.Count > 0)
+        {
+            result.StatusCode = HttpStatusCode.OK;
+            result.Result = licenses[0];
+        }
+        else
+        {
+            result.StatusCode = HttpStatusCode.NotFound;
+            string message = $"Could not find active License for User '{userId}'.";
+            result.Messages.Add(message);
+            logger.LogWarning("{Message}", message);
+        }
+
+        return result;
+    }
+
+    private License Add(License license)
+    {
+        License newLicense = new(Guid.Empty)
+        {
+            ExpirationDate = license.ExpirationDate,
+            LicenseContent = license.LicenseContent
+        };
+
+        return licenseRepository.Add(newLicense);
     }
 }

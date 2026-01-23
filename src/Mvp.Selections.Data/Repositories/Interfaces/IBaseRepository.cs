@@ -17,8 +17,6 @@ public interface IBaseRepository<TEntity, in TId>
 
     TEntity Add(TEntity entity);
 
-    Task AddRangeAsync(IList<TEntity> entities);
-
     Task<bool> RemoveAsync(TId id);
 
     bool RemoveAsync(TEntity? entity);

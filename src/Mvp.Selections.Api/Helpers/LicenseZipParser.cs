@@ -1,84 +1,99 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Helpers;
 
-internal class LicenseZipParser : ILicenseZipParser
+public class LicenseZipParser(ILogger<LicenseZipParser> logger)
+    : ILicenseZipParser
 {
     public async Task<IList<License>> ParseAsync(IFormFile zipFile)
     {
         List<License> licenses = [];
-        using ZipArchive archive = new(zipFile.OpenReadStream(), ZipArchiveMode.Read);
+        await using Stream zipStream = zipFile.OpenReadStream();
+        using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
 
         foreach (ZipArchiveEntry entry in archive.Entries)
         {
-            XmlDocument xmldoc = new();
-            string xmlContent = string.Empty;
-
+            string? xmlContent = null;
             if (entry.FullName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
-                MemoryStream nestedZipStream = new();
-                await entry.Open().CopyToAsync(nestedZipStream);
-                nestedZipStream.Position = 0;
+                await using Stream nestedStream = entry.Open();
+                using ZipArchive nestedArchive = new(nestedStream, ZipArchiveMode.Read);
+                ZipArchiveEntry? nestedXmlEntry = nestedArchive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
 
-                using ZipArchive nestedArchive = new(nestedZipStream, ZipArchiveMode.Read);
-
-                ZipArchiveEntry? nestedXMLEntry = nestedArchive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
-
-                if (nestedXMLEntry != null)
+                if (nestedXmlEntry != null)
                 {
-                    (xmldoc, xmlContent) = await ReadXmlFromEntryAsync(nestedXMLEntry);
+                    xmlContent = await ReadContentFromEntryAsync(nestedXmlEntry);
+                }
+                else
+                {
+                    logger.LogWarning("No XML file found in nested zip: {EntryName}", entry.FullName);
                 }
             }
             else if (entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
             {
-                (xmldoc, xmlContent) = await ReadXmlFromEntryAsync(entry);
+                xmlContent = await ReadContentFromEntryAsync(entry);
+            }
+            else
+            {
+                logger.LogInformation("Skipping unsupported file type: {EntryName}", entry.FullName);
             }
 
-            XmlNodeList expirationNode = xmldoc.GetElementsByTagName("expiration");
-
-            if (expirationNode.Count > 0)
+            if (!string.IsNullOrEmpty(xmlContent))
             {
-                string expiration = expirationNode[0]!.InnerText;
-                if (!string.IsNullOrEmpty(expiration))
+                XmlDocument xmlDoc = new();
+                xmlDoc.LoadXml(xmlContent);
+
+                XmlNodeList expirationNode = xmlDoc.GetElementsByTagName("expiration");
+
+                if (expirationNode.Count > 0)
                 {
-                    DateTime expiry = DateTime.ParseExact(expiration, "yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
-
-                    string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlContent));
-
-                    License license = new(Guid.NewGuid())
+                    string expiration = expirationNode[0]!.InnerText;
+                    if (!string.IsNullOrEmpty(expiration))
                     {
-                        LicenseContent = base64Content,
-                        ExpirationDate = expiry,
-                        AssignedUser = null,
-                    };
+                        // ReSharper disable once StringLiteralTypo - This is the correct format
+                        DateTime expiry = DateTime.ParseExact(expiration, "yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
 
-                    licenses.Add(license);
+                        string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlContent));
+
+                        License license = new(Guid.NewGuid())
+                        {
+                            LicenseContent = base64Content,
+                            ExpirationDate = expiry,
+                            AssignedUser = null,
+                        };
+
+                        licenses.Add(license);
+                    }
+                    else
+                    {
+                        logger.LogWarning("Expiration date is empty in XML for entry: {EntryName}", entry.FullName);
+                    }
                 }
+                else
+                {
+                    logger.LogWarning("Expiration node not found in XML for entry: {EntryName}", entry.FullName);
+                }
+            }
+            else
+            {
+                logger.LogInformation("No XML content found in entry: {EntryName}", entry.FullName);
             }
         }
 
         return licenses;
     }
 
-    private static async Task<(XmlDocument XmlDoc, string XmlContent)> ReadXmlFromEntryAsync(ZipArchiveEntry entry)
+    private static async Task<string> ReadContentFromEntryAsync(ZipArchiveEntry entry)
     {
         await using Stream entryStream = entry.Open();
         using StreamReader reader = new(entryStream);
-        string xmlContent = await reader.ReadToEndAsync();
-
-        XmlDocument xmldoc = new();
-        xmldoc.LoadXml(xmlContent);
-
-        return (xmldoc, xmlContent);
+        return await reader.ReadToEndAsync();
     }
 }

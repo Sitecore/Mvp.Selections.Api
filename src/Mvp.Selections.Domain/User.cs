@@ -14,12 +14,6 @@ public class User(Guid id)
 
     public string Email { get; set; } = string.Empty;
 
-    internal bool IsMentor { get; set; }
-
-    internal bool IsOpenToNewMentees { get; set; }
-
-    internal string? MentorDescription { get; set; }
-
     public ImageType ImageType { get; set; }
 
     public Uri? ImageUri { get; set; }
@@ -40,6 +34,12 @@ public class User(Guid id)
 
     [NotMapped]
     public Right Rights => _rights ?? RecalculateRights();
+
+    internal bool IsMentor { get; set; }
+
+    internal bool IsOpenToNewMentees { get; set; }
+
+    internal string? MentorDescription { get; set; }
 
     public Right RecalculateRights()
     {

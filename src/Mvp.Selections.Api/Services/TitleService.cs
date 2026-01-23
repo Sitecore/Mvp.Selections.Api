@@ -125,9 +125,4 @@ public class TitleService(
     {
         return titleRepository.GetAsync(id, _standardIncludes);
     }
-
-    public bool GetAsync(Guid userId, int year)
-    {
-        return titleRepository.GetAsync(userId, year);
-    }
 }

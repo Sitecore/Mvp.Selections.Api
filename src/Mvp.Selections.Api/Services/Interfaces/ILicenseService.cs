@@ -1,19 +1,19 @@
-﻿using Microsoft.AspNetCore.Http;
-using Mvp.Selections.Api.Model;
-using Mvp.Selections.Api.Model.Request;
+﻿using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.Services.Interfaces;
 
 public interface ILicenseService
 {
-    Task<OperationResult<IList<License>>> AddAsync(IEnumerable<License> licenses);
+    Task<OperationResult<IList<License>>> AddAsync(IList<License> licenses);
 
-    Task<OperationResult<License>> UpdateAsync(Guid licenseId, License licenseUpdate, IList<string> propertyKeys);
+    Task<OperationResult<License>> AddAsync(License license);
 
-    Task<IList<License>> GetAllAsync(int page, short pageSize);
+    Task<OperationResult<License>> UpdateAsync(Guid licenseId, License license, IList<string> propertyKeys);
 
-    Task<License?> GetAsync(Guid id);
+    Task<IList<License>> GetAllAsync(DateTime? activePastDateTime = null, Guid? userId = null, int page = 1, short pageSize = 100);
 
-    Task<OperationResult<string>> GetByUserAsync(Guid userId);
+    Task<OperationResult<License>> GetAsync(Guid id);
+
+    Task<OperationResult<License>> GetActiveForUserAsync(Guid userId);
 }

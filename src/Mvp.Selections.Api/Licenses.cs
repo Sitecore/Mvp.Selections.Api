@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Mvp.Selections.Api.Extensions;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Serialization;
@@ -13,6 +14,7 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api;
 
+// ReSharper disable once ClassNeverInstantiated.Global - Instantiated by Azure Functions
 public class Licenses(
         ILogger<Licenses> logger,
         ISerializer serializer,
@@ -20,6 +22,10 @@ public class Licenses(
         ILicenseService licenseService,
         ILicenseZipParser licenseZipParser) : Base<Licenses>(logger, serializer, authService)
 {
+    private const string UserIdQueryStringKey = "userId";
+
+    private const string ActivePastDateTimeQueryStringKey = "activePastDateTime";
+
     [Function("UploadLicenses")]
     public Task<IActionResult> Add(
         [HttpTrigger(AuthorizationLevel.Anonymous, PostMethod, Route = "v1/licenses/upload")]
@@ -27,18 +33,9 @@ public class Licenses(
     {
         return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
         {
-            OperationResult<IList<License>> result = new();
-            if (req.Form.Files == null || req.Form.Files.Count == 0)
-            {
-                result.StatusCode = HttpStatusCode.BadRequest;
-                result.Messages.Add("No file uploaded.");
-            }
-            else
-            {
-                IFormFile file = req.Form.Files[0];
-                IList<License> licenseList = await licenseZipParser.ParseAsync(file);
-                result = await licenseService.AddAsync(licenseList);
-            }
+            IFormFile? file = req.Form.Files.Count > 0 ? req.Form.Files[0] : null;
+            IList<License> licenseList = file != null ? await licenseZipParser.ParseAsync(file) : [];
+            OperationResult<IList<License>> result = await licenseService.AddAsync(licenseList);
 
             return ContentResult(result, LicenseContractResolver.Instance);
         });
@@ -59,7 +56,7 @@ public class Licenses(
                 : new OperationResult<License>
                   {
                       StatusCode = HttpStatusCode.BadRequest,
-                      Messages = { "Invalid license data" }
+                      Messages = { "Invalid license data." }
                   };
 
             return ContentResult(result, LicenseContractResolver.Instance);
@@ -74,7 +71,9 @@ public class Licenses(
         return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
         {
             ListParameters listParameters = new(req);
-            IList<License> licenses = await licenseService.GetAllAsync(listParameters.Page, listParameters.PageSize);
+            Guid? userId = req.Query.GetFirstValueOrDefault<Guid?>(UserIdQueryStringKey);
+            DateTime? activePastDate = req.Query.GetFirstValueOrDefault<DateTime?>(ActivePastDateTimeQueryStringKey);
+            IList<License> licenses = await licenseService.GetAllAsync(activePastDate, userId, listParameters.Page, listParameters.PageSize);
             return ContentResult(licenses, LicenseContractResolver.Instance);
         });
     }
@@ -87,8 +86,8 @@ public class Licenses(
     {
         return await ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async _ =>
         {
-            License? license = await licenseService.GetAsync(id);
-            return ContentResult(license, LicenseContractResolver.Instance);
+            OperationResult<License> getResult = await licenseService.GetAsync(id);
+            return ContentResult(getResult, LicenseContractResolver.Instance);
         });
     }
 
@@ -99,19 +98,22 @@ public class Licenses(
     {
         return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
         {
-            OperationResult<string> result = await licenseService.GetByUserAsync(authResult.User!.Id);
-
-            if (result.StatusCode != HttpStatusCode.OK || result.Result == null)
+            IActionResult result;
+            OperationResult<License> getResult = await licenseService.GetActiveForUserAsync(authResult.User!.Id);
+            if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null })
             {
-                return ContentResult(result);
+                byte[] contentBytes = Convert.FromBase64String(getResult.Result.LicenseContent);
+                result = new FileContentResult(contentBytes, "application/xml")
+                {
+                    FileDownloadName = "license.xml"
+                };
+            }
+            else
+            {
+                result = new NotFoundResult();
             }
 
-            byte[] contentBytes = Convert.FromBase64String(result.Result);
-
-            return new FileContentResult(contentBytes, "application/xml")
-            {
-                FileDownloadName = "license.xml"
-            };
+            return result;
         });
     }
 }

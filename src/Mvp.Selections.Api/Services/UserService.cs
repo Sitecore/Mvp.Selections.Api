@@ -180,8 +180,8 @@ public class UserService(
     public async Task<OperationResult<User>> MergeAsync(Guid oldId, Guid newId)
     {
         OperationResult<User> result = new();
-        User? old = await userRepository.GetAsync(oldId, u => u.Roles);
-        User? merged = await userRepository.GetAsync(newId, u => u.Consents, u => u.Roles);
+        User? old = await userRepository.GetAsync(oldId, u => u.Roles, u => u.Country!);
+        User? merged = await userRepository.GetAsync(newId, u => u.Consents, u => u.Roles, u => u.Country!);
         if (old != null && merged != null)
         {
             await userRepository.MergeAsync(old, merged);
