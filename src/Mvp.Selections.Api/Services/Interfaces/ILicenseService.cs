@@ -15,5 +15,5 @@ public interface ILicenseService
 
     Task<OperationResult<License>> GetAsync(Guid id);
 
-    Task<OperationResult<License>> GetActiveForUserAsync(Guid userId);
+    Task<OperationResult<License>> GetActiveForUserAsync(User user);
 }

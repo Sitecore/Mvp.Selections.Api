@@ -11,9 +11,12 @@ namespace Mvp.Selections.Api.Services;
 public class LicenseService(
     ILogger<LicenseService> logger,
     ILicenseRepository licenseRepository,
-    IUserService userService)
+    IUserService userService,
+    ITitleService titleService)
     : ILicenseService
 {
+    private static readonly Random _Rnd = new();
+
     private readonly Expression<Func<License, object>>[] _standardIncludes =
     [
         l => l.AssignedUser!
@@ -124,10 +127,10 @@ public class LicenseService(
         return result;
     }
 
-    public async Task<OperationResult<License>> GetActiveForUserAsync(Guid userId)
+    public async Task<OperationResult<License>> GetActiveForUserAsync(User user)
     {
         OperationResult<License> result = new();
-        IList<License> licenses = await licenseRepository.GetAllReadOnlyAsync(DateTime.UtcNow, userId);
+        IList<License> licenses = await licenseRepository.GetAllReadOnlyAsync(DateTime.UtcNow, user.Id);
         if (licenses.Count > 0)
         {
             result.StatusCode = HttpStatusCode.OK;
@@ -135,10 +138,35 @@ public class LicenseService(
         }
         else
         {
-            result.StatusCode = HttpStatusCode.NotFound;
-            string message = $"Could not find active License for User '{userId}'.";
-            result.Messages.Add(message);
-            logger.LogWarning("{Message}", message);
+            Title? currentYearTitle = await titleService.GetForUserInYearAsync(user.Id, (short)DateTime.UtcNow.Year);
+            if (currentYearTitle != null)
+            {
+                IList<License> availableLicense = await licenseRepository.GetAllUnassignedAsync(DateTime.UtcNow, 1, 10);
+                if (availableLicense.Count > 0)
+                {
+                    // NOTE [IVA] Doing a little random here to try and prevent concurrent assignment of the same license
+                    int selectedIndex = _Rnd.Next(0, availableLicense.Count - 1);
+                    availableLicense[selectedIndex].AssignedUser = user;
+                    await licenseRepository.SaveChangesAsync();
+
+                    result.StatusCode = HttpStatusCode.OK;
+                    result.Result = availableLicense[selectedIndex];
+                }
+                else
+                {
+                    result.StatusCode = HttpStatusCode.NotFound;
+                    string message = $"Could not find an available License for User '{user.Id}'.";
+                    result.Messages.Add(message);
+                    logger.LogWarning("{Message}", message);
+                }
+            }
+            else
+            {
+                result.StatusCode = HttpStatusCode.Forbidden;
+                string message = $"User '{user.Id}' is not entitled to a License.";
+                result.Messages.Add(message);
+                logger.LogWarning("{Message}", message);
+            }
         }
 
         return result;

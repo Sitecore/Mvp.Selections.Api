@@ -125,4 +125,9 @@ public class TitleService(
     {
         return titleRepository.GetAsync(id, _standardIncludes);
     }
+
+    public Task<Title?> GetForUserInYearAsync(Guid userId, short year)
+    {
+        return titleRepository.GetForUserInYearReadOnlyAsync(userId, year);
+    }
 }

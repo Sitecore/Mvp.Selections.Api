@@ -99,7 +99,7 @@ public class Licenses(
         return ExecuteSafeSecurityValidatedAsync(req, [Right.Any], async authResult =>
         {
             IActionResult result;
-            OperationResult<License> getResult = await licenseService.GetActiveForUserAsync(authResult.User!.Id);
+            OperationResult<License> getResult = await licenseService.GetActiveForUserAsync(authResult.User!);
             if (getResult is { StatusCode: HttpStatusCode.OK, Result: not null })
             {
                 byte[] contentBytes = Convert.FromBase64String(getResult.Result.LicenseContent);
@@ -110,7 +110,7 @@ public class Licenses(
             }
             else
             {
-                result = new NotFoundResult();
+                result = ContentResult(getResult);
             }
 
             return result;
