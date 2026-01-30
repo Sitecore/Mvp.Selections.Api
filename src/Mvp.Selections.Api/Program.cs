@@ -62,6 +62,7 @@ public class Program
                 services.AddScoped<ISerializer, JsonSerializer>();
                 services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
                 services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
+                services.AddScoped<ILicenseZipParser, LicenseZipParser>();
 
                 // Services
                 services.AddScoped<IAuthService, AuthService>();
@@ -85,6 +86,7 @@ public class Program
                 services.AddScoped<ITitleService, TitleService>();
                 services.AddScoped<IMvpProfileService, UserService>();
                 services.AddScoped<IMentorService, UserService>();
+                services.AddScoped<ILicenseService, LicenseService>();
 
                 // Repositories
                 services.AddScoped<IUserRepository, UserRepository>();
@@ -104,6 +106,7 @@ public class Program
                 services.AddScoped<ICommentRepository, CommentRepository>();
                 services.AddScoped<ITitleRepository, TitleRepository>();
                 services.AddScoped<IDispatchRepository, DispatchRepository>();
+                services.AddScoped<ILicenseRepository, LicenseRepository>();
 
                 // Database
                 services.AddDbContextPool<Context>(options =>

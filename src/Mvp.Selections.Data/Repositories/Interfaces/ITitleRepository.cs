@@ -24,4 +24,6 @@ public interface ITitleRepository : IBaseRepository<Title, Guid>
         int page = 1,
         short pageSize = 100,
         params Expression<Func<Title, object>>[] includes);
+
+    Task<Title?> GetForUserInYearReadOnlyAsync(Guid userId, short year, params Expression<Func<Title, object>>[] includes);
 }
