@@ -1752,6 +1752,11 @@ public class MvpSelectionsApiClient
             {
                 result.Result.FileName = defaultFileName;
             }
+
+            if (response.Content.Headers.ContentType != null && !string.IsNullOrWhiteSpace(response.Content.Headers.ContentType.MediaType))
+            {
+                result.Result.ContentType = response.Content.Headers.ContentType.MediaType;
+            }
         }
         else
         {

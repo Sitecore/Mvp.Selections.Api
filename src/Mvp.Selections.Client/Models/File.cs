@@ -11,6 +11,11 @@ public class File
     public string FileName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the media type of the File.
+    /// </summary>
+    public string ContentType { get; set; } = "application/octet-stream";
+
+    /// <summary>
     /// Gets or sets the binary content data.
     /// </summary>
     public Stream Content { get; set; } = Stream.Null;
