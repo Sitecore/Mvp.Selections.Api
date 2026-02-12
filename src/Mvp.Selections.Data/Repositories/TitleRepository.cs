@@ -36,6 +36,15 @@ public class TitleRepository(Context context, ICurrentUserNameProvider currentUs
         return await GetAllQuery(name, mvpTypeIds, years, countryIds, onlyFinalized, page, pageSize, includes).AsNoTracking().ToListAsync();
     }
 
+    public async Task<Title?> GetForUserInYearReadOnlyAsync(Guid userId, short year, params Expression<Func<Title, object>>[] includes)
+    {
+        return await Context.Titles
+            .Where(t => t.Application.Applicant.Id == userId && t.Application.Selection.Year == year)
+            .Includes(includes)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+    }
+
     private IQueryable<Title> GetAllQuery(
         string? name = null,
         IList<short>? mvpTypeIds = null,

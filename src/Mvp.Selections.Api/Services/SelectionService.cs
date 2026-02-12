@@ -101,6 +101,11 @@ public class SelectionService(ISelectionRepository selectionRepository)
             {
                 existingSelection.ReviewsEnd = selection.ReviewsEnd;
             }
+
+            if (propertyKeys.Any(key => key.Equals(nameof(Selection.Finalized), StringComparison.InvariantCultureIgnoreCase)))
+            {
+                existingSelection.Finalized = selection.Finalized;
+            }
         }
         else
         {
