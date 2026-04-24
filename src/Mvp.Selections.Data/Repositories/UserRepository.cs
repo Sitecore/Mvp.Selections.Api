@@ -147,6 +147,14 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
         return await GetAllQuery(name, email, countryId, true, page, pageSize, includes).AsNoTracking().ToListAsync();
     }
 
+    public Task<User?> GetLeanForMvpProfileReadOnlyAsync(Guid id)
+    {
+        return Context.Users
+            .Include(u => u.Country)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(u => u.Id == id);
+    }
+
     public async Task<IList<User>> GetAllForRolesReadOnlyAsync(IEnumerable<Guid> roleIds, params Expression<Func<User, object>>[] includes)
     {
         return await Context.Users

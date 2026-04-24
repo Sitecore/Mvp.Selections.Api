@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="HotChocolate.AzureFunctions.IsolatedProcess" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />

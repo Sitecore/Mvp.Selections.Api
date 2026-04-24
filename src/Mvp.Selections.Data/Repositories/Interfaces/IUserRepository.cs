@@ -36,4 +36,6 @@ public interface IUserRepository : IBaseRepository<User, Guid>
     Task MergeAsync(User old, User merged);
 
     Task<IList<User>> GetMentorsReadOnlyAsync(string? name = null, string? email = null, short? countryId = null, int page = 1, short pageSize = 100, params Expression<Func<User, object>>[] includes);
+
+    Task<User?> GetLeanForMvpProfileReadOnlyAsync(Guid id);
 }
