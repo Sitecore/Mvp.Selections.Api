@@ -47,8 +47,10 @@ public class LicenseZipParser(ILogger<LicenseZipParser> logger)
 
             if (!string.IsNullOrEmpty(xmlContent))
             {
-                XmlDocument xmlDoc = new();
-                xmlDoc.LoadXml(xmlContent);
+                XmlReaderSettings settings = new() { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
+                using XmlReader reader = XmlReader.Create(new StringReader(xmlContent), settings);
+                XmlDocument xmlDoc = new() { XmlResolver = null };
+                xmlDoc.Load(reader);
 
                 XmlNodeList expirationNode = xmlDoc.GetElementsByTagName("expiration");
 

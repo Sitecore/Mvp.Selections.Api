@@ -26,4 +26,20 @@ public interface ITitleRepository : IBaseRepository<Title, Guid>
         params Expression<Func<Title, object>>[] includes);
 
     Task<Title?> GetForUserInYearReadOnlyAsync(Guid userId, short year, params Expression<Func<Title, object>>[] includes);
+
+    Task<(IList<Title> Items, int TotalCount)> GetForUserReadOnlyAsync(
+        Guid userId,
+        IList<short>? mvpTypeIds = null,
+        IList<short>? years = null,
+        int page = 1,
+        short pageSize = 100,
+        params Expression<Func<Title, object>>[] includes);
+
+    Task<(IList<Title> Items, int TotalCount)> GetForUsersReadOnlyAsync(
+        IList<Guid> userIds,
+        IList<short>? mvpTypeIds = null,
+        IList<short>? years = null,
+        int page = 1,
+        short pageSize = 100,
+        params Expression<Func<Title, object>>[] includes);
 }
