@@ -14,13 +14,15 @@ namespace Mvp.Selections.Api;
 public abstract class Base<TLogger>(ILogger<TLogger> logger, ISerializer serializer, IAuthService authService)
     where TLogger : Base<TLogger>
 {
-    protected const string GetMethod = "get";
+    protected const string GetMethod = "GET";
 
-    protected const string PostMethod = "post";
+    protected const string PostMethod = "POST";
 
-    protected const string PatchMethod = "patch";
+    protected const string PatchMethod = "PATCH";
 
-    protected const string DeleteMethod = "delete";
+    protected const string DeleteMethod = "DELETE";
+
+    protected const string OptionsMethod = "OPTIONS";
 
     protected const string JsonContentType = "application/json";
 

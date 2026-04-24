@@ -9,6 +9,9 @@ using Mvp.Selections.Api.Cache;
 using Mvp.Selections.Api.Clients;
 using Mvp.Selections.Api.Clients.Interfaces;
 using Mvp.Selections.Api.Configuration;
+using Mvp.Selections.Api.GraphQL;
+using Mvp.Selections.Api.GraphQL.DataLoaders;
+using Mvp.Selections.Api.GraphQL.Types;
 using Mvp.Selections.Api.Helpers;
 using Mvp.Selections.Api.Helpers.Interfaces;
 using Mvp.Selections.Api.Serialization;
@@ -55,6 +58,8 @@ public class Program
                     configuration.GetSection(CacheOptions.Cache).Bind(options));
                 services.AddOptions<SendClientOptions>().Configure<IConfiguration>((options, configuration) =>
                     configuration.GetSection(SendClientOptions.SendClient).Bind(options));
+                services.AddOptions<GraphQlOptions>().Configure<IConfiguration>((options, configuration) =>
+                    configuration.GetSection(GraphQlOptions.GraphQl).Bind(options));
 
                 // Helpers
                 services.AddSingleton<ICacheManager, CacheManager>();
@@ -140,6 +145,34 @@ public class Program
                         provider.GetRequiredService<IOptions<SendClientOptions>>();
                     client.BaseAddress = options.Value.BaseAddress;
                 });
+
+                // GraphQL
+                GraphQlOptions graphQlOptions = new();
+                host.Configuration.GetSection(GraphQlOptions.GraphQl).Bind(graphQlOptions);
+
+                services
+                    .AddGraphQLFunction()
+                    .AddQueryType<Query>()
+                    .AddType<MvpProfileType>()
+                    .AddType<MvpProfileSearchResultType>()
+                    .AddType<CountryType>()
+                    .AddType<TitleType>()
+                    .AddType<TitleApplicationType>()
+                    .AddType<TitleSelectionType>()
+                    .AddType<MvpTypeType>()
+                    .AddType<ContributionGqlType>()
+                    .AddType<ProductType>()
+                    .AddType<ProfileLinkGqlType>()
+                    .AddType<PaginatedTitlesType>()
+                    .AddType<PaginatedContributionsType>()
+                    .AddType<PaginatedProfileLinksType>()
+                    .AddType<SearchFacetType>()
+                    .AddType<SearchFacetOptionType>()
+                    .AddDataLoader<TitlesByUserIdDataLoader>()
+                    .AddDataLoader<ContributionsByUserIdDataLoader>()
+                    .AddDataLoader<ProfileLinksByUserIdDataLoader>()
+                    .AddMaxExecutionDepthRule(graphQlOptions.MaxQueryDepth)
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = false);
             })
             .Build();
 
