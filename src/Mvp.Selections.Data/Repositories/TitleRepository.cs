@@ -45,6 +45,58 @@ public class TitleRepository(Context context, ICurrentUserNameProvider currentUs
             .FirstOrDefaultAsync();
     }
 
+    public async Task<(IList<Title> Items, int TotalCount)> GetForUserReadOnlyAsync(
+        Guid userId,
+        IList<short>? mvpTypeIds = null,
+        IList<short>? years = null,
+        int page = 1,
+        short pageSize = 100,
+        params Expression<Func<Title, object>>[] includes)
+    {
+        IQueryable<Title> query = GetForUserQuery(userId, mvpTypeIds, years);
+        int totalCount = await query.CountAsync();
+        IList<Title> items = await query
+            .OrderByDescending(t => t.Application.Selection.Year)
+            .ThenBy(t => t.Id)
+            .Page(page, pageSize)
+            .Includes(includes)
+            .AsNoTracking()
+            .ToListAsync();
+        return (items, totalCount);
+    }
+
+    public async Task<(IList<Title> Items, int TotalCount)> GetForUsersReadOnlyAsync(
+        IList<Guid> userIds,
+        IList<short>? mvpTypeIds = null,
+        IList<short>? years = null,
+        int page = 1,
+        short pageSize = 100,
+        params Expression<Func<Title, object>>[] includes)
+    {
+        IQueryable<Title> query = Context.Titles
+            .Where(t => userIds.Contains(t.Application.Applicant.Id) && t.Application.Selection.Finalized);
+
+        if (mvpTypeIds is { Count: > 0 })
+        {
+            query = query.Where(t => mvpTypeIds.Contains(t.MvpType.Id));
+        }
+
+        if (years is { Count: > 0 })
+        {
+            query = query.Where(t => years.Contains(t.Application.Selection.Year));
+        }
+
+        int totalCount = await query.CountAsync();
+        IList<Title> items = await query
+            .OrderByDescending(t => t.Application.Selection.Year)
+            .ThenBy(t => t.Id)
+            .Page(page, pageSize)
+            .Includes(includes)
+            .AsNoTracking()
+            .ToListAsync();
+        return (items, totalCount);
+    }
+
     private IQueryable<Title> GetAllQuery(
         string? name = null,
         IList<short>? mvpTypeIds = null,
@@ -88,5 +140,23 @@ public class TitleRepository(Context context, ICurrentUserNameProvider currentUs
             .Skip(page * pageSize)
             .Take(pageSize)
             .Includes(includes);
+    }
+
+    private IQueryable<Title> GetForUserQuery(Guid userId, IList<short>? mvpTypeIds, IList<short>? years)
+    {
+        IQueryable<Title> query = Context.Titles
+            .Where(t => t.Application.Applicant.Id == userId && t.Application.Selection.Finalized);
+
+        if (mvpTypeIds is { Count: > 0 })
+        {
+            query = query.Where(t => mvpTypeIds.Contains(t.MvpType.Id));
+        }
+
+        if (years is { Count: > 0 })
+        {
+            query = query.Where(t => years.Contains(t.Application.Selection.Year));
+        }
+
+        return query;
     }
 }
