@@ -5,6 +5,7 @@ using Mvp.Selections.Domain;
 
 namespace Mvp.Selections.Api.GraphQL.DataLoaders;
 
+// ReSharper disable once ClassNeverInstantiated.Global - Implicitly used by HotChocolate
 public sealed class ContributionsByUserIdDataLoader(
     IServiceProvider serviceProvider,
     IBatchScheduler batchScheduler,

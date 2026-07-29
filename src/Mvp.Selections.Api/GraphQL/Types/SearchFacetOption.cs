@@ -1,11 +1,11 @@
 using HotChocolate.Types;
-using Mvp.Selections.Api.Model;
 
 namespace Mvp.Selections.Api.GraphQL.Types;
 
-public class SearchFacetOptionType : ObjectType<SearchFacetOption>
+// ReSharper disable once ClassNeverInstantiated.Global - Implicitly used by HotChocolate
+public class SearchFacetOption : ObjectType<Model.SearchFacetOption>
 {
-    protected override void Configure(IObjectTypeDescriptor<SearchFacetOption> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Model.SearchFacetOption> descriptor)
     {
         descriptor.Name("SearchFacetOption");
 
