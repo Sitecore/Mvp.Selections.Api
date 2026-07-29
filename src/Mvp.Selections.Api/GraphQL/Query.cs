@@ -3,7 +3,6 @@ using HotChocolate;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Configuration;
 using Mvp.Selections.Api.GraphQL.Types;
-using Mvp.Selections.Api.Model;
 using Mvp.Selections.Api.Model.Request;
 using Mvp.Selections.Api.Services.Interfaces;
 using Mvp.Selections.Data.Repositories.Interfaces;
@@ -13,9 +12,10 @@ using Mvp.Selections.Domain;
 // ReSharper disable UnusedMember.Global - GraphQL query methods must be public and are invoked via reflection, so they may appear unused to static analysis tools.
 namespace Mvp.Selections.Api.GraphQL;
 
+// ReSharper disable once ClassNeverInstantiated.Global - Implicitly used by HotChocolate
 public class Query
 {
-    public async Task<MvpProfile?> GetMvpProfile(
+    public async Task<Model.MvpProfile?> GetMvpProfile(
         Guid id,
         [Service] IUserRepository userRepository,
         [Service] ITitleRepository titleRepository)
@@ -26,13 +26,13 @@ public class Query
             return null;
         }
 
-        (IList<Title> _, int titleCount) = await titleRepository.GetForUserReadOnlyAsync(user.Id, pageSize: 1);
+        (IList<Domain.Title> _, int titleCount) = await titleRepository.GetForUserReadOnlyAsync(user.Id, pageSize: 1);
         if (titleCount == 0)
         {
             return null;
         }
 
-        return new MvpProfile
+        return new Model.MvpProfile
         {
             Id = user.Id,
             Name = user.Name,
@@ -72,7 +72,7 @@ public class Query
             pageSize = gqlOptions.MaxPageSize;
         }
 
-        SearchOperationResult<MvpProfile> searchResult = await mvpProfileService!.SearchMvpProfileAsync(
+        SearchOperationResult<Model.MvpProfile> searchResult = await mvpProfileService!.SearchMvpProfileAsync(
             text,
             mvpTypeIds,
             years,

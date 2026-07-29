@@ -1,16 +1,17 @@
 using HotChocolate;
 using Microsoft.Extensions.Options;
 using Mvp.Selections.Api.Configuration;
-using Mvp.Selections.Api.Model;
 using Mvp.Selections.Data.Repositories.Interfaces;
 using Mvp.Selections.Domain;
 
+#pragma warning disable CA1822
 namespace Mvp.Selections.Api.GraphQL.Types;
 
+// ReSharper disable once ClassNeverInstantiated.Global - Implicitly used by HotChocolate
 internal sealed class MvpProfileResolvers
 {
-    public async Task<PaginatedResult<Title>> GetTitlesAsync(
-        [Parent] MvpProfile profile,
+    public async Task<PaginatedResult<Domain.Title>> GetTitlesAsync(
+        [Parent] Model.MvpProfile profile,
         IList<short>? mvpTypeIds,
         IList<short>? years,
         int page,
@@ -19,7 +20,7 @@ internal sealed class MvpProfileResolvers
         IOptions<GraphQlOptions> options)
     {
         (page, pageSize) = NormalizePaging(page, pageSize, options.Value);
-        (IList<Title> items, int totalCount) = await titleRepository.GetForUserReadOnlyAsync(
+        (IList<Domain.Title> items, int totalCount) = await titleRepository.GetForUserReadOnlyAsync(
             profile.Id,
             mvpTypeIds,
             years,
@@ -28,7 +29,7 @@ internal sealed class MvpProfileResolvers
             t => t.MvpType,
             t => t.Application,
             t => t.Application.Selection);
-        return new PaginatedResult<Title>
+        return new PaginatedResult<Domain.Title>
         {
             Items = items.ToList(),
             TotalCount = totalCount,
@@ -37,8 +38,8 @@ internal sealed class MvpProfileResolvers
         };
     }
 
-    public async Task<PaginatedResult<Contribution>> GetPublicContributionsAsync(
-        [Parent] MvpProfile profile,
+    public async Task<PaginatedResult<Domain.Contribution>> GetPublicContributionsAsync(
+        [Parent] Model.MvpProfile profile,
         IList<ContributionType>? types,
         DateTime? fromDate,
         DateTime? toDate,
@@ -49,7 +50,7 @@ internal sealed class MvpProfileResolvers
         IOptions<GraphQlOptions> options)
     {
         (page, pageSize) = NormalizePaging(page, pageSize, options.Value);
-        (IList<Contribution> items, int totalCount) = await contributionRepository.GetPublicForUserReadOnlyAsync(
+        (IList<Domain.Contribution> items, int totalCount) = await contributionRepository.GetPublicForUserReadOnlyAsync(
             profile.Id,
             types,
             fromDate,
@@ -58,7 +59,7 @@ internal sealed class MvpProfileResolvers
             page,
             (short)pageSize,
             c => c.RelatedProducts);
-        return new PaginatedResult<Contribution>
+        return new PaginatedResult<Domain.Contribution>
         {
             Items = items.ToList(),
             TotalCount = totalCount,
@@ -67,8 +68,8 @@ internal sealed class MvpProfileResolvers
         };
     }
 
-    public async Task<PaginatedResult<ProfileLink>> GetProfileLinksAsync(
-        [Parent] MvpProfile profile,
+    public async Task<PaginatedResult<Domain.ProfileLink>> GetProfileLinksAsync(
+        [Parent] Model.MvpProfile profile,
         IList<ProfileLinkType>? types,
         int page,
         int pageSize,
@@ -76,12 +77,12 @@ internal sealed class MvpProfileResolvers
         IOptions<GraphQlOptions> options)
     {
         (page, pageSize) = NormalizePaging(page, pageSize, options.Value);
-        (IList<ProfileLink> items, int totalCount) = await profileLinkRepository.GetForUserReadOnlyAsync(
+        (IList<Domain.ProfileLink> items, int totalCount) = await profileLinkRepository.GetForUserReadOnlyAsync(
             profile.Id,
             types,
             page,
             (short)pageSize);
-        return new PaginatedResult<ProfileLink>
+        return new PaginatedResult<Domain.ProfileLink>
         {
             Items = items.ToList(),
             TotalCount = totalCount,
