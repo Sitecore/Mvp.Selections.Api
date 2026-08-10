@@ -82,7 +82,7 @@ public class Reviews(
         HttpRequest req,
         Guid id)
     {
-        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin], async authResult =>
+        return ExecuteSafeSecurityValidatedAsync(req, [Right.Admin, Right.Review], async authResult =>
         {
             OperationResult<Review> removeResult = await reviewService.RemoveAsync(authResult.User!, id);
             return ContentResult(removeResult);
