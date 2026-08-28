@@ -71,6 +71,7 @@ public class ScoreCategoryService(
                     Selection = selection,
                     MvpType = mvpType,
                     Name = scoreCategory.Name,
+                    Description = scoreCategory.Description,
                     Weight = scoreCategory.Weight,
                     SortRank = scoreCategory.SortRank
                 };
@@ -163,12 +164,17 @@ public class ScoreCategoryService(
                 existingCategory.Name = scoreCategory.Name;
             }
 
-            if (scoreCategory.SortRank != default)
+            if (!string.IsNullOrWhiteSpace(scoreCategory.Description))
+            {
+                existingCategory.Description = scoreCategory.Description;
+            }
+
+            if (scoreCategory.SortRank != 0)
             {
                 existingCategory.SortRank = scoreCategory.SortRank;
             }
 
-            if (scoreCategory.Weight != default)
+            if (scoreCategory.Weight != 0)
             {
                 existingCategory.Weight = scoreCategory.Weight;
             }

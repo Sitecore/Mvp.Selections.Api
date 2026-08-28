@@ -5,6 +5,8 @@ public class ScoreCategory(Guid id)
 {
     public string Name { get; set; } = string.Empty;
 
+    public string Description { get; set; } = string.Empty;
+
     public decimal Weight { get; set; } = 1;
 
     public int SortRank { get; set; } = 100;
