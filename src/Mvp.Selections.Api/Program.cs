@@ -63,7 +63,7 @@ public class Program
 
                 // Helpers
                 services.AddSingleton<ICacheManager, CacheManager>();
-                services.AddSingleton<AvatarUriHelper, AvatarUriHelper>();
+                services.AddScoped<AvatarUriHelper, AvatarUriHelper>();
                 services.AddScoped<ISerializer, JsonSerializer>();
                 services.AddScoped<ICurrentUserNameProvider, CurrentUserNameProvider>();
                 services.AddScoped<Data.Interfaces.ICurrentUserNameProvider>(s => s.GetRequiredService<ICurrentUserNameProvider>());
@@ -171,7 +171,7 @@ public class Program
                     .AddDataLoader<TitlesByUserIdDataLoader>()
                     .AddDataLoader<ContributionsByUserIdDataLoader>()
                     .AddDataLoader<ProfileLinksByUserIdDataLoader>()
-                    .AddMaxExecutionDepthRule(graphQlOptions.MaxQueryDepth)
+                    .AddMaxExecutionDepthRule(graphQlOptions.MaxQueryDepth, skipIntrospectionFields: true)
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = false);
             })
             .Build();
