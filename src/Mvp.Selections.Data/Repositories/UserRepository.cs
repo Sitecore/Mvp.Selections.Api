@@ -113,6 +113,16 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             comment.User = merged;
         });
 
+        await Context.Dispatches.Where(d => d.Sender!.Id == old.Id).ForEachAsync(dispatch =>
+        {
+            dispatch.Sender = merged;
+        });
+
+        await Context.Dispatches.Where(d => d.Receiver!.Id == old.Id).ForEachAsync(dispatch =>
+        {
+            dispatch.Receiver = merged;
+        });
+
         foreach (Role role in old.Roles)
         {
             if (merged.Roles.All(r => r.Id != role.Id))
