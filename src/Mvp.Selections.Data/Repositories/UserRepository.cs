@@ -118,9 +118,14 @@ public class UserRepository(Context context, ICurrentUserNameProvider currentUse
             dispatch.Sender = merged;
         });
 
-        await Context.Dispatches.Where(d => d.Receiver!.Id == old.Id).ForEachAsync(dispatch =>
+        await Context.Dispatches.Where(d => d.Receiver.Id == old.Id).ForEachAsync(dispatch =>
         {
             dispatch.Receiver = merged;
+        });
+
+        await Context.Licenses.Where(l => l.AssignedUser!.Id == old.Id).ForEachAsync(license =>
+        {
+            license.AssignedUser = merged;
         });
 
         foreach (Role role in old.Roles)
